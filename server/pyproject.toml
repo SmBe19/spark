@@ -1,0 +1,23 @@
+[project]
+name = "spark"
+version = "0.1.0"
+description = "Server for Spark"
+readme = "README.md"
+authors = [
+    { name = "Benjamin Schmid" }
+]
+requires-python = ">=3.9"
+dependencies = [
+    "argon2-cffi>=25.1.0",
+    "pymongo>=4.18.3",
+    "python-dotenv>=1.2.1",
+]
+
+[project.scripts]
+spark = "spark.server:run_server"
+add_user = "spark.spark_cli:add_user"
+ping_mongo = "spark.mongo_utils:ping_mongo"
+
+[build-system]
+requires = ["uv_build>=0.12.21,<0.13.0"]
+build-backend = "uv_build"

@@ -1,21 +1,39 @@
 import os
+
 import pymongo
+from flask import g
 
 
 def get_mongo_database():
-    uri = os.getenv("SPARK_MONGODB_URI")
-    database_name = os.getenv("SPARK_MONGODB_DBNAME")
+    if "mongo_db" not in g:
+        g.mongo_db = get_new_mongo_database()
+    return g.mongo_db
+
+
+def close_mongo_database(e=None):
+    mongo_db = g.pop("mongo_db", None)
+    if mongo_db is not None:
+        mongo_db.client.close()
+
+
+def init_mongo_app(app):
+    app.teardown_appcontext(close_mongo_database)
+
+
+def get_new_mongo_database():
+    uri = os.getenv("MONGO_URL")
+    database_name = os.getenv("SPARK_MONGO_DBNAME")
     client = pymongo.MongoClient(uri)
     db = client[database_name]
     return db
 
 
 def ping_mongo():
-    db = get_mongo_database()
+    db = get_new_mongo_database()
     try:
         db.command("ping")
         print("Successfully connected to MongoDB.")
-    except Exception as e:
+    except Exception as e:  # noqa: BLE001
         print(f"Failed to connect to MongoDB: {e}")
     finally:
         db.client.close()

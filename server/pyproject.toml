@@ -9,13 +9,19 @@ authors = [
 requires-python = ">=3.9"
 dependencies = [
     "argon2-cffi>=25.1.0",
+    "flask>=3.1.3",
+    "flask-socketio>=5.7.0",
+    "gevent>=26.7.0",
+    "gunicorn>=23.0.0",
+    "packaging>=26.3",
     "pymongo>=4.18.3",
     "python-dotenv>=1.2.1",
 ]
 
 [project.scripts]
-spark = "spark.server:run_server"
-add_user = "spark.spark_cli:add_user"
+debug_server = "spark.server:debug_server"
+prod_server = "spark.server:prod_server"
+add_user = "spark.spark_cli:cli_add_user"
 ping_mongo = "spark.mongo_utils:ping_mongo"
 
 [build-system]

@@ -9,6 +9,7 @@ def get_mongo_database():
     db = client[database_name]
     return db
 
+
 def ping_mongo():
     db = get_mongo_database()
     try:

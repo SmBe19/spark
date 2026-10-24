@@ -6,3 +6,6 @@ In `../spark_devenv` you can run `docker compose up -d` to start a debug mongodb
 
 ## Running
 To start the server, run `uv run spark`.
+
+## Formatter
+Run `uv run ruff format` to format the code.

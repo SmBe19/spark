@@ -1,5 +1,6 @@
 from spark.mongo_utils import get_mongo_database
 
+
 def run_server():
     print("Hi")
     db = get_mongo_database()

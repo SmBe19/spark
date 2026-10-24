@@ -3,6 +3,7 @@ import argon2
 
 from spark.mongo_utils import get_mongo_database
 
+
 def add_user():
     parser = argparse.ArgumentParser(description="Add a new user to the database.")
     parser.add_argument("username", type=str, help="The username of the new user.")
@@ -12,6 +13,7 @@ def add_user():
     password = args.password
     if password is None:
         import getpass
+
         password = getpass.getpass(prompt="Password: ")
     password_hash = argon2.PasswordHasher().hash(password)
 
@@ -21,6 +23,8 @@ def add_user():
     if existing_user:
         print(f"User '{args.username}' already exists.")
     else:
-        users_collection.insert_one({"username": args.username, "password_hash": password_hash})
+        users_collection.insert_one(
+            {"username": args.username, "password_hash": password_hash}
+        )
         print(f"User '{args.username}' added successfully.")
     db.client.close()

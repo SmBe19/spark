@@ -1,5 +1,6 @@
 export interface Poll {
   questions: PollQuestion[];
+  pages: number[][];
 }
 
 export type PollType = 'options' | 'text' | 'rating' | 'estimate';

@@ -6,9 +6,10 @@ export class PollService {
   parsePoll(pollConfig: string): Poll {
     const lines = pollConfig.split('\n');
     const questions: PollQuestion[] = [];
+    const pages: number[][] = [];
 
     if (lines.length === 0) {
-      return { questions };
+      return { questions, pages };
     }
 
     let currentLine = 0;
@@ -32,10 +33,14 @@ export class PollService {
         currentLine++;
       }
       const question = this.parseQuestion(questions.length, questionLines);
+      if (pages.length === 0 || !question.joinWithPrevious) {
+        pages.push([]);
+      }
+      pages[pages.length - 1].push(question.index);
       questions.push(question);
     }
 
-    return { questions };
+    return { questions, pages };
   }
 
   private parseQuestion(index: number, lines: string[]): PollQuestion {
@@ -60,7 +65,7 @@ export class PollService {
         maxRating: parseInt(flags['rate'] as string) || 5,
       };
     }
-    if (flags['estimate']) {
+    if (flags['estimate'] || flags['est']) {
       return {
         ...baseQuestion,
         pollType: 'estimate',

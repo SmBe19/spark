@@ -72,7 +72,11 @@
     <div class="poll-content-form">
       <form (submit)="updatePoll()">
         <div>
-          <textarea placeholder="Poll" [formField]="roomInfoForm.activePoll"></textarea>
+          <textarea
+            placeholder="Poll"
+            [formField]="roomInfoForm.activePoll"
+            (keyup.control.enter)="$event.preventDefault(); updatePoll()"
+          ></textarea>
         </div>
         <div>
           <button type="submit" [disabled]="!dirtyValues().activePoll">Update</button>
@@ -80,5 +84,10 @@
       </form>
     </div>
   </div>
-  <div class="poll-preview">Poll preview</div>
+  <div class="poll-preview">
+    <app-poll-preview
+      [parsedPoll]="activePollParsed()"
+      [activeQuestionIndex]="roomInfoModel().activeQuestionIndex"
+    />
+  </div>
 </div>

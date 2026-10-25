@@ -1,14 +1,15 @@
 import { Component, computed, debounced, inject, input, signal } from '@angular/core';
 import { RoomInfoShort } from '../../model/rooms';
-import { form, FormField } from '@angular/forms/signals';
+import { form, FormField, max, min } from '@angular/forms/signals';
 import { RoomService } from '../../service/room-service';
 import { FormsModule } from '@angular/forms';
 import { toObservable } from '@angular/core/rxjs-interop';
 import { PollService } from '../../service/poll-service';
 import { NgClass } from '@angular/common';
+import { PollPreview } from '../poll-preview/poll-preview';
 
 @Component({
-  imports: [FormField, FormsModule, NgClass],
+  imports: [FormField, FormsModule, NgClass, PollPreview],
   selector: 'app-room-admin',
   styleUrl: './room-admin.css',
   templateUrl: './room-admin.html',
@@ -20,7 +21,10 @@ export class RoomAdmin {
     activePoll: '',
     activeQuestionIndex: 0,
   });
-  roomInfoForm = form(this.roomInfoModel);
+  roomInfoForm = form(this.roomInfoModel, (schemaPath) => {
+    min(schemaPath.activeQuestionIndex, 0);
+    max(schemaPath.activeQuestionIndex, () => this.activePollParsed().questions.length - 1);
+  });
   activePollDebounced = debounced(() => this.roomInfoModel().activePoll, 500);
   activePollParsed = computed(() => this.pollService.parsePoll(this.activePollDebounced.value()));
   dirtyValues = computed(() => {
@@ -69,6 +73,9 @@ export class RoomAdmin {
   }
 
   updatePoll() {
+    if (!this.dirtyValues().activePoll) {
+      return;
+    }
     this.roomService.updateRoomActivePoll(
       this.roomService.activeRoom.value()?.id || '',
       this.roomInfoModel().activePoll,
@@ -76,6 +83,9 @@ export class RoomAdmin {
   }
 
   updateActiveQuestionIndex() {
+    if (!this.dirtyValues().activeQuestionIndex) {
+      return;
+    }
     this.roomService.updateRoomActiveQuestionIndex(
       this.roomService.activeRoom.value()?.id || '',
       this.roomInfoModel().activeQuestionIndex,
@@ -83,6 +93,9 @@ export class RoomAdmin {
   }
 
   nextQuestion() {
+    if (this.activePollParsed().questions.length === 0) {
+      return;
+    }
     const currentIndex = this.roomInfoModel.update((info) => ({
       ...info,
       activeQuestionIndex: Math.min(
@@ -94,6 +107,9 @@ export class RoomAdmin {
   }
 
   previousQuestion() {
+    if (this.activePollParsed().questions.length === 0) {
+      return;
+    }
     const currentIndex = this.roomInfoModel.update((info) => ({
       ...info,
       activeQuestionIndex: Math.max(0, info.activeQuestionIndex - 1),

@@ -1,0 +1,36 @@
+<div class="poll-preview-wrapper">
+  @for (pageQuestions of parsedPoll().pages; track pageQuestions) {
+    <div class="poll-page">
+      @for (questionIndex of pageQuestions; track questionIndex) {
+        @let question = parsedPoll().questions[questionIndex];
+        <div
+          class="poll-question"
+          [ngClass]="{ 'active-question': questionIndex === activeQuestionIndex() }"
+        >
+          <div class="poll-question-text">{{ question.question }}</div>
+          @if (question.pollType === 'options') {
+            <ul class="poll-question-options">
+              @for (option of question.options; track option.index) {
+                <li class="poll-question-option" [ngClass]="{ 'correct-option': option.correct }">
+                  {{ option.option }}
+                </li>
+              }
+            </ul>
+          } @else if (question.pollType === 'text') {
+            <div class="poll-question-text-input"></div>
+          } @else if (question.pollType === 'rating') {
+            <div class="poll-question-rating">
+              @for (rating of ratingValues(question.maxRating); track rating) {
+                <div class="poll-question-rating-option">{{ rating }}</div>
+              }
+            </div>
+          } @else if (question.pollType === 'estimate') {
+            <div class="poll-question-estimate">
+              {{ question.minValue }} - {{ question.maxValue }}
+            </div>
+          }
+        </div>
+      }
+    </div>
+  }
+</div>

@@ -17,9 +17,9 @@ A question can be one of the following types:
 - Rating (score out of x)
     - `:rate:<x>`
 - Estimate (estimate value in a range)
-    - `:estimate`
-    - `:low:<l>`
-    - `:high:<h>`
+    - `:estimate` or `:est`
+    - `:min:<l>`
+    - `:max:<h>`
 
 There are two views: a presentation view which can be shown on a beamer, and an admin view to edit the poll and view the replies in detail.
 

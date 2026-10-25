@@ -36,6 +36,7 @@ export class AdminMain {
   createRoom() {
     const newRoom = this.newRoomModel();
     this.roomService.createRoom(newRoom.slug, newRoom.name);
+    this.showNewRoomForm.set(false);
   }
 
   openRoom(roomId: string) {

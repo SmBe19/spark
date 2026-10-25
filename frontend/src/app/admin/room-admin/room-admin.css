@@ -1,15 +1,153 @@
 .room-admin-wrapper {
-  min-height: 100vh;
   display: flex;
   flex-flow: row wrap;
 }
 
-.poll-preview {
-  box-sizing: border-box;
+.poll-edit {
   flex-grow: 1;
+  min-width: 20rem;
+  position: relative;
+  padding: 1rem;
+  padding-top: 2rem;
+}
+
+.poll-preview {
+  flex-grow: 100;
   padding: 1rem;
   min-width: 20rem;
-  border-left: 1px solid var(--muted-color-light);
+}
+
+.poll-edit input,
+.poll-edit textarea,
+.poll-edit button {
+  box-sizing: border-box;
+  padding: 0.5rem;
+  border-radius: 0.5rem;
+}
+
+.poll-edit input,
+.poll-edit textarea {
+  border: 1px solid var(--muted-color-light);
+}
+
+.poll-edit button {
+  border: 0;
+  background: var(--primary-accent-color);
+  color: white;
+  font: inherit;
+}
+
+.poll-edit button:hover:enabled {
+  background: var(--secondary-accent-color);
+  cursor: pointer;
+}
+
+.poll-edit button:disabled {
+  color: var(--muted-color-medium);
+  background: var(--muted-color-light);
+}
+
+.danger-button {
+  background: red !important;
+  color: white;
+}
+
+.room-edit-form {
+  margin-bottom: 1rem;
+}
+
+.room-edit-form > div {
+  margin-bottom: 0.5rem;
+}
+
+.room-edit-form label {
+  display: grid;
+  gap: 0.35rem;
+  color: var(--muted-color-medium);
+  font-size: 0.8rem;
+}
+
+.room-edit-form form {
+  display: grid;
+  gap: 0.75rem;
+}
+
+.room-edit-form button {
+  width: 100%;
+}
+
+.room-delete-buttons {
+  display: flex;
+  gap: 0.5rem;
+  margin-top: 0.5rem;
+}
+
+.room-delete-buttons button {
+  flex: 1 1 auto;
+}
+
+.question-index-form {
+  margin-bottom: 1rem;
+}
+
+.question-index-input {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.question-index-input input {
+  width: 5rem;
+  flex-grow: 1;
+}
+
+.question-index-input button {
+  width: 5rem;
+  flex-grow: 1;
+}
+
+.question-index-buttons {
+  display: flex;
+  gap: 0.5rem;
+  margin-top: 0.5rem;
+}
+
+.question-index-buttons button {
+  flex: 1 1 auto;
+}
+
+.poll-content-form textarea {
+  width: 100%;
+  min-height: 20rem;
+  resize: vertical;
+}
+
+.poll-content-form button {
+  margin-top: 1rem;
+  width: 100%;
+}
+
+.poll-edit button {
+  border: 0;
+  font: inherit;
+}
+
+.room-edit-button {
+  position: absolute;
+  top: 0;
+  right: 0;
+}
+
+.room-edit-button button {
+  padding: 0.1rem 0.5rem;
+  border: 0;
+  border-radius: 0;
+  color: var(--muted-color-dark);
+  background: var(--muted-color-light);
+}
+
+.room-edit-button button:hover {
+  cursor: pointer;
+  background: var(--muted-color-medium);
 }
 
 .hide-form {

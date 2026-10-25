@@ -171,8 +171,4 @@ main {
   .new-room-form {
     flex: 0 0 auto;
   }
-
-  main {
-    padding: 1rem;
-  }
 }

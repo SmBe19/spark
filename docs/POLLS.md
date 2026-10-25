@@ -23,10 +23,10 @@ A question can be one of the following types:
 
 There are two views: a presentation view which can be shown on a beamer, and an admin view to edit the poll and view the replies in detail.
 
-By default, the replies are hidden on the presentation view. They can be made visible by default with `:show`.
+By default, the replies are hidden on the presentation view. They can be made visible by default with `:show`. With `:hide`, they can be hidden explicitly.
 
 By default, users can not advance on their own, they always see the same page as on the presentation. With `:open`, the users can progress at their own pace to this question (i.e. they can progress from the previous question).
 
-By default, each question appears on a separate page. A question can be joined with the previous one with `:join`. This implies `:open`.
+By default, each question appears on a separate page. A question can be joined on the same page with the previous one with `:join`. This implies `:open`.
 
 To include an image, it needs to be hosted somewhere else.

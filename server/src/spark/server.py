@@ -4,7 +4,7 @@ import subprocess
 from flask import Flask, request, send_from_directory, session
 from flask_socketio import SocketIO
 
-from spark.api import rooms
+from spark.api import archive, rooms
 from spark.auth import login_user
 from spark.decorators import public_route
 from spark.mongo_utils import get_new_mongo_database, init_mongo_app
@@ -53,6 +53,7 @@ def logout():
 
 
 rooms.add_routes(app)
+archive.add_routes(app)
 
 
 def debug_server():

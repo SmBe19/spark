@@ -5,9 +5,10 @@ import { RoomService } from '../../service/room-service';
 import { FormsModule } from '@angular/forms';
 import { toObservable } from '@angular/core/rxjs-interop';
 import { PollService } from '../../service/poll-service';
+import { NgClass } from '@angular/common';
 
 @Component({
-  imports: [FormField, FormsModule],
+  imports: [FormField, FormsModule, NgClass],
   selector: 'app-room-admin',
   styleUrl: './room-admin.css',
   templateUrl: './room-admin.html',
@@ -40,6 +41,7 @@ export class RoomAdmin {
       activeQuestionIndex: currentRoomInfo.activeQuestionIndex !== activeRoom.activeQuestionIndex,
     };
   });
+  showRoomEditForm = signal(false);
   deletingRoom = signal(false);
 
   roomService = inject(RoomService);

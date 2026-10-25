@@ -1,7 +1,7 @@
 import { Component, inject, signal } from '@angular/core';
 import { AuthService } from '../../service/auth-service';
 import { RoomService } from '../../service/room-service';
-import { form, FormField } from '@angular/forms/signals';
+import { form, FormField, required } from '@angular/forms/signals';
 import { NgClass } from '@angular/common';
 import { RoomAdmin } from '../room-admin/room-admin';
 
@@ -16,7 +16,10 @@ export class AdminMain {
     slug: '',
     name: '',
   });
-  newRoomForm = form(this.newRoomModel);
+  newRoomForm = form(this.newRoomModel, (schemaPath) => {
+    required(schemaPath.slug);
+    required(schemaPath.name);
+  });
   showNewRoomForm = signal(false);
 
   authService = inject(AuthService);

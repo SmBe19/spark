@@ -1,0 +1,17 @@
+.room-admin-wrapper {
+  min-height: 100vh;
+  display: flex;
+  flex-flow: row wrap;
+}
+
+.poll-preview {
+  box-sizing: border-box;
+  flex-grow: 1;
+  padding: 1rem;
+  min-width: 20rem;
+  border-left: 1px solid var(--muted-color-light);
+}
+
+.hide-form {
+  display: none;
+}

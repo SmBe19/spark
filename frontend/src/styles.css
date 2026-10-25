@@ -10,4 +10,7 @@ body {
 :root {
   --primary-accent-color: #2288cc;
   --secondary-accent-color: #ff9900;
+  --muted-color-light: #cccccc;
+  --muted-color-medium: #777777;
+  --muted-color-dark: #333333;
 }

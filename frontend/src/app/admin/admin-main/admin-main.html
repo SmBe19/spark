@@ -1,50 +1,52 @@
-<header>
-  <div class="branding">Spark</div>
-  <div>
+<div class="page-wrapper">
+  <header>
+    <div class="branding">Spark</div>
     <div>
-      <span class="username">Hi {{ authService.username() }}!</span>
-      <button (click)="authService.logout()" class="logout-button">Logout</button>
+      <div>
+        <span class="username">Hi {{ authService.username() }}!</span>
+        <button (click)="authService.logout()" class="logout-button">Logout</button>
+      </div>
     </div>
-  </div>
-</header>
-<nav class="room-nav">
-  <ul>
-    @for (room of roomService.rooms(); track room.id) {
-      <li
-        (click)="openRoom(room.id)"
-        [ngClass]="{ 'active-room': roomService.activeRoomId() === room.id }"
-      >
-        {{ room.name }} ({{ room.slug }})
-      </li>
+  </header>
+  <nav class="room-nav">
+    <ul>
+      @for (room of roomService.rooms(); track room.id) {
+        <li
+          (click)="openRoom(room.id)"
+          [ngClass]="{ 'active-room': roomService.activeRoomId() === room.id }"
+        >
+          {{ room.name }} ({{ room.slug }})
+        </li>
+      }
+    </ul>
+    <div class="new-room-button">
+      <button (click)="showNewRoomForm.set(!showNewRoomForm())">
+        {{ showNewRoomForm() ? 'Hide' : 'New Room' }}
+      </button>
+    </div>
+    <div class="new-room-form" [ngClass]="{ 'hide-form': !showNewRoomForm() }">
+      <form (submit)="$event.preventDefault(); createRoom()">
+        <div class="form-input">
+          <label
+            >Slug:
+            <input type="text" placeholder="Slug" [formField]="newRoomForm.slug" />
+          </label>
+        </div>
+        <div class="form-input">
+          <label
+            >Name:
+            <input type="text" placeholder="Name" [formField]="newRoomForm.name" />
+          </label>
+        </div>
+        <div class="form-input">
+          <button type="submit" [disabled]="newRoomForm().invalid()">Create Room</button>
+        </div>
+      </form>
+    </div>
+  </nav>
+  <main>
+    @if (roomService.activeRoomId()) {
+      <app-room-admin></app-room-admin>
     }
-  </ul>
-  <div>
-    <button (click)="showNewRoomForm.set(!showNewRoomForm())">
-      {{ showNewRoomForm() ? 'Hide' : 'Create New Room' }}
-    </button>
-  </div>
-  <div class="new-room-form" [ngClass]="{ 'hide-form': !showNewRoomForm() }">
-    <form (submit)="$event.preventDefault(); createRoom()">
-      <div class="form-input">
-        <label
-          >Slug:
-          <input type="text" placeholder="Slug" [formField]="newRoomForm.slug" />
-        </label>
-      </div>
-      <div class="form-input">
-        <label
-          >Name:
-          <input type="text" placeholder="Name" [formField]="newRoomForm.name" />
-        </label>
-      </div>
-      <div class="form-input">
-        <button type="submit">Create Room</button>
-      </div>
-    </form>
-  </div>
-</nav>
-<main>
-  @if (roomService.activeRoomId()) {
-    <app-room-admin></app-room-admin>
-  }
-</main>
+  </main>
+</div>

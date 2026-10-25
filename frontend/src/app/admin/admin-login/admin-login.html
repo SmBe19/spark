@@ -1,0 +1,32 @@
+<main>
+  <form (submit)="login()">
+    <div class="form-input">
+      <input
+        type="text"
+        placeholder="Username"
+        name="username"
+        [(ngModel)]="username"
+        minlength="1"
+        required
+      />
+    </div>
+    <div class="form-input">
+      <input
+        type="password"
+        placeholder="Password"
+        name="password"
+        [(ngModel)]="password"
+        minlength="1"
+        required
+      />
+    </div>
+    <div class="form-input">
+      <button type="submit">Login</button>
+    </div>
+  </form>
+  @if (authService.loginError()) {
+    <div class="error-message">
+      {{ authService.loginError() }}
+    </div>
+  }
+</main>

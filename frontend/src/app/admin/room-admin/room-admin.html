@@ -1,0 +1,72 @@
+<div>
+  <form (submit)="$event.preventDefault(); updateRoom()">
+    <div class="form-input">
+      <label
+        >Slug:
+        <input type="text" placeholder="Slug" [formField]="roomInfoForm.slug" />
+      </label>
+    </div>
+    <div class="form-input">
+      <label
+        >Name:
+        <input type="text" placeholder="Name" [formField]="roomInfoForm.name" />
+      </label>
+    </div>
+    <div class="form-input">
+      <button type="submit" [disabled]="!dirtyValues().slug && !dirtyValues().name">
+        Update Room
+      </button>
+    </div>
+  </form>
+</div>
+<div>
+  <form (submit)="updatePoll()">
+    <label>
+      Poll:
+      <textarea placeholder="Poll" [formField]="roomInfoForm.activePoll"></textarea>
+    </label>
+    <div class="form-input">
+      <button type="submit" [disabled]="!dirtyValues().activePoll">Update Poll</button>
+    </div>
+  </form>
+</div>
+<div>
+  <form (submit)="updateActiveQuestionIndex()">
+    <label>
+      Active Question Index:
+      <input
+        type="number"
+        placeholder="Active Question Index"
+        [formField]="roomInfoForm.activeQuestionIndex"
+      />
+    </label>
+    <div class="form-input">
+      <button type="submit" [disabled]="!dirtyValues().activeQuestionIndex">
+        Update Active Question Index
+      </button>
+      <button
+        (click)="previousQuestion()"
+        type="button"
+        [disabled]="roomInfoModel().activeQuestionIndex === 0"
+      >
+        Previous Question
+      </button>
+      <button
+        (click)="nextQuestion()"
+        type="button"
+        [disabled]="roomInfoModel().activeQuestionIndex === activePollParsed().questions.length - 1"
+      >
+        Next Question
+      </button>
+    </div>
+  </form>
+</div>
+<div>
+  @if (deletingRoom()) {
+    <p>Are you sure you want to delete this room?</p>
+    <button (click)="confirmDeleteRoom()">Yes, Delete</button>
+    <button (click)="cancelDeleteRoom()">Cancel</button>
+  } @else {
+    <button (click)="startDeleteRoom()">Delete Room</button>
+  }
+</div>

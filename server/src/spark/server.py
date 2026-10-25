@@ -31,25 +31,34 @@ def static_files(path):
     return send_from_directory(STATIC_PATH, path)
 
 
-@app.route("/api/login", methods=["POST"])
+@app.route("/api/auth/login", methods=["POST"])
 @public_route
 def login():
-    username = request.json.get("username")
+    username = request.json.get("username").lower()
     password = request.json.get("password")
     user = login_user(get_new_mongo_database(), username, password)
     if user is not None:
         session["username"] = username
         session["user_id"] = str(user["_id"])
-        return {"success": True}
+        return {"success": True, "data": {"username": username}}
     else:
-        return {"success": False, "error": "Invalid credentials"}, 401
+        return {"success": False, "error": "Invalid credentials."}, 401
 
 
-@app.route("/api/logout", methods=["POST"])
+@app.route("/api/auth/logout", methods=["POST"])
 @public_route
 def logout():
     session.clear()
     return {"success": True}
+
+
+@app.route("/api/auth/whoami", methods=["GET"])
+@public_route
+def whoami():
+    if "username" in session:
+        return {"success": True, "data": {"username": session["username"]}}
+    else:
+        return {"success": False, "error": "Not logged in."}, 401
 
 
 rooms.add_routes(app)

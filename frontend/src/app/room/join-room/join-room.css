@@ -1,0 +1,36 @@
+main {
+  text-align: center;
+}
+
+.form-input {
+  margin: 10px;
+}
+
+.form-input input {
+  padding: 10px;
+  font-size: 16pt;
+}
+
+.form-input button {
+  padding: 10px;
+  font-size: 16pt;
+}
+
+.error-message {
+  color: red;
+  margin: 10px;
+}
+
+.admin-link {
+  position: absolute;
+  bottom: 10px;
+  right: 10px;
+}
+
+.admin-link a {
+  color: #cccccc;
+}
+
+.admin-link a:hover {
+  color: #ff9900;
+}

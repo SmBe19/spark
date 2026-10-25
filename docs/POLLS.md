@@ -9,7 +9,7 @@ A question can be one of the following types:
 - Poll among options
     - `:multi` to allow selecting multiple entries
 - Quiz among options (a poll with one or more correct solutions)
-    - Correct solution has `:x` flag
+    - Correct solution has `:x` flag or `:correct` flag
     - `:multi` to allow selecting multiple entries
     - If multiple entries are marked as correct, implicitly switched to `:multi`
 - Free text question

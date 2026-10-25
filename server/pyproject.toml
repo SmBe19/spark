@@ -22,6 +22,7 @@ dependencies = [
 debug_server = "spark.server:debug_server"
 prod_server = "spark.server:prod_server"
 add_user = "spark.spark_cli:cli_add_user"
+list_users = "spark.spark_cli:cli_list_users"
 ping_mongo = "spark.mongo_utils:ping_mongo"
 
 [build-system]

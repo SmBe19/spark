@@ -1,6 +1,6 @@
 import time
 
-from pymongo import ObjectId
+from bson import ObjectId
 
 from spark.decorators import login_required
 from spark.mongo_utils import get_mongo_database
@@ -16,9 +16,7 @@ def add_routes(app):
         archived_polls = db["archived_polls"].find({"room_id": ObjectId(room_id)})
         return {
             "success": True,
-            "archived_polls": [
-                sanitize_archived_poll_short(poll) for poll in archived_polls
-            ],
+            "data": [sanitize_archived_poll_short(poll) for poll in archived_polls],
         }
 
     @app.route("/api/archived_polls/<poll_id>", methods=["GET"])
@@ -27,8 +25,8 @@ def add_routes(app):
         db = get_mongo_database()
         poll = db["archived_polls"].find_one({"_id": ObjectId(poll_id)})
         if poll is None:
-            return {"success": False, "error": "Archived poll not found"}, 404
-        return {"success": True, "archived_poll": sanitize_archived_poll(poll)}
+            return {"success": False, "error": "Archived poll not found."}, 404
+        return {"success": True, "data": sanitize_archived_poll(poll)}
 
     @app.route("/api/rooms/<room_id>/archive_poll", methods=["POST"])
     @login_required
@@ -36,9 +34,9 @@ def add_routes(app):
         db = get_mongo_database()
         room = db["rooms"].find_one({"_id": ObjectId(room_id)})
         if room is None:
-            return {"success": False, "error": "Room not found"}, 404
-        if room.get("active_poll") is None:
-            return {"success": False, "error": "No active poll to archive"}, 400
+            return {"success": False, "error": "Room not found."}, 404
+        if not room.get("active_poll") or not room.get("active_answers"):
+            return {"success": False, "error": "No active poll to archive."}, 400
         poll = room["active_poll"]
         answers = room.get("active_answers", [])
         db["archived_polls"].insert_one(
@@ -53,9 +51,9 @@ def add_routes(app):
             {"_id": ObjectId(room_id)},
             {
                 "$set": {
-                    "active_poll": None,
+                    "active_poll": "",
                     "active_answers": [],
-                    "active_question_index": None,
+                    "active_question_index": 0,
                 },
             },
         )
@@ -69,16 +67,16 @@ def add_routes(app):
         if result.deleted_count > 0:
             return {"success": True}
         else:
-            return {"success": False, "error": "Archived poll not found"}, 404
+            return {"success": False, "error": "Archived poll not found."}, 404
 
     def sanitize_archived_poll_short(poll):
-        san = sanitize_object(poll, ["_id", "archived_at", "poll"])
-        san["_id"] = str(san["_id"])
-        san["room_id"] = str(san["room_id"])
+        san = sanitize_object(poll, ["archived_at", "poll"])
+        san["id"] = str(poll["_id"])
+        san["room_id"] = str(poll["room_id"])
         return san
 
     def sanitize_archived_poll(poll):
-        san = sanitize_object(poll, ["_id", "archived_at", "poll", "answers"])
-        san["_id"] = str(san["_id"])
-        san["room_id"] = str(san["room_id"])
+        san = sanitize_object(poll, ["archived_at", "poll", "answers"])
+        san["id"] = str(poll["_id"])
+        san["room_id"] = str(poll["room_id"])
         return san

@@ -23,3 +23,12 @@ def cli_add_user():
         print(f"User '{args.username}' added successfully.")
     else:
         print(f"Error adding user '{args.username}': {error_message}")
+
+
+def cli_list_users():
+    db = get_new_mongo_database()
+    users = db["users"].find()
+    print("Users:")
+    for user in users:
+        print(f"- {user['username']}")
+    db.client.close()

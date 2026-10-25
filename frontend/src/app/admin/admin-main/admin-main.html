@@ -1,0 +1,40 @@
+<p>Hi {{ authService.username() }}!</p>
+<div>
+  <h2>Rooms</h2>
+  <ul>
+    @for (room of roomService.rooms(); track room.id) {
+      <li
+        (click)="openRoom(room.id)"
+        [ngClass]="{ 'active-room': roomService.activeRoomId() === room.id }"
+      >
+        {{ room.name }} ({{ room.slug }})
+      </li>
+    }
+  </ul>
+</div>
+<div>
+  <h2>Create New Room</h2>
+  <form (submit)="$event.preventDefault(); createRoom()">
+    <div class="form-input">
+      <label
+        >Slug:
+        <input type="text" placeholder="Slug" [formField]="newRoomForm.slug" />
+      </label>
+    </div>
+    <div class="form-input">
+      <label
+        >Name:
+        <input type="text" placeholder="Name" [formField]="newRoomForm.name" />
+      </label>
+    </div>
+    <div class="form-input">
+      <button type="submit">Create Room</button>
+    </div>
+  </form>
+</div>
+<div>
+  <button (click)="authService.logout()">Logout</button>
+</div>
+@if (roomService.activeRoomId()) {
+  <app-room-admin></app-room-admin>
+}

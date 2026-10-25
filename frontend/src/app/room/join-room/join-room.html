@@ -1,0 +1,30 @@
+<main>
+  <div>
+    <h1>Join Room</h1>
+  </div>
+  <div>
+    <form (submit)="joinRoom()">
+      <div class="form-input">
+        <input
+          type="text"
+          placeholder="Room Code"
+          name="roomCode"
+          [(ngModel)]="roomCode"
+          minlength="1"
+          required
+        />
+      </div>
+      <div class="form-input">
+        <button type="submit">Join</button>
+      </div>
+    </form>
+  </div>
+  @if (errorMessage()) {
+    <div class="error-message">
+      {{ errorMessage() }}
+    </div>
+  }
+</main>
+<div class="admin-link">
+  <a [routerLink]="['admin']">Admin</a>
+</div>

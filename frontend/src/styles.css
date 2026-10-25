@@ -6,3 +6,8 @@ body {
   padding: 0;
   background-color: white;
 }
+
+:root {
+  --primary-accent-color: #2288cc;
+  --secondary-accent-color: #ff9900;
+}

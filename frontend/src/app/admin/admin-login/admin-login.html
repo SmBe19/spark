@@ -1,32 +1,38 @@
 <main>
-  <form (submit)="login()">
-    <div class="form-input">
-      <input
-        type="text"
-        placeholder="Username"
-        name="username"
-        [(ngModel)]="username"
-        minlength="1"
-        required
-      />
-    </div>
-    <div class="form-input">
-      <input
-        type="password"
-        placeholder="Password"
-        name="password"
-        [(ngModel)]="password"
-        minlength="1"
-        required
-      />
-    </div>
-    <div class="form-input">
-      <button type="submit">Login</button>
-    </div>
-  </form>
-  @if (authService.loginError()) {
-    <div class="error-message">
+  <div class="login-form">
+    <form (submit)="login()">
+      <div class="form-input">
+        <input
+          type="text"
+          placeholder="Username"
+          name="username"
+          [(ngModel)]="username"
+          autofocus
+          minlength="1"
+          required
+        />
+      </div>
+      <div class="form-input">
+        <input
+          type="password"
+          placeholder="Password"
+          name="password"
+          [(ngModel)]="password"
+          minlength="1"
+          required
+        />
+      </div>
+      <div class="form-input">
+        <button type="submit" [disabled]="!username() || !password()">Login</button>
+      </div>
+    </form>
+  </div>
+  <div class="error-message">
+    @if (authService.loginError()) {
       {{ authService.loginError() }}
-    </div>
-  }
+    }
+  </div>
+  <div class="join-link">
+    <a [routerLink]="['/']">Join Room</a>
+  </div>
 </main>

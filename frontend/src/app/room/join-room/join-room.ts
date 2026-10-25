@@ -29,7 +29,7 @@ export class JoinRoom {
       .subscribe({
         next: (data) => {
           if (data.success) {
-            this.router.navigate(['/room', data.data.id]);
+            this.router.navigate(['/room', data.data.slug]);
           }
         },
         error: (error) => {

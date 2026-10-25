@@ -2,7 +2,7 @@
   <div>
     <h1>Join Room</h1>
   </div>
-  <div>
+  <div class="join-room-form">
     <form (submit)="joinRoom()">
       <div class="form-input">
         <input
@@ -10,20 +10,21 @@
           placeholder="Room Code"
           name="roomCode"
           [(ngModel)]="roomCode"
+          autofocus
           minlength="1"
           required
         />
       </div>
       <div class="form-input">
-        <button type="submit">Join</button>
+        <button type="submit" [disabled]="roomCode.trim() === ''">Join</button>
       </div>
     </form>
   </div>
-  @if (errorMessage()) {
-    <div class="error-message">
+  <div class="error-message">
+    @if (errorMessage()) {
       {{ errorMessage() }}
-    </div>
-  }
+    }
+  </div>
 </main>
 <div class="admin-link">
   <a [routerLink]="['admin']">Admin</a>

@@ -5,7 +5,7 @@
 
 .poll-edit {
   flex-grow: 1;
-  min-width: 20rem;
+  width: 20rem;
   position: relative;
   padding: 1rem;
   padding-top: 2rem;
@@ -13,7 +13,7 @@
 
 .poll-preview {
   flex-grow: 100;
-  min-width: 20rem;
+  width: 20rem;
 }
 
 .poll-edit input,

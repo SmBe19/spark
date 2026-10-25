@@ -1,3 +1,35 @@
+header {
+  box-sizing: border-box;
+  background-color: #333333;
+  width: 100%;
+  padding: 0.5rem 2rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  color: white;
+}
+
+.branding {
+  font-size: 1.5rem;
+  font-weight: bold;
+}
+
+.logout-button {
+  margin-left: 1rem;
+  background-color: white;
+  border: 0;
+  border-radius: 0.5rem;
+}
+
+.logout-button:hover {
+  cursor: pointer;
+  background-color: #cccccc;
+}
+
+.hide-form {
+  display: none;
+}
+
 .active-room {
   color: green;
 }

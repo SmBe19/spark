@@ -17,6 +17,7 @@ export class AdminMain {
     name: '',
   });
   newRoomForm = form(this.newRoomModel);
+  showNewRoomForm = signal(false);
 
   authService = inject(AuthService);
   roomService = inject(RoomService);

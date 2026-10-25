@@ -7,12 +7,17 @@
           class="poll-question"
           [ngClass]="{ 'active-question': questionIndex === activeQuestionIndex() }"
         >
-          <div class="poll-question-text">{{ question.question }}</div>
+          <div class="poll-question-text">
+            <markdown katex emoji [disableSanitizer]="true" [data]="question.question"></markdown>
+          </div>
           @if (question.pollType === 'options') {
             <ul class="poll-question-options">
               @for (option of question.options; track option.index) {
-                <li class="poll-question-option" [ngClass]="{ 'correct-option': option.correct }">
-                  {{ option.option }}
+                <li
+                  class="poll-question-option single-line-markdown"
+                  [ngClass]="{ 'correct-option': option.correct }"
+                >
+                  <markdown katex emoji [disableSanitizer]="true" [data]="option.option"></markdown>
                 </li>
               }
             </ul>

@@ -14,3 +14,8 @@ body {
   --muted-color-medium: #777777;
   --muted-color-dark: #333333;
 }
+
+.single-line-markdown p {
+  display: inline;
+  margin: 0;
+}

@@ -4,8 +4,11 @@
 }
 
 .poll-edit {
+  box-sizing: border-box;
   flex-grow: 1;
-  width: 20rem;
+  width: 25rem;
+  max-height: calc(100vh - 3rem);
+  overflow-y: auto;
   position: relative;
   padding: 1rem;
   padding-top: 2rem;
@@ -13,7 +16,9 @@
 
 .poll-preview {
   flex-grow: 100;
-  width: 20rem;
+  width: 30rem;
+  max-height: calc(100vh - 3rem);
+  overflow-y: auto;
 }
 
 .poll-edit input,

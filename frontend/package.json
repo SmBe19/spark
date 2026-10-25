@@ -18,6 +18,10 @@
     "@angular/forms": "^22.2.0",
     "@angular/platform-browser": "^22.2.0",
     "@angular/router": "^22.2.0",
+    "emoji-toolkit": "^11.0.0",
+    "katex": "^0.18.10",
+    "marked-katex-extension": "^5.1.13",
+    "ngx-markdown": "^22.1.1",
     "rxjs": "~7.8.0",
     "tslib": "^2.3.0"
   },

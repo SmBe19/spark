@@ -4,7 +4,7 @@ import { Poll, PollQuestion } from '../model/poll';
 @Service()
 export class PollService {
   parsePoll(pollConfig: string): Poll {
-    const lines = pollConfig.split('\n');
+    const lines = this.splitLines(pollConfig);
     const questions: PollQuestion[] = [];
     const pages: number[][] = [];
 
@@ -13,7 +13,7 @@ export class PollService {
     }
 
     let currentLine = 0;
-    const globalFlagsMatch = lines[0].match(/^-\s+(:.*)$/);
+    const globalFlagsMatch = lines[0].match(/^-\s+(!.*)$/);
     let globalFlags = '';
     if (globalFlagsMatch) {
       globalFlags = globalFlagsMatch[1];
@@ -46,7 +46,7 @@ export class PollService {
   private parseQuestion(index: number, lines: string[]): PollQuestion {
     const flags = this.parseFlags(lines[0]);
     const questionText = lines[0]
-      .replace(/:\S.*$/, '')
+      .replace(/!\S.*$/, '')
       .replace(/^-/, '')
       .trim();
 
@@ -79,7 +79,7 @@ export class PollService {
         return {
           index: optionIndex,
           option: line
-            .replace(/:\S.*$/, '')
+            .replace(/!\S.*$/, '')
             .replace(/^\s*-/, '')
             .trim(),
           correct: !!(optionFlags['x'] || optionFlags['correct']),
@@ -101,14 +101,14 @@ export class PollService {
 
   private parseFlags(line: string): Flags {
     const flags: Flags = {};
-    const flagMatches = line.match(/.+?(:\S.*)/);
+    const flagMatches = line.match(/.+?(!\S.*)/);
     if (flagMatches) {
       const flagStrings = flagMatches[1].split(/\s+/);
       for (const flagString of flagStrings) {
-        if (!flagString.startsWith(':')) {
+        if (!flagString.startsWith('!')) {
           continue;
         }
-        const parts = flagString.substring(1).split(':');
+        const parts = flagString.substring(1).split(':', 2);
         if (parts.length === 2) {
           flags[parts[0]] = parts[1];
         } else {
@@ -117,6 +117,25 @@ export class PollService {
       }
     }
     return flags;
+  }
+
+  private splitLines(text: string): string[] {
+    const lines = text.split('\n');
+    const result: string[] = [];
+    let currentLine = '';
+    for (const line of lines) {
+      if (line.endsWith('  ')) {
+        currentLine += line.slice(0, -2) + '\n';
+      } else {
+        currentLine += line;
+        result.push(currentLine);
+        currentLine = '';
+      }
+    }
+    if (currentLine !== '') {
+      result.push(currentLine);
+    }
+    return result;
   }
 }
 

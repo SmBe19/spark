@@ -1,9 +1,10 @@
 import { Component, input } from '@angular/core';
 import { Poll } from '../../model/poll';
 import { NgClass } from '@angular/common';
+import { MarkdownComponent } from 'ngx-markdown';
 
 @Component({
-  imports: [NgClass],
+  imports: [NgClass, MarkdownComponent],
   selector: 'app-poll-preview',
   styleUrl: './poll-preview.css',
   templateUrl: './poll-preview.html',

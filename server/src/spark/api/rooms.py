@@ -92,11 +92,6 @@ def add_routes(app):
             emit(
                 "room_update", sanitized_data, to="room:" + str(room_id), namespace="/"
             )
-            #  TODO remove
-            print("Room updated:", room_id, sanitized_data)
-        else:
-            #  TODO remove
-            print("No changes made to room:", room_id)
         return {"success": True}
 
     @app.route("/api/rooms/<room_id>", methods=["DELETE"])

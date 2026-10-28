@@ -1,1 +1,32 @@
-<p>room-client works!</p>
+<div class="poll-wrapper">
+  @for (question of activeQuestions(); track question.index) {
+    <div class="poll-question">
+      <div class="poll-question-text">
+        <markdown katex emoji [disableSanitizer]="true" [data]="question.question"></markdown>
+      </div>
+      @if (question.pollType === 'options') {
+        <div class="poll-question-options">
+          @for (option of question.options; track option.index) {
+            <button>
+              <markdown katex emoji [disableSanitizer]="true" [data]="option.option"></markdown>
+            </button>
+          }
+        </div>
+      } @else if (question.pollType === 'text') {
+        <div class="poll-question-text-input">
+          <textarea></textarea>
+        </div>
+      } @else if (question.pollType === 'rating') {
+        <div class="poll-question-rating">
+          @for (rating of ratingValues(question.maxRating); track rating) {
+            <button>{{ rating }}</button>
+          }
+        </div>
+      } @else if (question.pollType === 'estimate') {
+        <div class="poll-question-estimate">
+          <input type="number" [min]="question.minValue" [max]="question.maxValue" />
+        </div>
+      }
+    </div>
+  }
+</div>

@@ -11,12 +11,12 @@ export const routes: Routes = [
     title: 'Spark: Join Room',
   },
   {
-    path: 'room/:roomId',
+    path: 'room/:roomSlug',
     component: RoomClient,
     title: 'Spark',
   },
   {
-    path: 'presentation/:roomId',
+    path: 'presentation/:roomSlug',
     component: RoomPresentation,
     title: 'Spark',
   },

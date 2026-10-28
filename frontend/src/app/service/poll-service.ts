@@ -43,6 +43,15 @@ export class PollService {
     return { questions, pages };
   }
 
+  getActivePage(pages: number[][], activeQuestionIndex: number): number[] {
+    for (let i = 0; i < pages.length; i++) {
+      if (pages[i].includes(activeQuestionIndex)) {
+        return pages[i];
+      }
+    }
+    return [];
+  }
+
   private parseQuestion(index: number, lines: string[]): PollQuestion {
     const flags = this.parseFlags(lines[0]);
     const questionText = lines[0]

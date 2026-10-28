@@ -1,5 +1,10 @@
 import { inject, Service, signal } from '@angular/core';
-import { mapPartialApiRoomInfoToRoomInfo, RoomInfo } from '../model/rooms';
+import {
+  ApiRoomInfo,
+  mapApiRoomInfoToRoomInfo,
+  mapPartialApiRoomInfoToRoomInfo,
+  RoomInfo,
+} from '../model/rooms';
 import { ApiResponse } from '../model/api';
 import { SocketService } from './socket-service';
 
@@ -31,12 +36,12 @@ export class RoomClientService {
   }
 
   joinRoomBySlug(slug: string) {
-    this.socketService.socket.emit('join_room', { slug }, (room: ApiResponse<RoomInfo>) => {
+    this.socketService.socket.emit('join_room', { slug }, (room: ApiResponse<ApiRoomInfo>) => {
       if (!room.success) {
         console.error('Failed to join room:', room.error);
         return;
       }
-      this.activeRoom.set(room.data);
+      this.activeRoom.set(mapApiRoomInfoToRoomInfo(room.data));
     });
   }
 

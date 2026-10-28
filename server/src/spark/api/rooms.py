@@ -1,6 +1,8 @@
 from bson import ObjectId
 from flask import request
+from flask_socketio import emit
 
+from spark.db.rooms import db_add_answer_to_room, sanitize_room, sanitize_room_short
 from spark.decorators import login_required, public_route
 from spark.mongo_utils import get_mongo_database
 from spark.utils import get_user_id, sanitize_object, validate_not_empty
@@ -50,25 +52,6 @@ def add_routes(app):
         user_hash = request.json.get("user_hash")
         return db_add_answer_to_room(room_id, answer_content, question_index, user_hash)
 
-    def db_add_answer_to_room(room_id, answer_content, question_index, user_hash):
-        if answer_content is None or question_index is None or user_hash is None:
-            return {"success": False, "error": "Missing required fields"}, 400
-        db = get_mongo_database()
-        room = db["rooms"].find_one({"_id": ObjectId(room_id)})
-        if room is None:
-            return {"success": False, "error": "Room not found."}, 404
-        answer = {
-            "answer": answer_content,
-            "question_index": question_index,
-            "user_hash": user_hash,
-        }
-        db["rooms"].update_one(
-            {"_id": ObjectId(room_id)},
-            {"$push": {"active_answers": answer}},
-            upsert=True,
-        )
-        return {"success": True}
-
     @app.route("/api/rooms/<room_id>", methods=["PUT"])
     @login_required
     def update_room(room_id):
@@ -78,16 +61,18 @@ def add_routes(app):
             return {"success": False, "error": "Room slug and name are required."}, 400
         if "slug" in update_data:
             update_data["slug"] = update_data["slug"].lower()
+        sanitized_data = sanitize_object(
+            update_data,
+            ["slug", "name", "active_poll", "active_question_index"],
+        )
         result = db["rooms"].update_one(
             {"_id": ObjectId(room_id)},
             {
-                "$set": sanitize_object(
-                    update_data,
-                    ["slug", "name", "active_poll", "active_question_index"],
-                )
+                "$set": sanitized_data
             },
         )
         if result.modified_count > 0:
+            emit("room_updated", sanitized_data, to="room:" + str(room_id))
             return {"success": True}
         else:
             return {
@@ -132,15 +117,3 @@ def add_routes(app):
             .inserted_id
         )
         return {"success": True, "data": {"room_id": str(room_id)}}
-
-    def sanitize_room_short(room):
-        san = sanitize_object(room, ["slug", "name"])
-        san["id"] = str(room["_id"])
-        return san
-
-    def sanitize_room(room):
-        san = sanitize_object(
-            room, ["slug", "name", "active_poll", "active_question_index"]
-        )
-        san["id"] = str(room["_id"])
-        return san

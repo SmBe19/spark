@@ -1,0 +1,36 @@
+from bson import ObjectId
+from flask_socketio import join_room, leave_room, rooms
+
+from spark.db.rooms import db_add_answer_to_room, sanitize_room
+from spark.mongo_utils import get_mongo_database
+
+
+def add_socket_routes(socketio):
+
+    @socketio.on("join_room")
+    def handle_join_room(data, callback):
+        db = get_mongo_database()
+        room = None
+        if "slug" in data:
+            room_slug = data["slug"]
+            room = db["rooms"].find_one({"slug": room_slug})
+        elif "room_id" in data:
+            room_id = data["room_id"]
+            room = db["rooms"].find_one({"_id": ObjectId(room_id)})
+        if room is None:
+            callback({"success": False, "error": "Room not found."})
+            return
+        for current_room in rooms():
+            if current_room.startswith("room:"):
+                leave_room(current_room)
+        join_room("room:" + str(room["_id"]))
+        callback({"success": True, "data": sanitize_room(room)})
+
+    @socketio.on("add_answer")
+    def handle_add_answer(data):
+        db_add_answer_to_room(
+            data["room_id"],
+            data["answer"],
+            data["question_index"],
+            data["user_hash"],
+        )

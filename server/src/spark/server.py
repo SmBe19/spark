@@ -8,6 +8,7 @@ from spark.api import archive, rooms
 from spark.auth import login_user
 from spark.decorators import public_route
 from spark.mongo_utils import get_new_mongo_database, init_mongo_app
+from spark.socket import rooms as socket_rooms
 
 app = Flask(__name__)
 app.secret_key = os.getenv("SECRET_KEY")
@@ -63,6 +64,7 @@ def whoami():
 
 rooms.add_routes(app)
 archive.add_routes(app)
+socket_rooms.add_socket_routes(socketio)
 
 
 def debug_server():

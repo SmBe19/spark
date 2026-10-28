@@ -55,6 +55,7 @@ def db_archive_poll_for_room(room_id):
         {"_id": ObjectId(room_id)},
         {
             "$set": {
+                "active_poll_id": ObjectId(),
                 "active_poll": "",
                 "active_answers": [],
                 "active_question_index": 0,
@@ -76,6 +77,7 @@ def sanitize_room(room):
         [
             "slug",
             "name",
+            "active_poll_id",
             "active_poll",
             "active_presentation",
             "active_mode",

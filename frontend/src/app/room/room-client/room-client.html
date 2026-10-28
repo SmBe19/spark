@@ -7,24 +7,32 @@
       @if (question.pollType === 'options') {
         <div class="poll-question-options">
           @for (option of question.options; track option.index) {
-            <button>
+            <button [disabled]="submittedAnswers()[question.index] !== undefined" (click)="submitAnswer(question.index, option.index.toString())">
               <markdown katex emoji [disableSanitizer]="true" [data]="option.option"></markdown>
             </button>
           }
         </div>
       } @else if (question.pollType === 'text') {
         <div class="poll-question-text-input">
-          <textarea></textarea>
+          <textarea [disabled]="submittedAnswers()[question.index] !== undefined" [value]="pendingAnswers()[question.index]" (change)="setPendingAnswer(question.index, ($event.target as HTMLTextAreaElement)?.value)"></textarea>
+          <button [disabled]="submittedAnswers()[question.index] !== undefined" (click)="submitPendingAnswer(question.index)">
+            Submit
+          </button>
         </div>
       } @else if (question.pollType === 'rating') {
         <div class="poll-question-rating">
           @for (rating of ratingValues(question.maxRating); track rating) {
-            <button>{{ rating }}</button>
+            <button [disabled]="submittedAnswers()[question.index] !== undefined" (click)="submitAnswer(question.index, rating.toString())">
+              {{ rating }}
+            </button>
           }
         </div>
       } @else if (question.pollType === 'estimate') {
         <div class="poll-question-estimate">
           <input type="number" [min]="question.minValue" [max]="question.maxValue" />
+          <button [disabled]="submittedAnswers()[question.index] !== undefined" (click)="submitPendingAnswer(question.index)">
+            Submit
+          </button>
         </div>
       }
     </div>

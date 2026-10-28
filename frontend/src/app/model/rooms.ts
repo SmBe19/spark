@@ -5,6 +5,7 @@ export interface ApiRoomInfoShort {
 }
 
 export interface ApiRoomInfo extends RoomInfoShort {
+  active_poll_id: string;
   active_poll: string;
   active_question_index: number;
   answers_visible: boolean;
@@ -14,6 +15,7 @@ export interface ApiRoomInfo extends RoomInfoShort {
 export type RoomInfoShort = ApiRoomInfoShort;
 
 export interface RoomInfo extends RoomInfoShort {
+  activePollId: string;
   activePoll: string;
   activeQuestionIndex: number;
   answersVisible: boolean;
@@ -32,6 +34,9 @@ export function mapPartialApiRoomInfoToRoomInfo(
   }
   if (apiRoomInfo.name !== undefined) {
     mapped.name = apiRoomInfo.name;
+  }
+  if (apiRoomInfo.active_poll_id !== undefined) {
+    mapped.activePollId = apiRoomInfo.active_poll_id;
   }
   if (apiRoomInfo.active_poll !== undefined) {
     mapped.activePoll = apiRoomInfo.active_poll;
@@ -53,6 +58,7 @@ export function mapApiRoomInfoToRoomInfo(apiRoomInfo: ApiRoomInfo): RoomInfo {
     id: apiRoomInfo.id,
     slug: apiRoomInfo.slug,
     name: apiRoomInfo.name,
+    activePollId: apiRoomInfo.active_poll_id,
     activePoll: apiRoomInfo.active_poll,
     activeQuestionIndex: apiRoomInfo.active_question_index,
     answersVisible: apiRoomInfo.answers_visible,

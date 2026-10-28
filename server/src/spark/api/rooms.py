@@ -123,6 +123,7 @@ def add_routes(app):
                     "owner_id": get_user_id(),
                     "slug": room_slug,
                     "name": room_name,
+                    "active_poll_id": ObjectId(),
                     "active_poll": "",
                     "active_presentation": "",
                     "active_mode": "poll",

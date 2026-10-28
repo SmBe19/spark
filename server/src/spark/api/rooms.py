@@ -2,7 +2,12 @@ from bson import ObjectId
 from flask import request
 from flask_socketio import emit
 
-from spark.db.rooms import db_add_answer_to_room, sanitize_room, sanitize_room_short
+from spark.db.rooms import (
+    db_add_answer_to_room,
+    db_archive_poll_for_room,
+    sanitize_room,
+    sanitize_room_short,
+)
 from spark.decorators import login_required, public_route
 from spark.mongo_utils import get_mongo_database
 from spark.utils import get_user_id, sanitize_object, validate_not_empty
@@ -63,22 +68,36 @@ def add_routes(app):
             update_data["slug"] = update_data["slug"].lower()
         sanitized_data = sanitize_object(
             update_data,
-            ["slug", "name", "active_poll", "active_question_index"],
+            [
+                "slug",
+                "name",
+                "active_poll",
+                "active_presentation",
+                "active_mode",
+                "active_question_index",
+                "answers_visible",
+                "solutions_visible",
+            ],
         )
+        if (
+            "active_poll" in sanitized_data
+            and sanitized_data["active_poll"].strip() == ""
+        ):
+            db_archive_poll_for_room(room_id)
         result = db["rooms"].update_one(
             {"_id": ObjectId(room_id)},
-            {
-                "$set": sanitized_data
-            },
+            {"$set": sanitized_data},
         )
         if result.modified_count > 0:
-            emit("room_updated", sanitized_data, to="room:" + str(room_id))
-            return {"success": True}
+            emit(
+                "room_update", sanitized_data, to="room:" + str(room_id), namespace="/"
+            )
+            #  TODO remove
+            print("Room updated:", room_id, sanitized_data)
         else:
-            return {
-                "success": False,
-                "error": "Room not found or no changes made.",
-            }, 404
+            #  TODO remove
+            print("No changes made to room:", room_id)
+        return {"success": True}
 
     @app.route("/api/rooms/<room_id>", methods=["DELETE"])
     @login_required
@@ -110,8 +129,12 @@ def add_routes(app):
                     "slug": room_slug,
                     "name": room_name,
                     "active_poll": "",
+                    "active_presentation": "",
+                    "active_mode": "poll",
                     "active_answers": [],
                     "active_question_index": 0,
+                    "answers_visible": False,
+                    "solutions_visible": False,
                 }
             )
             .inserted_id

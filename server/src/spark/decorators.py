@@ -3,10 +3,14 @@ from functools import wraps
 from flask import session
 
 
+def is_logged_in():
+    return "user_id" in session
+
+
 def login_required(f):
     @wraps(f)
     def decorated_function(*args, **kwargs):
-        if "user_id" not in session:
+        if not is_logged_in():
             return {"success": False, "error": "Unauthorized"}, 401
         return f(*args, **kwargs)
 

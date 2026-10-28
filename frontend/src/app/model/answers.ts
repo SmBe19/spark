@@ -9,3 +9,13 @@ export interface QuestionAnswer {
   questionIndex: number;
   userHash: string;
 }
+
+export function mapApiQuestionAnswerToQuestionAnswer(
+  apiQuestionAnswer: ApiQuestionAnswer,
+): QuestionAnswer {
+  return {
+    answer: apiQuestionAnswer.answer,
+    questionIndex: apiQuestionAnswer.question_index,
+    userHash: apiQuestionAnswer.user_hash,
+  };
+}

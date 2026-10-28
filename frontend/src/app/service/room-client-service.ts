@@ -1,25 +1,23 @@
-import { Service, signal } from '@angular/core';
-import { RoomInfo } from '../model/rooms';
-import { io, Socket } from 'socket.io-client';
+import { inject, Service, signal } from '@angular/core';
+import { mapPartialApiRoomInfoToRoomInfo, RoomInfo } from '../model/rooms';
 import { ApiResponse } from '../model/api';
+import { SocketService } from './socket-service';
 
 @Service()
 export class RoomClientService {
   activeRoom = signal<RoomInfo | null>(null);
 
-  private socket: Socket;
+  private socketService = inject(SocketService);
   private userHash: string | null = null;
 
   constructor() {
-    this.socket = io();
-
-    this.socket.on('room_update', (room: Partial<RoomInfo>) => {
+    this.socketService.socket.on('room_update', (room: Partial<RoomInfo>) => {
       if (this.activeRoom()) {
         this.activeRoom.update((currentRoom) => {
           if (!currentRoom) {
             return null;
           }
-          return { ...currentRoom, ...room };
+          return { ...currentRoom, ...mapPartialApiRoomInfoToRoomInfo(room) };
         });
       }
     });
@@ -33,7 +31,7 @@ export class RoomClientService {
   }
 
   joinRoomBySlug(slug: string) {
-    this.socket.emit('join_room', { slug }, (room: ApiResponse<RoomInfo>) => {
+    this.socketService.socket.emit('join_room', { slug }, (room: ApiResponse<RoomInfo>) => {
       if (!room.success) {
         console.error('Failed to join room:', room.error);
         return;
@@ -46,7 +44,7 @@ export class RoomClientService {
     if (!this.activeRoom()) {
       throw new Error('No active room');
     }
-    this.socket.emit('add_answer', {
+    this.socketService.socket.emit('add_answer', {
       room_id: this.activeRoom()!.id,
       answer,
       question_index: questionIndex,

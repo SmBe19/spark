@@ -1,10 +1,22 @@
 import { HttpClient } from '@angular/common/http';
 import { inject, Service, signal } from '@angular/core';
-import { ApiRoomInfo, ApiRoomInfoShort, RoomInfo, RoomInfoShort } from '../model/rooms';
+import {
+  ApiRoomInfo,
+  ApiRoomInfoShort,
+  mapApiRoomInfoToRoomInfo,
+  mapPartialApiRoomInfoToRoomInfo,
+  RoomInfo,
+  RoomInfoShort,
+} from '../model/rooms';
 import { ApiResponse } from '../model/api';
-import { ApiQuestionAnswer, QuestionAnswer } from '../model/answers';
-import { rxResource } from '@angular/core/rxjs-interop';
+import {
+  ApiQuestionAnswer,
+  mapApiQuestionAnswerToQuestionAnswer,
+  QuestionAnswer,
+} from '../model/answers';
+import { rxResource, toObservable } from '@angular/core/rxjs-interop';
 import { map, of } from 'rxjs';
+import { SocketService } from './socket-service';
 
 @Service()
 export class RoomService {
@@ -21,13 +33,7 @@ export class RoomService {
       return this.httpClient.get<ApiResponse<ApiRoomInfo>>('/api/rooms/' + roomId, {}).pipe(
         map((data) => {
           if (data.success) {
-            return {
-              id: data.data.id,
-              slug: data.data.slug,
-              name: data.data.name,
-              activePoll: data.data.active_poll,
-              activeQuestionIndex: data.data.active_question_index,
-            };
+            return mapApiRoomInfoToRoomInfo(data.data);
           }
           return null;
         }),
@@ -51,11 +57,7 @@ export class RoomService {
         .pipe(
           map((data) => {
             if (data.success) {
-              return data.data.map((answer) => ({
-                answer: answer.answer,
-                questionIndex: answer.question_index,
-                userHash: answer.user_hash,
-              }));
+              return data.data.map((answer) => mapApiQuestionAnswerToQuestionAnswer(answer));
             }
             return [];
           }),
@@ -64,6 +66,34 @@ export class RoomService {
   });
 
   private httpClient = inject(HttpClient);
+  private socketService = inject(SocketService);
+
+  constructor() {
+    this.socketService.socket.on('room_update', (room: Partial<RoomInfo>) => {
+      if (this.activeRoom.hasValue() && this.activeRoom.value()) {
+        this.activeRoom.update((currentRoom) => {
+          if (!currentRoom) {
+            return null;
+          }
+          return { ...currentRoom, ...mapPartialApiRoomInfoToRoomInfo(room) };
+        });
+      }
+    });
+    this.socketService.socket.on('answer_added', (answer: ApiQuestionAnswer) => {
+      if (this.activeRoom.hasValue() && this.activeRoom.value() && this.loadAnswers()) {
+        this.activeAnswers.update((currentAnswers) => {
+          return [...currentAnswers, mapApiQuestionAnswerToQuestionAnswer(answer)];
+        });
+      }
+    });
+    toObservable(this.activeRoomId).subscribe((roomId) => {
+      if (!roomId) {
+        return;
+      }
+      this.socketService.socket.emit('join_room', { room_id: roomId });
+      this.socketService.socket.emit('join_admin_room', { room_id: roomId });
+    });
+  }
 
   loadRooms() {
     this.httpClient.get<ApiResponse<ApiRoomInfoShort[]>>('/api/rooms', {}).subscribe((data) => {
@@ -78,20 +108,7 @@ export class RoomService {
       this.activeAnswers.set([]);
       return;
     }
-    const roomId = this.activeRoom.value()!.id;
-    this.httpClient
-      .get<ApiResponse<ApiQuestionAnswer[]>>('/api/rooms/' + roomId + '/answers', {})
-      .subscribe((data) => {
-        if (data.success) {
-          this.activeAnswers.set(
-            data.data.map((answer) => ({
-              answer: answer.answer,
-              questionIndex: answer.question_index,
-              userHash: answer.user_hash,
-            })),
-          );
-        }
-      });
+    this.loadAnswers.set(true);
   }
 
   createRoom(slug: string, name: string) {
@@ -100,11 +117,7 @@ export class RoomService {
     }
     this.httpClient
       .post<ApiResponse<{ room_id: string }>>('/api/rooms', { slug, name })
-      .subscribe((data) => {
-        if (data.success) {
-          this.loadRooms();
-        }
-      });
+      .subscribe(() => {});
   }
 
   updateRoomMeta(roomId: string, slug: string, name: string) {
@@ -113,7 +126,6 @@ export class RoomService {
       .subscribe((data) => {
         if (data.success) {
           this.loadRooms();
-          this.reloadActiveRoom(roomId);
         }
       });
   }
@@ -121,17 +133,13 @@ export class RoomService {
   updateRoomActivePoll(roomId: string, poll: string) {
     this.httpClient
       .put<ApiResponse<null>>('/api/rooms/' + roomId, { active_poll: poll })
-      .subscribe((data) => {
-        this.reloadActiveRoom(roomId);
-      });
+      .subscribe(() => {});
   }
 
   updateRoomActiveQuestionIndex(roomId: string, index: number) {
     this.httpClient
       .put<ApiResponse<null>>('/api/rooms/' + roomId, { active_question_index: index })
-      .subscribe((data) => {
-        this.reloadActiveRoom(roomId);
-      });
+      .subscribe(() => {});
   }
 
   deleteRoom(roomId: string) {
@@ -143,11 +151,5 @@ export class RoomService {
         }
       }
     });
-  }
-
-  private reloadActiveRoom(roomId: string) {
-    if (this.activeRoomId() === roomId) {
-      this.activeRoom.reload();
-    }
   }
 }

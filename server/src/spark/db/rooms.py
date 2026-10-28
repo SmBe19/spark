@@ -87,4 +87,5 @@ def sanitize_room(room):
         ],
     )
     san["id"] = str(room["_id"])
+    san["active_poll_id"] = str(room.get("active_poll_id", ""))
     return san

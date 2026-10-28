@@ -1,12 +1,13 @@
-import { Component, computed, effect, inject, signal } from '@angular/core';
+import { Component, computed, debounced, effect, inject, signal } from '@angular/core';
 import { RoomClientService } from '../../service/room-client-service';
 import { ActivatedRoute } from '@angular/router';
 import { PollService } from '../../service/poll-service';
 import { MarkdownComponent } from 'ngx-markdown';
 import { Title } from '@angular/platform-browser';
+import { FormsModule } from '@angular/forms';
 
 @Component({
-  imports: [MarkdownComponent],
+  imports: [FormsModule, MarkdownComponent],
   selector: 'app-room-client',
   styleUrl: './room-client.css',
   templateUrl: './room-client.html',
@@ -21,6 +22,7 @@ export class RoomClient {
 
   pendingAnswers = signal<Record<number, string>>({});
   submittedAnswers = signal<Record<number, string>>({});
+  pendingAnswersDebounced = debounced(() => this.pendingAnswers(), 500);
 
   activePollParsed = computed(() => {
     const activeRoom = this.roomClientService.activeRoom();
@@ -53,8 +55,31 @@ export class RoomClient {
         this.pendingAnswers.set({});
         this.submittedAnswers.set({});
         this.currentPollId = activeRoom.activePollId;
+
+        const storedAnswers = localStorage.getItem('activePollAnswers');
+        if (storedAnswers) {
+          try {
+            const parsed = JSON.parse(storedAnswers);
+            if (parsed.pollId === activeRoom.activePollId) {
+              this.pendingAnswers.set(parsed.pendingAnswers || {});
+              this.submittedAnswers.set(parsed.submittedAnswers || {});
+            }
+          } catch (e) {}
+        }
       }
       this.titleService.setTitle(`Spark: ${activeRoom.name}`);
+    });
+
+    effect(() => {
+      const answers = {
+        pollId: this.roomClientService.activeRoom()?.activePollId,
+        pendingAnswers: this.pendingAnswersDebounced.value(),
+        submittedAnswers: this.submittedAnswers(),
+      };
+      if (!answers.pollId) {
+        return;
+      }
+      localStorage.setItem('activePollAnswers', JSON.stringify(answers));
     });
   }
 

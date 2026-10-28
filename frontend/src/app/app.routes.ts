@@ -1,8 +1,6 @@
 import { Routes } from '@angular/router';
 import { JoinRoom } from './room/join-room/join-room';
-import { AdminWrapper } from './admin/admin-wrapper/admin-wrapper';
 import { RoomClient } from './room/room-client/room-client';
-import { RoomPresentation } from './room/room-presentation/room-presentation';
 
 export const routes: Routes = [
   {
@@ -17,12 +15,13 @@ export const routes: Routes = [
   },
   {
     path: 'presentation/:roomSlug',
-    component: RoomPresentation,
+    loadComponent: () =>
+      import('./room/room-presentation/room-presentation').then((m) => m.RoomPresentation),
     title: 'Spark',
   },
   {
     path: 'admin',
-    component: AdminWrapper,
+    loadComponent: () => import('./admin/admin-wrapper/admin-wrapper').then((m) => m.AdminWrapper),
     title: 'Spark: Admin',
   },
 ];

@@ -4,33 +4,52 @@
       <div class="poll-question-text">
         <markdown katex emoji [disableSanitizer]="true" [data]="question.question"></markdown>
       </div>
+      @let submittedAnswer = submittedAnswers()[question.index];
+      @let alreadySubmitted = submittedAnswer !== undefined;
       @if (question.pollType === 'options') {
         <div class="poll-question-options">
           @for (option of question.options; track option.index) {
-            <button [disabled]="submittedAnswers()[question.index] !== undefined" (click)="submitAnswer(question.index, option.index.toString())">
+            <button
+              [disabled]="alreadySubmitted"
+              (click)="submitAnswer(question.index, option.index.toString())"
+            >
               <markdown katex emoji [disableSanitizer]="true" [data]="option.option"></markdown>
             </button>
           }
         </div>
       } @else if (question.pollType === 'text') {
         <div class="poll-question-text-input">
-          <textarea [disabled]="submittedAnswers()[question.index] !== undefined" [value]="pendingAnswers()[question.index]" (change)="setPendingAnswer(question.index, ($event.target as HTMLTextAreaElement)?.value)"></textarea>
-          <button [disabled]="submittedAnswers()[question.index] !== undefined" (click)="submitPendingAnswer(question.index)">
+          <textarea
+            [disabled]="alreadySubmitted"
+            [ngModel]="pendingAnswers()[question.index] || ''"
+            (ngModelChange)="setPendingAnswer(question.index, $event)"
+          ></textarea>
+          <button [disabled]="alreadySubmitted" (click)="submitPendingAnswer(question.index)">
             Submit
           </button>
         </div>
       } @else if (question.pollType === 'rating') {
         <div class="poll-question-rating">
           @for (rating of ratingValues(question.maxRating); track rating) {
-            <button [disabled]="submittedAnswers()[question.index] !== undefined" (click)="submitAnswer(question.index, rating.toString())">
+            <button
+              [disabled]="alreadySubmitted"
+              (click)="submitAnswer(question.index, rating.toString())"
+            >
               {{ rating }}
             </button>
           }
         </div>
       } @else if (question.pollType === 'estimate') {
         <div class="poll-question-estimate">
-          <input type="number" [min]="question.minValue" [max]="question.maxValue" />
-          <button [disabled]="submittedAnswers()[question.index] !== undefined" (click)="submitPendingAnswer(question.index)">
+          <input
+            type="number"
+            [disabled]="alreadySubmitted"
+            [min]="question.minValue"
+            [max]="question.maxValue"
+            [ngModel]="pendingAnswers()[question.index] || 0"
+            (ngModelChange)="setPendingAnswer(question.index, $event)"
+          />
+          <button [disabled]="alreadySubmitted" (click)="submitPendingAnswer(question.index)">
             Submit
           </button>
         </div>

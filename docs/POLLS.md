@@ -1,7 +1,7 @@
 # Polls Format
 The polls are specified as Markdown. The outermost element is a list, with each list item being a question in the poll.
 
-The entry of a question is just the question text. If there are multiple options to choose from, they are specified in a sublist after the question. Metadata of the question can be specified as `!flag` at the end of the question.
+The entry of a question is just the question text. If there are multiple options to choose from, they are specified in a sublist after the question. Metadata of the question can be specified as `!flag` or `!flag:value` at the end of the question.
 
 To specify general poll flags, an "empty" question at the start can be used. They then apply to all the questions.
 
@@ -28,5 +28,7 @@ By default, the replies are hidden on the presentation view. They can be made vi
 By default, users can not advance on their own, they always see the same page as on the presentation. With `!open`, the users can progress at their own pace to this question (i.e. they can progress from the previous question).
 
 By default, each question appears on a separate page. A question can be joined on the same page with the previous one with `!join`. This implies `!open`.
+
+There is a shorthand for options where the answers are yes/no. `!yn` for just the options, and `!yny` or `!ynn` to mark one of the options as the correct solution. To translate the options, specify the language afterwards, e.g. `!yn:de`.
 
 To include an image, it needs to be hosted somewhere else.

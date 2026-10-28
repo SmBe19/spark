@@ -47,14 +47,19 @@
             placeholder="Active Question Index"
             [formField]="roomInfoForm.activeQuestionIndex"
           />
-          <button type="submit" [disabled]="!dirtyValues().activeQuestionIndex">Update</button>
+          <button
+            type="submit"
+            [disabled]="dirtyValues().activePoll || !dirtyValues().activeQuestionIndex"
+          >
+            Update
+          </button>
         </div>
       </form>
       <div class="question-index-buttons">
         <button
           (click)="previousQuestion()"
           type="button"
-          [disabled]="roomInfoModel().activeQuestionIndex === 0"
+          [disabled]="dirtyValues().activePoll || roomInfoModel().activeQuestionIndex === 0"
         >
           &lt;
         </button>
@@ -62,6 +67,7 @@
           (click)="nextQuestion()"
           type="button"
           [disabled]="
+            dirtyValues().activePoll ||
             roomInfoModel().activeQuestionIndex === activePollParsed().questions.length - 1
           "
         >

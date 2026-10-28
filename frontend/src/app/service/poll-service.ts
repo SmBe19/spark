@@ -13,7 +13,7 @@ export class PollService {
     }
 
     let currentLine = 0;
-    const globalFlagsMatch = lines[0].match(/^-\s+(!.*)$/);
+    const globalFlagsMatch = lines[0].match(/^-\s+(!\w.*)$/);
     let globalFlags = '';
     if (globalFlagsMatch) {
       globalFlags = globalFlagsMatch[1];
@@ -46,7 +46,7 @@ export class PollService {
   private parseQuestion(index: number, lines: string[]): PollQuestion {
     const flags = this.parseFlags(lines[0]);
     const questionText = lines[0]
-      .replace(/!\S.*$/, '')
+      .replace(/!\w.*$/, '')
       .replace(/^-/, '')
       .trim();
 
@@ -73,13 +73,34 @@ export class PollService {
         maxValue: parseInt(flags['max'] as string) || 100,
       };
     }
+    if (flags['yn'] || flags['yny'] || flags['ynn']) {
+      const translations: { [key: string]: { yes: string; no: string } } = {
+        en: { yes: 'Yes', no: 'No' },
+        de: { yes: 'Ja', no: 'Nein' },
+        fr: { yes: 'Oui', no: 'Non' },
+        es: { yes: 'Sí', no: 'No' },
+        it: { yes: 'Sì', no: 'No' },
+      };
+      const flagValue = flags['yn'] || flags['yny'] || flags['ynn'];
+      const language = flagValue === true ? 'en' : (flagValue as string);
+      const translation = translations[language] || translations['en'];
+      return {
+        ...baseQuestion,
+        pollType: 'options',
+        options: [
+          { index: 0, option: translation.yes, correct: !!flags['yny'] },
+          { index: 1, option: translation.no, correct: !!flags['ynn'] },
+        ],
+        multiSelect: false,
+      };
+    }
     if (lines.length > 1) {
       const options = lines.slice(1).map((line, optionIndex) => {
         const optionFlags = this.parseFlags(line);
         return {
           index: optionIndex,
           option: line
-            .replace(/!\S.*$/, '')
+            .replace(/!\w.*$/, '')
             .replace(/^\s*-/, '')
             .trim(),
           correct: !!(optionFlags['x'] || optionFlags['correct']),
@@ -101,7 +122,7 @@ export class PollService {
 
   private parseFlags(line: string): Flags {
     const flags: Flags = {};
-    const flagMatches = line.match(/.+?(!\S.*)/);
+    const flagMatches = line.match(/.+?(!\w.*)/);
     if (flagMatches) {
       const flagStrings = flagMatches[1].split(/\s+/);
       for (const flagString of flagStrings) {

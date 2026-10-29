@@ -9,7 +9,7 @@ from spark.db.rooms import (
     sanitize_room_short,
 )
 from spark.decorators import login_required, public_route
-from spark.mongo_utils import get_mongo_database
+from spark.db.mongo_utils import get_mongo_database
 from spark.utils import get_user_id, sanitize_object, validate_not_empty
 
 

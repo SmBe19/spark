@@ -7,11 +7,14 @@ from flask_socketio import SocketIO
 from spark.api import archive, rooms
 from spark.auth import login_user
 from spark.decorators import public_route
-from spark.mongo_utils import get_new_mongo_database, init_mongo_app
+from spark.db.mongo_utils import get_new_mongo_database, init_mongo_app
 from spark.socket import rooms as socket_rooms
 
 app = Flask(__name__)
 app.secret_key = os.getenv("SECRET_KEY")
+if not app.secret_key:
+    print("Warning: SECRET_KEY environment variable is not set. Using a random key.")
+    app.secret_key = os.urandom(24)
 socketio = SocketIO(app)
 init_mongo_app(app)
 

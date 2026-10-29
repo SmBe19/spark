@@ -1,7 +1,7 @@
 import argparse
 
 from spark.auth import add_user
-from spark.mongo_utils import get_new_mongo_database
+from spark.db.mongo_utils import get_new_mongo_database
 
 
 def cli_add_user():

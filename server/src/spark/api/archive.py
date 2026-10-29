@@ -2,7 +2,7 @@ from bson import ObjectId
 
 from spark.db.rooms import db_archive_poll_for_room
 from spark.decorators import login_required
-from spark.mongo_utils import get_mongo_database
+from spark.db.mongo_utils import get_mongo_database
 from spark.utils import sanitize_object
 
 

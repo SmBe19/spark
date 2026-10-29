@@ -3,7 +3,7 @@ import time
 from bson import ObjectId
 from flask_socketio import emit
 
-from spark.mongo_utils import get_mongo_database
+from spark.db.mongo_utils import get_mongo_database
 from spark.utils import sanitize_object
 
 

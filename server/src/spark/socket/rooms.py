@@ -1,9 +1,9 @@
 from bson import ObjectId
 from flask_socketio import join_room, leave_room, rooms
 
+from spark.db.mongo_utils import get_mongo_database
 from spark.db.rooms import db_add_answer_to_room, sanitize_room
 from spark.decorators import is_logged_in
-from spark.mongo_utils import get_mongo_database
 
 
 def add_socket_routes(socketio):

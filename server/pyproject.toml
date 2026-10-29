@@ -23,7 +23,7 @@ debug_server = "spark.server:debug_server"
 prod_server = "spark.server:prod_server"
 add_user = "spark.spark_cli:cli_add_user"
 list_users = "spark.spark_cli:cli_list_users"
-ping_mongo = "spark.mongo_utils:ping_mongo"
+ping_mongo = "spark.db.mongo_utils:ping_mongo"
 
 [build-system]
 requires = ["uv_build>=0.12.21,<0.13.0"]

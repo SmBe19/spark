@@ -5,9 +5,10 @@ import { PollService } from '../../service/poll-service';
 import { MarkdownComponent } from 'ngx-markdown';
 import { Title } from '@angular/platform-browser';
 import { FormsModule } from '@angular/forms';
+import { NgClass } from '@angular/common';
 
 @Component({
-  imports: [FormsModule, MarkdownComponent],
+  imports: [FormsModule, NgClass, MarkdownComponent],
   selector: 'app-room-client',
   styleUrl: './room-client.css',
   templateUrl: './room-client.html',
@@ -77,6 +78,7 @@ export class RoomClient {
         pendingAnswers: this.pendingAnswersDebounced.value(),
         submittedAnswers: this.submittedAnswers(),
       };
+      console.log(this.roomClientService.activeRoom());
       if (!answers.pollId) {
         return;
       }

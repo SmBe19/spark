@@ -2,7 +2,7 @@ FROM node:24-alpine AS frontend_build
 
 COPY frontend /frontend
 WORKDIR /frontend
-RUN npm ci && npm run build
+RUN npm ci && npm run build --production
 
 FROM ghcr.io/astral-sh/uv:python3.13-alpine
 

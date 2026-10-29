@@ -9,6 +9,12 @@
   justify-content: center;
 }
 
+.no-active-questions {
+  text-align: center;
+  font-size: 1.5rem;
+  color: var(--muted-color-dark);
+}
+
 .poll-question:not(:last-child) {
   box-sizing: border-box;
   padding-bottom: 2rem;

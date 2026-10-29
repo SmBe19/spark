@@ -7,6 +7,7 @@ import {
   mapPartialApiRoomInfoToRoomInfo,
   RoomInfo,
   RoomInfoShort,
+  RoomMode,
 } from '../model/rooms';
 import { ApiResponse } from '../model/api';
 import {
@@ -136,9 +137,27 @@ export class RoomService {
       .subscribe(() => {});
   }
 
+  updateRoomActivePresentation(roomId: string, presentation: string) {
+    this.httpClient
+      .put<ApiResponse<null>>('/api/rooms/' + roomId, { active_presentation: presentation })
+      .subscribe(() => {});
+  }
+
+  updateRoomActiveMode(roomId: string, mode: RoomMode) {
+    this.httpClient
+      .put<ApiResponse<null>>('/api/rooms/' + roomId, { active_mode: mode })
+      .subscribe(() => {});
+  }
+
   updateRoomActiveQuestionIndex(roomId: string, index: number) {
     this.httpClient
       .put<ApiResponse<null>>('/api/rooms/' + roomId, { active_question_index: index })
+      .subscribe(() => {});
+  }
+
+  archivePoll(roomId: string) {
+    this.httpClient
+      .post<ApiResponse<null>>('/api/rooms/' + roomId + '/archive_poll', {})
       .subscribe(() => {});
   }
 

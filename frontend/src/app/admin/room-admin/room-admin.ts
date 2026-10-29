@@ -20,6 +20,7 @@ export class RoomAdmin {
     name: '',
     activePoll: '',
     activeQuestionIndex: 0,
+    activePresentation: '',
   });
   roomInfoForm = form(this.roomInfoModel, (schemaPath) => {
     min(schemaPath.activeQuestionIndex, 0);
@@ -36,6 +37,7 @@ export class RoomAdmin {
         name: false,
         activePoll: false,
         activeQuestionIndex: false,
+        activePresentation: false,
       };
     }
     return {
@@ -43,8 +45,10 @@ export class RoomAdmin {
       name: currentRoomInfo.name !== activeRoom.name,
       activePoll: currentRoomInfo.activePoll !== activeRoom.activePoll,
       activeQuestionIndex: currentRoomInfo.activeQuestionIndex !== activeRoom.activeQuestionIndex,
+      activePresentation: currentRoomInfo.activePresentation !== activeRoom.activePresentation,
     };
   });
+  activeRoomMode = computed(() => this.roomService.activeRoom.value()?.activeMode || 'poll');
   showRoomEditForm = signal(false);
   deletingRoom = signal(false);
 
@@ -59,6 +63,7 @@ export class RoomAdmin {
           name: room.name,
           activePoll: room.activePoll,
           activeQuestionIndex: room.activeQuestionIndex,
+          activePresentation: room.activePresentation,
         });
       }
     });
@@ -96,7 +101,7 @@ export class RoomAdmin {
     if (this.activePollParsed().questions.length === 0) {
       return;
     }
-    const currentIndex = this.roomInfoModel.update((info) => ({
+    this.roomInfoModel.update((info) => ({
       ...info,
       activeQuestionIndex: Math.min(
         this.activePollParsed().questions.length - 1,
@@ -110,11 +115,34 @@ export class RoomAdmin {
     if (this.activePollParsed().questions.length === 0) {
       return;
     }
-    const currentIndex = this.roomInfoModel.update((info) => ({
+    this.roomInfoModel.update((info) => ({
       ...info,
       activeQuestionIndex: Math.max(0, info.activeQuestionIndex - 1),
     }));
     this.updateActiveQuestionIndex();
+  }
+
+  updatePresentation() {
+    if (!this.dirtyValues().activePresentation) {
+      return;
+    }
+    this.roomService.updateRoomActivePresentation(
+      this.roomService.activeRoom.value()?.id || '',
+      this.roomInfoModel().activePresentation,
+    );
+  }
+
+  archivePoll() {
+    const roomId = this.roomService.activeRoom.value()?.id;
+    if (roomId) {
+      this.roomService.archivePoll(roomId);
+    }
+  }
+
+  togglePresentationMode() {
+    const currentMode = this.roomService.activeRoom.value()?.activeMode;
+    const newMode = currentMode === 'presentation' ? 'poll' : 'presentation';
+    this.roomService.updateRoomActiveMode(this.roomService.activeRoom.value()?.id || '', newMode);
   }
 
   startDeleteRoom() {

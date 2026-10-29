@@ -119,13 +119,13 @@
   flex: 1 1 auto;
 }
 
-.poll-content-form textarea {
+.content-form textarea {
   width: 100%;
   min-height: 20rem;
   resize: vertical;
 }
 
-.poll-content-form button {
+.content-form button {
   margin-top: 1rem;
   width: 100%;
 }
@@ -135,13 +135,15 @@
   font: inherit;
 }
 
-.room-edit-button {
+.room-edit-buttons {
   position: absolute;
   top: 0;
   right: 0;
+  display: flex;
+  gap: 0.5rem;
 }
 
-.room-edit-button button {
+.room-edit-buttons button {
   padding: 0.1rem 0.5rem;
   border: 0;
   border-radius: 0;
@@ -149,7 +151,7 @@
   background: var(--muted-color-light);
 }
 
-.room-edit-button button:hover {
+.room-edit-buttons button:hover {
   cursor: pointer;
   background: var(--muted-color-medium);
 }

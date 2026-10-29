@@ -1,4 +1,7 @@
 <div class="poll-wrapper">
+  @if (activeQuestions().length === 0) {
+    <div class="no-active-questions">{{ roomClientService.activeRoom()?.name }}</div>
+  }
   @for (question of activeQuestions(); track question.index) {
     <div class="poll-question">
       <div class="poll-question-text">

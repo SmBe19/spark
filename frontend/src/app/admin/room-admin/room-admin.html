@@ -1,6 +1,12 @@
 <div class="room-admin-wrapper">
   <div class="poll-edit">
-    <div class="room-edit-button">
+    <div class="room-edit-buttons">
+      @if (activeRoomMode() === 'poll') {
+        <button (click)="archivePoll()">Archive Poll</button>
+      }
+      <button (click)="togglePresentationMode()">
+        {{ activeRoomMode() === 'presentation' ? 'Poll Mode' : 'Presentation Mode' }}
+      </button>
       <button (click)="showRoomEditForm.set(!showRoomEditForm())">
         {{ showRoomEditForm() ? 'Hide' : 'Edit Room' }}
       </button>
@@ -39,56 +45,73 @@
         }
       </div>
     </div>
-    <div class="question-index-form">
-      <form (submit)="updateActiveQuestionIndex()">
-        <div class="question-index-input">
-          <input
-            type="number"
-            placeholder="Active Question Index"
-            [formField]="roomInfoForm.activeQuestionIndex"
-          />
+    @if (activeRoomMode() === 'poll') {
+      <div class="question-index-form">
+        <form (submit)="updateActiveQuestionIndex()">
+          <div class="question-index-input">
+            <input
+              type="number"
+              placeholder="Active Question Index"
+              [formField]="roomInfoForm.activeQuestionIndex"
+            />
+            <button
+              type="submit"
+              [disabled]="dirtyValues().activePoll || !dirtyValues().activeQuestionIndex"
+            >
+              Update
+            </button>
+          </div>
+        </form>
+        <div class="question-index-buttons">
           <button
-            type="submit"
-            [disabled]="dirtyValues().activePoll || !dirtyValues().activeQuestionIndex"
+            (click)="previousQuestion()"
+            type="button"
+            [disabled]="dirtyValues().activePoll || roomInfoModel().activeQuestionIndex === 0"
           >
-            Update
+            &lt;
+          </button>
+          <button
+            (click)="nextQuestion()"
+            type="button"
+            [disabled]="
+              dirtyValues().activePoll ||
+              roomInfoModel().activeQuestionIndex === activePollParsed().questions.length - 1
+            "
+          >
+            &gt;
           </button>
         </div>
-      </form>
-      <div class="question-index-buttons">
-        <button
-          (click)="previousQuestion()"
-          type="button"
-          [disabled]="dirtyValues().activePoll || roomInfoModel().activeQuestionIndex === 0"
-        >
-          &lt;
-        </button>
-        <button
-          (click)="nextQuestion()"
-          type="button"
-          [disabled]="
-            dirtyValues().activePoll ||
-            roomInfoModel().activeQuestionIndex === activePollParsed().questions.length - 1
-          "
-        >
-          &gt;
-        </button>
       </div>
-    </div>
-    <div class="poll-content-form">
-      <form (submit)="updatePoll()">
-        <div>
-          <textarea
-            placeholder="Poll"
-            [formField]="roomInfoForm.activePoll"
-            (keyup.control.enter)="$event.preventDefault(); updatePoll()"
-          ></textarea>
-        </div>
-        <div>
-          <button type="submit" [disabled]="!dirtyValues().activePoll">Update</button>
-        </div>
-      </form>
-    </div>
+      <div class="content-form">
+        <form (submit)="updatePoll()">
+          <div>
+            <textarea
+              placeholder="Poll"
+              [formField]="roomInfoForm.activePoll"
+              (keyup.control.enter)="$event.preventDefault(); updatePoll()"
+            ></textarea>
+          </div>
+          <div>
+            <button type="submit" [disabled]="!dirtyValues().activePoll">Update</button>
+          </div>
+        </form>
+      </div>
+    } @else if (activeRoomMode() === 'presentation') {
+      <div class="content-form">
+        <form (submit)="updatePresentation()">
+          <div>
+            <textarea
+              placeholder="Presentation"
+              [formField]="roomInfoForm.activePresentation"
+              (keyup.control.enter)="$event.preventDefault(); updatePresentation()"
+            ></textarea>
+          </div>
+          <div>
+            <button type="submit" [disabled]="!dirtyValues().activePresentation">Update</button>
+          </div>
+        </form>
+      </div>
+    }
   </div>
   <div class="poll-preview">
     <app-poll-preview

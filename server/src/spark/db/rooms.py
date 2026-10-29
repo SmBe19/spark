@@ -51,16 +51,23 @@ def db_archive_poll_for_room(room_id):
             "answers": answers,
         }
     )
+    update_values = {
+        "active_poll_id": ObjectId(),
+        "active_poll": "",
+        "active_answers": [],
+        "active_question_index": 0,
+    }
     db["rooms"].update_one(
         {"_id": ObjectId(room_id)},
         {
-            "$set": {
-                "active_poll_id": ObjectId(),
-                "active_poll": "",
-                "active_answers": [],
-                "active_question_index": 0,
-            },
+            "$set": update_values,
         },
+    )
+    emit(
+        "room_update",
+        sanitize_room(update_values),
+        to="room:" + str(room_id),
+        namespace="/",
     )
     return {"success": True}
 

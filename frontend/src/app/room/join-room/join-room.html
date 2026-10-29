@@ -21,8 +21,8 @@
     </form>
   </div>
   <div class="error-message">
-    @if (errorMessage()) {
-      {{ errorMessage() }}
+    @if (roomClientService.roomJoinError()) {
+      {{ roomClientService.roomJoinError() }}
     }
   </div>
 </main>

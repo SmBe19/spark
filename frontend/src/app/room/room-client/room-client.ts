@@ -1,6 +1,6 @@
 import { Component, computed, debounced, effect, inject, signal } from '@angular/core';
 import { RoomClientService } from '../../service/room-client-service';
-import { ActivatedRoute } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 import { PollService } from '../../service/poll-service';
 import { MarkdownComponent } from 'ngx-markdown';
 import { Title } from '@angular/platform-browser';
@@ -18,6 +18,7 @@ export class RoomClient {
   titleService = inject(Title);
   pollService = inject(PollService);
   roomClientService = inject(RoomClientService);
+  router = inject(Router);
   activatedRoute = inject(ActivatedRoute);
 
   pendingAnswers = signal<Record<number, string>>({});
@@ -87,7 +88,11 @@ export class RoomClient {
     this.activatedRoute.paramMap.subscribe((params) => {
       const roomSlug = params.get('roomSlug');
       if (roomSlug) {
-        this.roomClientService.joinRoomBySlug(roomSlug);
+        this.roomClientService.joinRoomBySlug(roomSlug, (success: boolean) => {
+          if (!success) {
+            this.router.navigate(['/']);
+          }
+        });
       }
     });
   }

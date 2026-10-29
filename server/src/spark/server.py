@@ -6,8 +6,8 @@ from flask_socketio import SocketIO
 
 from spark.api import archive, rooms
 from spark.auth import login_user
-from spark.decorators import public_route
 from spark.db.mongo_utils import get_new_mongo_database, init_mongo_app
+from spark.decorators import public_route
 from spark.socket import rooms as socket_rooms
 
 app = Flask(__name__)

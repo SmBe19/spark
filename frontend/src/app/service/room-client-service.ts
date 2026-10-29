@@ -11,6 +11,7 @@ import { SocketService } from './socket-service';
 @Service()
 export class RoomClientService {
   activeRoom = signal<RoomInfo | null>(null);
+  roomJoinError = signal<string | null>(null);
 
   private socketService = inject(SocketService);
   private userHash: string | null = null;
@@ -35,14 +36,31 @@ export class RoomClientService {
     }
   }
 
-  joinRoomBySlug(slug: string) {
-    this.socketService.socket.emit('join_room', { slug }, (room: ApiResponse<ApiRoomInfo>) => {
-      if (!room.success) {
-        console.error('Failed to join room:', room.error);
-        return;
+  joinRoomBySlug(slug: string, callback?: (success: boolean) => void) {
+    if (this.activeRoom()?.slug === slug) {
+      if (callback) {
+        callback(true);
       }
-      this.activeRoom.set(mapApiRoomInfoToRoomInfo(room.data));
-    });
+      return;
+    }
+    this.socketService.socket.emit(
+      'join_room',
+      { slug: slug.toLowerCase() },
+      (room: ApiResponse<ApiRoomInfo>) => {
+        if (!room.success) {
+          this.roomJoinError.set("Room '" + slug + "' not found.");
+          if (callback) {
+            callback(false);
+          }
+          return;
+        }
+        this.roomJoinError.set(null);
+        if (callback) {
+          callback(true);
+        }
+        this.activeRoom.set(mapApiRoomInfoToRoomInfo(room.data));
+      },
+    );
   }
 
   addAnswer(answer: string, questionIndex: number) {

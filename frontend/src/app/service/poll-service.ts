@@ -62,7 +62,9 @@ export class PollService {
     const baseQuestion = {
       index,
       question: questionText,
-      showResults: !!(flags['show'] && !flags['hide']),
+      showReplies: !!flags['show'] && !flags['hide'],
+      showSolution: !!flags['sol'] && !flags['nosol'],
+      showCorrection: !!flags['corr'] && !flags['nocorr'],
       individualProgress: !!flags['open'],
       joinWithPrevious: !!flags['join'],
     };
@@ -125,7 +127,7 @@ export class PollService {
     return {
       ...baseQuestion,
       pollType: 'text',
-      maxLength: parseInt(flags['length'] as string) || null,
+      maxLength: parseInt((flags['length'] || flags['len']) as string) || null,
     };
   }
 

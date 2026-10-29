@@ -49,10 +49,26 @@
   cursor: pointer;
 }
 
-.selected-option {
-  background-color: var(--primary-accent-color) !important;
+.poll-question button.selected-option {
+  background-color: var(--primary-accent-color);
   color: white;
   font-weight: 700;
+}
+
+.poll-question .correct-option {
+  border: 2px solid #00bb00;
+}
+
+.poll-question .selected-option.correct-option {
+  background-color: #4fa34f;
+}
+
+.poll-question .incorrect-option {
+  border: 2px solid #ff3333;
+}
+
+.poll-question .selected-option.incorrect-option {
+  background-color: #bb2222;
 }
 
 .poll-question-submit-button {

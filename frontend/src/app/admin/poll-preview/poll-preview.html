@@ -11,7 +11,13 @@
             <app-spark-markdown [data]="question.question"></app-spark-markdown>
           </div>
           @if (question.pollType === 'options') {
-            <ul class="poll-question-options">
+            <ul
+              class="poll-question-options"
+              [ngClass]="{
+                'multi-select': question.multiSelect,
+                'single-select': !question.multiSelect,
+              }"
+            >
               @for (option of question.options; track option.index) {
                 <li
                   class="poll-question-option single-line-markdown"

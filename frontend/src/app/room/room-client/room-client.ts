@@ -105,6 +105,45 @@ export class RoomClient {
     });
   }
 
+  toggleOption(questionIndex: number, optionIndex: number, submitImmediately: boolean = false) {
+    const currentAnswer = this.pendingAnswers()[questionIndex] || '';
+    const selectedOptions = new Set(
+      currentAnswer
+        .split(',')
+        .map((s) => s.trim())
+        .filter((s) => s !== ''),
+    );
+    if (selectedOptions.has(optionIndex.toString())) {
+      selectedOptions.delete(optionIndex.toString());
+    } else {
+      selectedOptions.add(optionIndex.toString());
+    }
+    this.setPendingAnswer(questionIndex, Array.from(selectedOptions).join(','));
+
+    if (submitImmediately) {
+      this.submitPendingAnswer(questionIndex);
+    }
+  }
+
+  isOptionSelected(questionIndex: number, optionIndex: number): boolean {
+    const currentAnswer = this.pendingAnswers()[questionIndex] || '';
+    const selectedOptions = new Set(
+      currentAnswer
+        .split(',')
+        .map((s) => s.trim())
+        .filter((s) => s !== ''),
+    );
+    return selectedOptions.has(optionIndex.toString());
+  }
+
+  questionHasCorrection(questionIndex: number): boolean {
+    const question = this.activeQuestions().find((q) => q.index === questionIndex);
+    if (!question || question.pollType !== 'options') {
+      return false;
+    }
+    return question.options.some((option) => option.correct);
+  }
+
   submitPendingAnswer(questionIndex: number) {
     const answer = this.pendingAnswers()[questionIndex];
     if (answer) {

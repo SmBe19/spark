@@ -20,17 +20,36 @@
         @let submittedAnswer = submittedAnswers()[question.index];
         @let alreadySubmitted = submittedAnswer !== undefined;
         @if (question.pollType === 'options') {
-          <div class="poll-question-options single-line-markdown">
+          <div
+            class="poll-question-options single-line-markdown"
+            [ngClass]="{
+              'has-correction': question.showCorrection && questionHasCorrection(question.index),
+            }"
+          >
             @for (option of question.options; track option.index) {
               <button
                 [disabled]="alreadySubmitted"
-                (click)="submitAnswer(question.index, option.index.toString())"
-                [ngClass]="{ 'selected-option': submittedAnswer === option.index.toString() }"
+                (click)="toggleOption(question.index, option.index, !question.multiSelect)"
+                [ngClass]="{
+                  'selected-option': isOptionSelected(question.index, option.index),
+                  'correct-option': question.showCorrection && option.correct,
+                  'incorrect-option': question.showCorrection && !option.correct,
+                }"
               >
                 <app-spark-markdown [data]="option.option"></app-spark-markdown>
               </button>
             }
           </div>
+          @if (question.multiSelect) {
+            <div class="poll-question-submit-button">
+              <button
+                [disabled]="alreadySubmitted || !pendingAnswers()[question.index]"
+                (click)="submitPendingAnswer(question.index)"
+              >
+                Submit
+              </button>
+            </div>
+          }
         } @else if (question.pollType === 'text') {
           <div class="poll-question-text-input">
             <div>
@@ -73,7 +92,7 @@
                 [min]="question.minValue"
                 [max]="question.maxValue"
                 [ngModel]="pendingAnswers()[question.index] || 0"
-                (ngModelChange)="setPendingAnswer(question.index, $event)"
+                (ngModelChange)="setPendingAnswer(question.index, $event.toString())"
               />
             </div>
             <div class="poll-question-submit-button">

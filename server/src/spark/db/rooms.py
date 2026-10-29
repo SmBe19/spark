@@ -89,8 +89,6 @@ def sanitize_room(room):
             "active_presentation",
             "active_mode",
             "active_question_index",
-            "answers_visible",
-            "solutions_visible",
         ],
     )
     san["id"] = str(room["_id"])

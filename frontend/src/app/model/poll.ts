@@ -12,7 +12,9 @@ interface PollQuestionBase {
   index: number;
   question: string;
   pollType: PollType;
-  showResults: boolean;
+  showReplies: boolean;
+  showSolution: boolean;
+  showCorrection: boolean;
   individualProgress: boolean;
   joinWithPrevious: boolean;
 }

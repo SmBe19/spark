@@ -27,6 +27,14 @@
   margin: -0.5rem 0 0.5rem 0;
 }
 
+ul.single-select {
+  list-style-type: square;
+}
+
+ul.multi-select {
+  list-style-type: circle;
+}
+
 .correct-option {
   font-weight: bold;
   color: green;

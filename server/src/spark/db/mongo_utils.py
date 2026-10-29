@@ -22,9 +22,8 @@ def init_mongo_app(app):
 
 def get_new_mongo_database():
     uri = os.getenv("MONGO_URL")
-    database_name = os.getenv("SPARK_MONGO_DBNAME", "spark")
     client = pymongo.MongoClient(uri)
-    db = client[database_name]
+    db = client.get_database()
     return db
 
 

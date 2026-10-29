@@ -17,7 +17,8 @@
   justify-content: center;
 }
 
-.no-active-questions {
+.no-active-questions,
+.no-active-presentation {
   text-align: center;
   font-size: 1.5rem;
   color: var(--muted-color-dark);

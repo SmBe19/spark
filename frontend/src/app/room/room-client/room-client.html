@@ -1,8 +1,11 @@
 @if (activeRoomMode() === 'presentation') {
   <div class="presentation-wrapper">
-    <app-spark-markdown
-      [data]="roomClientService.activeRoom()?.activePresentation"
-    ></app-spark-markdown>
+    @let activePresentation = roomClientService.activeRoom()?.activePresentation;
+    @if (!activePresentation) {
+      <div class="no-active-presentation">{{ roomClientService.activeRoom()?.name }}</div>
+    } @else {
+      <app-spark-markdown [data]="activePresentation"></app-spark-markdown>
+    }
   </div>
 } @else if (activeRoomMode() === 'poll') {
   <div class="poll-wrapper">

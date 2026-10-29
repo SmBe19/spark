@@ -20,3 +20,11 @@ body {
   display: inline;
   margin: 0;
 }
+
+pre[class*='language-']::before {
+  box-shadow: 0 10px 8px var(--muted-color-very-light) !important;
+}
+
+pre[class*='language-']::after {
+  box-shadow: 0 10px 8px var(--muted-color-very-light) !important;
+}

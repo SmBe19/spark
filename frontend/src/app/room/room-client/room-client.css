@@ -1,3 +1,11 @@
+.presentation-wrapper {
+  box-sizing: border-box;
+  max-width: 800px;
+  min-height: 100vh;
+  margin: 0 auto;
+  padding: 1rem;
+}
+
 .poll-wrapper {
   box-sizing: border-box;
   max-width: 600px;

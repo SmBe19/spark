@@ -14,7 +14,7 @@
   padding-top: 2rem;
 }
 
-.poll-preview {
+.content-preview {
   flex-grow: 100;
   width: 30rem;
   max-height: calc(100vh - 3rem);

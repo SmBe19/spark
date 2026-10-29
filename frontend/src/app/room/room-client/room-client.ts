@@ -2,13 +2,13 @@ import { Component, computed, debounced, effect, inject, signal } from '@angular
 import { RoomClientService } from '../../service/room-client-service';
 import { ActivatedRoute, Router } from '@angular/router';
 import { PollService } from '../../service/poll-service';
-import { MarkdownComponent } from 'ngx-markdown';
 import { Title } from '@angular/platform-browser';
 import { FormsModule } from '@angular/forms';
 import { NgClass } from '@angular/common';
+import { SparkMarkdown } from '../../util/spark-markdown/spark-markdown';
 
 @Component({
-  imports: [FormsModule, NgClass, MarkdownComponent],
+  imports: [FormsModule, NgClass, SparkMarkdown],
   selector: 'app-room-client',
   styleUrl: './room-client.css',
   templateUrl: './room-client.html',
@@ -45,6 +45,7 @@ export class RoomClient {
     );
     return activePage.map((index) => activePoll.questions[index]);
   });
+  activeRoomMode = computed(() => this.roomClientService.activeRoom()?.activeMode || 'poll');
 
   constructor() {
     effect(() => {
@@ -78,7 +79,6 @@ export class RoomClient {
         pendingAnswers: this.pendingAnswersDebounced.value(),
         submittedAnswers: this.submittedAnswers(),
       };
-      console.log(this.roomClientService.activeRoom());
       if (!answers.pollId) {
         return;
       }

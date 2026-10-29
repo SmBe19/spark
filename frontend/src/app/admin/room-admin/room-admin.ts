@@ -7,9 +7,10 @@ import { toObservable } from '@angular/core/rxjs-interop';
 import { PollService } from '../../service/poll-service';
 import { NgClass } from '@angular/common';
 import { PollPreview } from '../poll-preview/poll-preview';
+import { PresentationPreview } from '../presentation-preview/presentation-preview';
 
 @Component({
-  imports: [FormField, FormsModule, NgClass, PollPreview],
+  imports: [FormField, FormsModule, NgClass, PollPreview, PresentationPreview],
   selector: 'app-room-admin',
   styleUrl: './room-admin.css',
   templateUrl: './room-admin.html',
@@ -28,6 +29,7 @@ export class RoomAdmin {
   });
   activePollDebounced = debounced(() => this.roomInfoModel().activePoll, 500);
   activePollParsed = computed(() => this.pollService.parsePoll(this.activePollDebounced.value()));
+  activePresentationDebounced = debounced(() => this.roomInfoModel().activePresentation, 500);
   dirtyValues = computed(() => {
     const currentRoomInfo = this.roomInfoModel();
     const activeRoom = this.roomService.activeRoom.value();

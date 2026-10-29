@@ -5,7 +5,7 @@
         <button (click)="archivePoll()">Archive Poll</button>
       }
       <button (click)="togglePresentationMode()">
-        {{ activeRoomMode() === 'presentation' ? 'Poll Mode' : 'Presentation Mode' }}
+        {{ activeRoomMode() === 'presentation' ? 'Presentation Mode' : 'Poll Mode' }}
       </button>
       <button (click)="showRoomEditForm.set(!showRoomEditForm())">
         {{ showRoomEditForm() ? 'Hide' : 'Edit Room' }}
@@ -113,10 +113,14 @@
       </div>
     }
   </div>
-  <div class="poll-preview">
-    <app-poll-preview
-      [parsedPoll]="activePollParsed()"
-      [activeQuestionIndex]="roomInfoModel().activeQuestionIndex"
-    />
+  <div class="content-preview">
+    @if (activeRoomMode() === 'poll') {
+      <app-poll-preview
+        [parsedPoll]="activePollParsed()"
+        [activeQuestionIndex]="roomInfoModel().activeQuestionIndex"
+      />
+    } @else if (activeRoomMode() === 'presentation') {
+      <app-presentation-preview [presentationContent]="activePresentationDebounced.value()" />
+    }
   </div>
 </div>

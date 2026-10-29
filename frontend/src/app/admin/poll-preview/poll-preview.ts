@@ -1,10 +1,10 @@
 import { Component, input } from '@angular/core';
 import { Poll } from '../../model/poll';
 import { NgClass } from '@angular/common';
-import { MarkdownComponent } from 'ngx-markdown';
+import { SparkMarkdown } from '../../util/spark-markdown/spark-markdown';
 
 @Component({
-  imports: [NgClass, MarkdownComponent],
+  imports: [NgClass, SparkMarkdown],
   selector: 'app-poll-preview',
   styleUrl: './poll-preview.css',
   templateUrl: './poll-preview.html',

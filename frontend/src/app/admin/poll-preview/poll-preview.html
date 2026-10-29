@@ -8,7 +8,7 @@
           [ngClass]="{ 'active-question': questionIndex === activeQuestionIndex() }"
         >
           <div class="poll-question-text">
-            <markdown katex emoji [disableSanitizer]="true" [data]="question.question"></markdown>
+            <app-spark-markdown [data]="question.question"></app-spark-markdown>
           </div>
           @if (question.pollType === 'options') {
             <ul class="poll-question-options">
@@ -17,7 +17,7 @@
                   class="poll-question-option single-line-markdown"
                   [ngClass]="{ 'correct-option': option.correct }"
                 >
-                  <markdown katex emoji [disableSanitizer]="true" [data]="option.option"></markdown>
+                  <app-spark-markdown [data]="option.option"></app-spark-markdown>
                 </li>
               }
             </ul>

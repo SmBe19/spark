@@ -11,6 +11,7 @@ ENV SPARK_STATIC_PATH=/app/frontend
 
 COPY server/ /app/server
 WORKDIR /app/server
+RUN uv venv
 RUN uv build
 
 CMD ["uv", "run", "prod_server"]

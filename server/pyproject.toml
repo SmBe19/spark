@@ -27,7 +27,7 @@ list_rooms = "spark.spark_cli:cli_list_rooms"
 ping_mongo = "spark.db.mongo_utils:ping_mongo"
 
 [build-system]
-requires = ["uv_build>=0.12.21,<0.13.0"]
+requires = ["uv_build>=0.12.21,<0.14.0"]
 build-backend = "uv_build"
 
 [dependency-groups]

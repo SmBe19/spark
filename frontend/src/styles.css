@@ -14,6 +14,10 @@ body {
   --muted-color-light: #cccccc;
   --muted-color-medium: #777777;
   --muted-color-dark: #333333;
+  --correct-border: #00bb00;
+  --correct-background: #4fa34f;
+  --incorrect-border: #ff3333;
+  --incorrect-background: #bb2222;
 }
 
 .single-line-markdown p {

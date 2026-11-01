@@ -42,6 +42,13 @@
   gap: 1rem;
 }
 
+.poll-replies-chart {
+  flex-grow: 1;
+  min-width: 15rem;
+  max-width: 50rem;
+  height: 15rem;
+}
+
 .poll-question ul {
   margin: -0.5rem 0 0.5rem 0;
 }

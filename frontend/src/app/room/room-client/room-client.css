@@ -54,21 +54,21 @@
 }
 
 .poll-question .has-correction .correct-option {
-  border: 2px solid #00bb00;
+  border: 2px solid var(--correct-border);
   padding: calc(0.8rem - 2px) calc(1rem - 2px);
 }
 
 .poll-question .has-correction .selected-option.correct-option {
-  background-color: #4fa34f;
+  background-color: var(--correct-background);
 }
 
 .poll-question .has-correction .incorrect-option {
-  border: 2px solid #ff3333;
+  border: 2px solid var(--incorrect-border);
   padding: calc(0.8rem - 4px) calc(1rem - 4px);
 }
 
 .poll-question .has-correction .selected-option.incorrect-option {
-  background-color: #bb2222;
+  background-color: var(--incorrect-background);
 }
 
 .poll-question-submit-button {

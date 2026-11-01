@@ -7,9 +7,10 @@ import { SparkMarkdown } from '../../util/spark-markdown/spark-markdown';
 import { NgClass, NgStyle } from '@angular/common';
 import { QRCodeComponent } from 'angularx-qrcode';
 import { SHORT_LINK_BASE } from '../../../consts';
+import { SparkChart } from '../../util/spark-chart/spark-chart';
 
 @Component({
-  imports: [SparkMarkdown, NgClass, NgStyle, QRCodeComponent],
+  imports: [SparkMarkdown, SparkChart, NgClass, NgStyle, QRCodeComponent],
   selector: 'app-room-presenter',
   styleUrl: './room-presenter.css',
   templateUrl: './room-presenter.html',
@@ -43,6 +44,12 @@ export class RoomPresenter {
     );
     return activePage.map((index) => activePoll.questions[index]);
   });
+  repliesByQuestion = computed(() =>
+    this.pollService.groupRepliesByQuestion(this.roomService.activeReplies.value()),
+  );
+  replyDistributions = computed(() =>
+    this.pollService.getReplyDistributions(this.repliesByQuestion()),
+  );
   activeRoomMode = computed(() => this.roomService.activeRoom()?.activeMode || 'poll');
   joinInformationBig = computed(() => {
     if (this.activeRoomMode() === 'poll') {

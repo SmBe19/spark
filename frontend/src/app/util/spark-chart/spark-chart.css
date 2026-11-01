@@ -1,5 +1,5 @@
-canvas {
+.chart-container {
+  position: relative;
   width: 100%;
-  min-height: 15rem;
-  flex-grow: 1;
+  height: 100%;
 }

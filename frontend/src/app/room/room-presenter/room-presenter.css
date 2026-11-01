@@ -17,6 +17,11 @@
   justify-content: center;
 }
 
+.poll-replies-chart {
+  height: 20rem;
+  width: 100%;
+}
+
 .poll-question:not(:last-child) {
   padding-bottom: 3rem;
   margin-bottom: 3rem;
@@ -39,6 +44,10 @@
   display: flex;
   align-items: center;
   justify-content: center;
+}
+
+.correct-option {
+  background: var(--correct-background);
 }
 
 .join-information {

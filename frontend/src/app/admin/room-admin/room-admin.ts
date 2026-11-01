@@ -1,17 +1,25 @@
 import { Component, computed, debounced, inject, input, signal } from '@angular/core';
-import { RoomInfoShort } from '../../model/rooms';
 import { form, FormField, max, min } from '@angular/forms/signals';
 import { RoomService } from '../../service/room-service';
 import { FormsModule } from '@angular/forms';
 import { toObservable } from '@angular/core/rxjs-interop';
 import { PollService } from '../../service/poll-service';
-import { NgClass } from '@angular/common';
+import { DatePipe, NgClass } from '@angular/common';
 import { PollPreview } from '../poll-preview/poll-preview';
 import { PresentationPreview } from '../presentation-preview/presentation-preview';
 import { RouterLink } from '@angular/router';
+import { ArchiveService } from '../../service/archive-service';
 
 @Component({
-  imports: [FormField, FormsModule, RouterLink, NgClass, PollPreview, PresentationPreview],
+  imports: [
+    FormField,
+    FormsModule,
+    RouterLink,
+    NgClass,
+    DatePipe,
+    PollPreview,
+    PresentationPreview,
+  ],
   selector: 'app-room-admin',
   styleUrl: './room-admin.css',
   templateUrl: './room-admin.html',
@@ -72,6 +80,7 @@ export class RoomAdmin {
 
   roomService = inject(RoomService);
   pollService = inject(PollService);
+  archiveService = inject(ArchiveService);
 
   constructor() {
     toObservable(this.roomService.activeRoom).subscribe((room) => {
@@ -154,6 +163,10 @@ export class RoomAdmin {
     if (roomId) {
       this.roomService.archivePoll(roomId);
     }
+  }
+
+  togglePollArchive() {
+    this.archiveService.loadArchive.update((value) => !value);
   }
 
   togglePresentationMode() {

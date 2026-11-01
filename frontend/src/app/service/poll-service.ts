@@ -133,15 +133,15 @@ export class PollService {
       return {
         ...baseQuestion,
         pollType: 'rating',
-        maxRating: Number(flags['rate'] as string) || 5,
+        maxRating: this.flagNumber(flags['rate'], 5),
       };
     }
     if (flags['estimate'] || flags['est']) {
       return {
         ...baseQuestion,
         pollType: 'estimate',
-        minValue: Number(flags['min'] as string) || 0,
-        maxValue: Number(flags['max'] as string) || 100,
+        minValue: this.flagNumber(flags['min'], 0),
+        maxValue: this.flagNumber(flags['max'], 100),
       };
     }
     if (flags['yn'] || flags['yny'] || flags['ynn']) {
@@ -190,6 +190,14 @@ export class PollService {
       pollType: 'text',
       maxLength: Number((flags['length'] || flags['len']) as string) || null,
     };
+  }
+
+  private flagNumber(flagValue: string | boolean | undefined, defaultValue: number): number {
+    if (flagValue === undefined || flagValue === true) {
+      return defaultValue;
+    }
+    const num = Number(flagValue);
+    return isNaN(num) ? defaultValue : num;
   }
 
   private parseFlags(line: string): Flags {

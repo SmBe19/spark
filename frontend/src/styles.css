@@ -14,6 +14,7 @@ body {
   --muted-color-light: #cccccc;
   --muted-color-medium: #777777;
   --muted-color-dark: #333333;
+  --list-active-item: #dbeafe;
   --correct-border: #00bb00;
   --correct-background: #4fa34f;
   --incorrect-border: #ff3333;

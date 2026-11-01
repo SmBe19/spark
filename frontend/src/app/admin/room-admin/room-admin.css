@@ -130,6 +130,8 @@
 }
 
 .content-form textarea {
+  box-sizing: border-box;
+  border: 1px solid var(--muted-color-light);
   width: 100%;
   min-height: 20rem;
   resize: vertical;
@@ -138,6 +140,32 @@
 .content-form button {
   margin-top: 1rem;
   width: 100%;
+}
+
+.poll-archive-polls {
+  display: flex;
+  flex-direction: column;
+  margin-bottom: 0.5rem;
+}
+
+.poll-archive-poll-item {
+  padding: 0.5rem;
+  color: var(--muted-color-dark);
+}
+
+.poll-archive-poll-item:hover {
+  cursor: pointer;
+  background: var(--muted-color-very-light);
+}
+
+.poll-archive-poll-item.active-archive {
+  background: var(--list-active-item);
+}
+
+.poll-archive-poll textarea {
+  width: 100%;
+  min-height: 20rem;
+  resize: vertical;
 }
 
 .poll-edit button {

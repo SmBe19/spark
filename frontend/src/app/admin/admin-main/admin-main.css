@@ -67,12 +67,12 @@ main {
 }
 
 .room-nav li:hover {
-  background: #eff6ff;
+  background: var(--muted-color-very-light);
   color: var(--primary-accent-color);
 }
 
 .room-nav li.active-room {
-  background: #dbeafe;
+  background: var(--list-active-item);
   color: var(--primary-accent-color);
   font-weight: 600;
 }

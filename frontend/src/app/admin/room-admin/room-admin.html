@@ -2,13 +2,16 @@
   <div class="poll-edit">
     <div class="room-edit-buttons">
       @if (activeRoomMode() === 'poll') {
-        <button (click)="archivePoll()">Archive Poll</button>
+        <button (click)="togglePollArchive()">
+          {{ archiveService.loadArchive() ? 'Hide Archive' : 'Show Archive' }}
+        </button>
+        <button (click)="archivePoll()">Archive!</button>
       }
       <button (click)="togglePresentationMode()">
         {{ activeRoomMode() === 'presentation' ? 'Presentation Mode' : 'Poll Mode' }}
       </button>
       <button (click)="showRoomEditForm.set(!showRoomEditForm())">
-        {{ showRoomEditForm() ? 'Hide' : 'Edit Room' }}
+        {{ showRoomEditForm() ? 'Finish Editing' : 'Edit Room' }}
       </button>
     </div>
     <div class="room-presenter-link">
@@ -49,60 +52,86 @@
       </div>
     </div>
     @if (activeRoomMode() === 'poll') {
-      <div class="poll-config">
-        <form (submit)="updateActiveQuestionIndex()">
-          <div class="question-index-input">
-            <input
-              type="number"
-              placeholder="Active Question Index"
-              [formField]="roomInfoForm.activeQuestionIndex"
-            />
-            <button
-              type="submit"
-              [disabled]="dirtyValues().activePoll || !dirtyValues().activeQuestionIndex"
-            >
-              Update
+      @if (archiveService.loadArchive()) {
+        <div class="poll-archive">
+          <div class="poll-archive-polls">
+            @for (archivedPoll of archiveService.roomArchives.value(); track archivedPoll.id) {
+              <div
+                class="poll-archive-poll-item"
+                [ngClass]="{ 'active-archive': archiveService.activePollId() === archivedPoll.id }"
+                (click)="archiveService.activePollId.set(archivedPoll.id)"
+              >
+                {{ archivedPoll.archivedAtMs | date: 'yyyy-MM-ddTHH:mm:ss' }}
+              </div>
+            }
+          </div>
+          @let activeArchivedPoll = archiveService.activeArchivedPoll.value();
+          @if (activeArchivedPoll) {
+            <div class="poll-archive-poll">
+              <textarea
+                placeholder="Archived Poll"
+                [value]="activeArchivedPoll.poll"
+                readonly
+              ></textarea>
+            </div>
+          }
+        </div>
+      } @else {
+        <div class="poll-config">
+          <form (submit)="updateActiveQuestionIndex()">
+            <div class="question-index-input">
+              <input
+                type="number"
+                placeholder="Active Question Index"
+                [formField]="roomInfoForm.activeQuestionIndex"
+              />
+              <button
+                type="submit"
+                [disabled]="dirtyValues().activePoll || !dirtyValues().activeQuestionIndex"
+              >
+                Update
+              </button>
+            </div>
+          </form>
+          <div>
+            <button (click)="showReplies.set(!showReplies())">
+              {{ showReplies() ? 'Hide Replies' : 'Show Replies' }}
             </button>
           </div>
-        </form>
-        <div>
-          <button (click)="showReplies.set(!showReplies())">
-            {{ showReplies() ? 'Hide Replies' : 'Show Replies' }}
-          </button>
-        </div>
-        <div>
-          <button
-            (click)="previousQuestion()"
-            type="button"
-            [disabled]="dirtyValues().activeQuestionIndex || previousQuestionIndex() === null"
-          >
-            &lt;
-          </button>
-        </div>
-        <div>
-          <button
-            (click)="nextQuestion()"
-            type="button"
-            [disabled]="dirtyValues().activeQuestionIndex || nextQuestionIndex() === null"
-          >
-            &gt;
-          </button>
-        </div>
-      </div>
-      <div class="content-form">
-        <form (submit)="updatePoll()">
           <div>
-            <textarea
-              placeholder="Poll"
-              [formField]="roomInfoForm.activePoll"
-              (keyup.control.enter)="$event.preventDefault(); updatePoll()"
-            ></textarea>
+            <button
+              (click)="previousQuestion()"
+              type="button"
+              [disabled]="dirtyValues().activeQuestionIndex || previousQuestionIndex() === null"
+            >
+              &lt;
+            </button>
           </div>
           <div>
-            <button type="submit" [disabled]="!dirtyValues().activePoll">Update</button>
+            <button
+              (click)="nextQuestion()"
+              type="button"
+              [disabled]="dirtyValues().activeQuestionIndex || nextQuestionIndex() === null"
+            >
+              &gt;
+            </button>
           </div>
-        </form>
-      </div>
+        </div>
+        <div class="content-form">
+          <form (submit)="updatePoll()">
+            <div>
+              <textarea
+                placeholder="Poll"
+                [formField]="roomInfoForm.activePoll"
+                (keyup.control.enter)="$event.preventDefault(); updatePoll()"
+              ></textarea>
+            </div>
+            <div>
+              <button type="submit" [disabled]="!dirtyValues().activePoll">Update</button>
+            </div>
+          </form>
+        </div>
+      }
     } @else if (activeRoomMode() === 'presentation') {
       <div class="content-form">
         <form (submit)="updatePresentation()">
@@ -122,12 +151,21 @@
   </div>
   <div class="content-preview">
     @if (activeRoomMode() === 'poll') {
-      <app-poll-preview
-        [parsedPoll]="activePollParsed()"
-        [activeQuestionIndex]="roomInfoModel().activeQuestionIndex"
-        [showReplies]="showReplies()"
-        [replies]="roomService.activeReplies.value()"
-      />
+      @if (archiveService.loadArchive()) {
+        <app-poll-preview
+          [parsedPoll]="archiveService.activeArchivedPollParsed()"
+          [activeQuestionIndex]="0"
+          [showReplies]="true"
+          [replies]="archiveService.activeArchivedPoll.value()?.replies || []"
+        />
+      } @else {
+        <app-poll-preview
+          [parsedPoll]="activePollParsed()"
+          [activeQuestionIndex]="roomInfoModel().activeQuestionIndex"
+          [showReplies]="showReplies()"
+          [replies]="roomService.activeReplies.value()"
+        />
+      }
     } @else if (activeRoomMode() === 'presentation') {
       <app-presentation-preview [presentationContent]="activePresentationDebounced.value()" />
     }

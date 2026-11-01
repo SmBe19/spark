@@ -15,7 +15,7 @@ import {
   mapApiQuestionReplyToQuestionReply,
   QuestionReply,
 } from '../model/replies';
-import { rxResource, toObservable } from '@angular/core/rxjs-interop';
+import { rxResource } from '@angular/core/rxjs-interop';
 import { map, of } from 'rxjs';
 import { SocketService } from './socket-service';
 
@@ -33,7 +33,7 @@ export class RoomService {
         return of([]);
       }
       return this.httpClient
-        .get<ApiResponse<ApiQuestionReply[]>>('/api/rooms/' + roomId + '/replies', {})
+        .get<ApiResponse<ApiQuestionReply[]>>('/api/rooms/' + roomId + '/replies')
         .pipe(
           map((data) => {
             if (data.success) {

@@ -1,5 +1,4 @@
 import os
-import subprocess
 
 from flask import Flask, request, send_from_directory, session
 from flask_socketio import SocketIO

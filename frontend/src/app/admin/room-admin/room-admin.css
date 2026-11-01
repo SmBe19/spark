@@ -103,8 +103,15 @@
   flex: 1 1 auto;
 }
 
-.question-index-form {
+.poll-config {
   margin-bottom: 1rem;
+  display: grid;
+  gap: 0.5rem;
+  grid-template-columns: repeat(2, 1fr);
+}
+
+.poll-config button {
+  width: 100%;
 }
 
 .question-index-input {
@@ -120,16 +127,6 @@
 .question-index-input button {
   width: 5rem;
   flex-grow: 1;
-}
-
-.question-index-buttons {
-  display: flex;
-  gap: 0.5rem;
-  margin-top: 0.5rem;
-}
-
-.question-index-buttons button {
-  flex: 1 1 auto;
 }
 
 .content-form textarea {

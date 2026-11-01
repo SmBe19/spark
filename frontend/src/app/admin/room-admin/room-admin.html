@@ -49,7 +49,7 @@
       </div>
     </div>
     @if (activeRoomMode() === 'poll') {
-      <div class="question-index-form">
+      <div class="poll-config">
         <form (submit)="updateActiveQuestionIndex()">
           <div class="question-index-input">
             <input
@@ -65,21 +65,25 @@
             </button>
           </div>
         </form>
-        <div class="question-index-buttons">
+        <div>
+          <button (click)="showReplies.set(!showReplies())">
+            {{ showReplies() ? 'Hide Replies' : 'Show Replies' }}
+          </button>
+        </div>
+        <div>
           <button
             (click)="previousQuestion()"
             type="button"
-            [disabled]="dirtyValues().activePoll || roomInfoModel().activeQuestionIndex === 0"
+            [disabled]="dirtyValues().activeQuestionIndex || previousQuestionIndex() === null"
           >
             &lt;
           </button>
+        </div>
+        <div>
           <button
             (click)="nextQuestion()"
             type="button"
-            [disabled]="
-              dirtyValues().activePoll ||
-              roomInfoModel().activeQuestionIndex === activePollParsed().questions.length - 1
-            "
+            [disabled]="dirtyValues().activeQuestionIndex || nextQuestionIndex() === null"
           >
             &gt;
           </button>
@@ -121,6 +125,8 @@
       <app-poll-preview
         [parsedPoll]="activePollParsed()"
         [activeQuestionIndex]="roomInfoModel().activeQuestionIndex"
+        [showReplies]="showReplies()"
+        [activeReplies]="roomService.activeReplies.value()"
       />
     } @else if (activeRoomMode() === 'presentation') {
       <app-presentation-preview [presentationContent]="activePresentationDebounced.value()" />

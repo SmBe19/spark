@@ -36,10 +36,13 @@ def add_routes(app):
     @login_required
     def get_replies_for_room(room_id):
         db = get_mongo_database()
-        room = db["rooms"].find_one({"room_id": ObjectId(room_id)})
+        room = db["rooms"].find_one({"_id": ObjectId(room_id)})
         if room is None:
             return {"success": False, "error": "Room not found."}, 404
-        return {"success": True, "data": [sanitize_reply(reply) for reply in room.get("active_replies", [])]}
+        return {
+            "success": True,
+            "data": [sanitize_reply(reply) for reply in room.get("active_replies", [])],
+        }
 
     @app.route("/api/rooms/<room_id>/replies", methods=["POST"])
     @public_route

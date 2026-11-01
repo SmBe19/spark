@@ -52,8 +52,23 @@ export class RoomAdmin {
     };
   });
   activeRoomMode = computed(() => this.roomService.activeRoom()?.activeMode || 'poll');
+  showReplies = signal(false);
   showRoomEditForm = signal(false);
   deletingRoom = signal(false);
+  nextQuestionIndex = computed(() => {
+    const nextPage = this.pollService.getNextPage(
+      this.activePollParsed().pages,
+      this.roomInfoModel().activeQuestionIndex,
+    );
+    return nextPage ? nextPage[0] : null;
+  });
+  previousQuestionIndex = computed(() => {
+    const previousPage = this.pollService.getPreviousPage(
+      this.activePollParsed().pages,
+      this.roomInfoModel().activeQuestionIndex,
+    );
+    return previousPage ? previousPage[0] : null;
+  });
 
   roomService = inject(RoomService);
   pollService = inject(PollService);
@@ -101,26 +116,25 @@ export class RoomAdmin {
   }
 
   nextQuestion() {
-    if (this.activePollParsed().questions.length === 0) {
+    const questionIndex = this.nextQuestionIndex();
+    if (questionIndex === null) {
       return;
     }
     this.roomInfoModel.update((info) => ({
       ...info,
-      activeQuestionIndex: Math.min(
-        this.activePollParsed().questions.length - 1,
-        info.activeQuestionIndex + 1,
-      ),
+      activeQuestionIndex: questionIndex,
     }));
     this.updateActiveQuestionIndex();
   }
 
   previousQuestion() {
-    if (this.activePollParsed().questions.length === 0) {
+    const questionIndex = this.previousQuestionIndex();
+    if (questionIndex === null) {
       return;
     }
     this.roomInfoModel.update((info) => ({
       ...info,
-      activeQuestionIndex: Math.max(0, info.activeQuestionIndex - 1),
+      activeQuestionIndex: questionIndex,
     }));
     this.updateActiveQuestionIndex();
   }

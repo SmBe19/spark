@@ -61,7 +61,6 @@ export class RoomPresenter {
   });
 
   constructor() {
-    this.roomService.loadReplies.set(true);
     effect(() => {
       const activeRoom = this.roomService.activeRoom();
       if (!activeRoom) {

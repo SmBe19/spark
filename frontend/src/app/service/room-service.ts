@@ -24,16 +24,12 @@ export class RoomService {
   rooms = signal<RoomInfoShort[]>([]);
   activeRoom = signal<RoomInfo | null>(null);
   activeRoomId = computed(() => this.activeRoom()?.id || null);
-  loadReplies = signal(false);
-  activeReplies = rxResource<
-    QuestionReply[],
-    { activeRoomId: string | null; loadReplies: boolean }
-  >({
+  activeReplies = rxResource<QuestionReply[], { activeRoomId: string | null }>({
     defaultValue: [],
-    params: () => ({ activeRoomId: this.activeRoomId(), loadReplies: this.loadReplies() }),
+    params: () => ({ activeRoomId: this.activeRoomId() }),
     stream: (params) => {
       const roomId = params.params.activeRoomId;
-      if (!roomId || !params.params.loadReplies) {
+      if (!roomId) {
         return of([]);
       }
       return this.httpClient
@@ -64,7 +60,7 @@ export class RoomService {
       }
     });
     this.socketService.socket.on('new_reply', (reply: ApiQuestionReply) => {
-      if (this.activeRoom() && this.loadReplies()) {
+      if (this.activeRoom()) {
         this.activeReplies.update((currentReplies) => {
           return [...currentReplies, mapApiQuestionReplyToQuestionReply(reply)];
         });
@@ -121,14 +117,6 @@ export class RoomService {
         }
       },
     );
-  }
-
-  loadActiveRoomReplies() {
-    if (!!this.activeRoom()) {
-      this.activeReplies.set([]);
-      return;
-    }
-    this.loadReplies.set(true);
   }
 
   createRoom(slug: string, name: string) {

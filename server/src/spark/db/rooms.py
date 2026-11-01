@@ -27,7 +27,7 @@ def db_add_reply_to_room(room_id, reply_content, question_index, user_hash):
 
     emit(
         "new_reply",
-        {"reply": sanitize_reply(reply)},
+        sanitize_reply(reply),
         to="room-admin:" + str(room["_id"]),
         namespace="/",
     )
@@ -94,6 +94,7 @@ def sanitize_room(room):
     san["id"] = str(room["_id"])
     san["active_poll_id"] = str(room.get("active_poll_id", ""))
     return san
+
 
 def sanitize_reply(reply):
     san = sanitize_object(reply, ["reply", "question_index"])

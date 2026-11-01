@@ -10,6 +10,30 @@
           <div class="poll-question-text">
             <app-spark-markdown [data]="question.question"></app-spark-markdown>
           </div>
+          <div class="poll-question-icons">
+            @if (question.pollType === 'options') {
+              <span
+                [ngClass]="{ 'icon-active': question.multiSelect }"
+                title="Multi-Select (!multi)"
+                >M</span
+              >
+            }
+            <span
+              [ngClass]="{ 'icon-active': question.showReplies }"
+              title="Show Replies (!repl/!norepl)"
+              >R</span
+            >
+            <span
+              [ngClass]="{ 'icon-active': question.showSolution }"
+              title="Show Solution (!sol/!nosol)"
+              >S</span
+            >
+            <span
+              [ngClass]="{ 'icon-active': question.showCorrection }"
+              title="Show Correction (!corr/!nocorr)"
+              >C</span
+            >
+          </div>
           @if (question.pollType === 'options') {
             <ul
               class="poll-question-options"
@@ -23,21 +47,51 @@
                   class="poll-question-option single-line-markdown"
                   [ngClass]="{ 'correct-option': option.correct }"
                 >
+                  @if (showReplies()) {
+                    <span class="poll-question-reply-count">
+                      {{ activeReplyDistributions()[questionIndex]?.[option.index] || 0 }}
+                    </span>
+                  }
                   <app-spark-markdown [data]="option.option"></app-spark-markdown>
                 </li>
               }
             </ul>
           } @else if (question.pollType === 'text') {
-            <div class="poll-question-text-input"></div>
+            <div class="poll-question-text-input">
+              @if (showReplies()) {
+                @for (reply of activeRepliesByQuestion()[questionIndex]; track reply) {
+                  <div class="poll-question-text-reply">
+                    {{ reply }}
+                  </div>
+                }
+              }
+            </div>
           } @else if (question.pollType === 'rating') {
             <div class="poll-question-rating">
               @for (rating of ratingValues(question.maxRating); track rating) {
-                <div class="poll-question-rating-option">{{ rating }}</div>
+                <div class="poll-question-rating-option">
+                  @if (showReplies()) {
+                    <span class="poll-question-reply-count">
+                      {{ activeReplyDistributions()[questionIndex]?.[rating] || 0 }}
+                    </span>
+                  }
+                  {{ rating }}
+                </div>
               }
             </div>
           } @else if (question.pollType === 'estimate') {
             <div class="poll-question-estimate">
-              {{ question.minValue }} - {{ question.maxValue }}
+              <p>{{ question.minValue }} - {{ question.maxValue }}</p>
+              @if (showReplies()) {
+                <ul>
+                  @for (distribution of estimateReplies(questionIndex); track distribution.value) {
+                    <li>
+                      <span class="poll-question-reply-count">{{ distribution.count }} </span>
+                      {{ distribution.value }}
+                    </li>
+                  }
+                </ul>
+              }
             </div>
           }
         </div>

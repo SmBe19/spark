@@ -1,5 +1,6 @@
 import { Service } from '@angular/core';
 import { Poll, PollQuestion } from '../model/poll';
+import { QuestionReply } from '../model/replies';
 
 @Service()
 export class PollService {
@@ -50,6 +51,65 @@ export class PollService {
       }
     }
     return [];
+  }
+
+  getNextPage(pages: number[][], activeQuestionIndex: number): number[] | null {
+    for (let i = 0; i < pages.length; i++) {
+      if (pages[i].includes(activeQuestionIndex)) {
+        if (i + 1 < pages.length) {
+          return pages[i + 1];
+        } else {
+          return null;
+        }
+      }
+    }
+    return null;
+  }
+
+  getPreviousPage(pages: number[][], activeQuestionIndex: number): number[] | null {
+    for (let i = 0; i < pages.length; i++) {
+      if (pages[i].includes(activeQuestionIndex)) {
+        if (i - 1 >= 0) {
+          return pages[i - 1];
+        } else {
+          return null;
+        }
+      }
+    }
+    return null;
+  }
+
+  groupRepliesByQuestion(replies: QuestionReply[]): Record<number, string[]> {
+    const grouped: Record<number, string[]> = {};
+    for (const reply of replies) {
+      if (!grouped[reply.questionIndex]) {
+        grouped[reply.questionIndex] = [];
+      }
+      grouped[reply.questionIndex].push(reply.reply);
+    }
+    return grouped;
+  }
+
+  getReplyDistributions(
+    repliesByQuestion: Record<number, string[]>,
+  ): Record<number, Record<number, number>> {
+    const distributions: Record<number, Record<number, number>> = {};
+    for (const questionIndex in repliesByQuestion) {
+      const questionReplies = repliesByQuestion[questionIndex];
+      const distribution: Record<number, number> = {};
+      for (const reply of questionReplies) {
+        const parts = reply.split(',');
+        for (const part of parts) {
+          const optionIndex = parseInt(part);
+          if (!distribution[optionIndex]) {
+            distribution[optionIndex] = 0;
+          }
+          distribution[optionIndex]++;
+        }
+      }
+      distributions[parseInt(questionIndex)] = distribution;
+    }
+    return distributions;
   }
 
   private parseQuestion(index: number, lines: string[]): PollQuestion {

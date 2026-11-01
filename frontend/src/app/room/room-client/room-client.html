@@ -58,6 +58,7 @@
                 [disabled]="alreadySubmitted"
                 [ngModel]="pendingReplies()[question.index] || ''"
                 (ngModelChange)="setPendingReply(question.index, $event)"
+                [maxLength]="question.maxLength || 999999"
               ></textarea>
             </div>
             <div class="poll-question-submit-button">

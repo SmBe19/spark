@@ -4,9 +4,10 @@ import { NgClass } from '@angular/common';
 import { SparkMarkdown } from '../../util/spark-markdown/spark-markdown';
 import { QuestionReply } from '../../model/replies';
 import { PollService } from '../../service/poll-service';
+import { SparkChart } from '../../util/spark-chart/spark-chart';
 
 @Component({
-  imports: [NgClass, SparkMarkdown],
+  imports: [NgClass, SparkMarkdown, SparkChart],
   selector: 'app-poll-preview',
   styleUrl: './poll-preview.css',
   templateUrl: './poll-preview.html',
@@ -15,12 +16,10 @@ export class PollPreview {
   parsedPoll = input.required<Poll>();
   activeQuestionIndex = input.required<number>();
   showReplies = input<boolean>(false);
-  activeReplies = input<QuestionReply[]>([]);
-  activeRepliesByQuestion = computed(() =>
-    this.pollService.groupRepliesByQuestion(this.activeReplies()),
-  );
-  activeReplyDistributions = computed(() =>
-    this.pollService.getReplyDistributions(this.activeRepliesByQuestion()),
+  replies = input<QuestionReply[]>([]);
+  repliesByQuestion = computed(() => this.pollService.groupRepliesByQuestion(this.replies()));
+  replyDistributions = computed(() =>
+    this.pollService.getReplyDistributions(this.repliesByQuestion()),
   );
 
   pollService = inject(PollService);
@@ -30,7 +29,7 @@ export class PollPreview {
   }
 
   estimateReplies(questionIndex: number): { value: number; count: number }[] {
-    const replyDistribution = this.activeReplyDistributions()[questionIndex];
+    const replyDistribution = this.replyDistributions()[questionIndex];
     if (!replyDistribution) {
       return [];
     }

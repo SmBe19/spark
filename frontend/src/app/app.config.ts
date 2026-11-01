@@ -3,6 +3,7 @@ import { provideRouter } from '@angular/router';
 import { routes } from './app.routes';
 import { provideHttpClient } from '@angular/common/http';
 import { MARKED_OPTIONS, MarkedOptions, MarkedRenderer, provideMarkdown } from 'ngx-markdown';
+import { provideCharts, withDefaultRegisterables } from 'ng2-charts';
 
 const markedOptionsFactory = (): MarkedOptions => {
   const renderer = new MarkedRenderer();
@@ -27,5 +28,6 @@ export const appConfig: ApplicationConfig = {
         useFactory: markedOptionsFactory,
       },
     }),
+    provideCharts(withDefaultRegisterables()),
   ],
 };

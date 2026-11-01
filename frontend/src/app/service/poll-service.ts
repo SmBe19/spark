@@ -100,14 +100,14 @@ export class PollService {
       for (const reply of questionReplies) {
         const parts = reply.split(',');
         for (const part of parts) {
-          const optionIndex = parseInt(part);
+          const optionIndex = Number(part);
           if (!distribution[optionIndex]) {
             distribution[optionIndex] = 0;
           }
           distribution[optionIndex]++;
         }
       }
-      distributions[parseInt(questionIndex)] = distribution;
+      distributions[Number(questionIndex)] = distribution;
     }
     return distributions;
   }
@@ -133,15 +133,15 @@ export class PollService {
       return {
         ...baseQuestion,
         pollType: 'rating',
-        maxRating: parseInt(flags['rate'] as string) || 5,
+        maxRating: Number(flags['rate'] as string) || 5,
       };
     }
     if (flags['estimate'] || flags['est']) {
       return {
         ...baseQuestion,
         pollType: 'estimate',
-        minValue: parseInt(flags['min'] as string) || 0,
-        maxValue: parseInt(flags['max'] as string) || 100,
+        minValue: Number(flags['min'] as string) || 0,
+        maxValue: Number(flags['max'] as string) || 100,
       };
     }
     if (flags['yn'] || flags['yny'] || flags['ynn']) {
@@ -188,7 +188,7 @@ export class PollService {
     return {
       ...baseQuestion,
       pollType: 'text',
-      maxLength: parseInt((flags['length'] || flags['len']) as string) || null,
+      maxLength: Number((flags['length'] || flags['len']) as string) || null,
     };
   }
 

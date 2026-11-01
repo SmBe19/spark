@@ -35,6 +35,13 @@
   margin: 0 0.5rem 0 0;
 }
 
+.poll-replies {
+  display: flex;
+  flex-flow: row wrap;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
 .poll-question ul {
   margin: -0.5rem 0 0.5rem 0;
 }

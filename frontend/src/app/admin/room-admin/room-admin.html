@@ -126,7 +126,7 @@
         [parsedPoll]="activePollParsed()"
         [activeQuestionIndex]="roomInfoModel().activeQuestionIndex"
         [showReplies]="showReplies()"
-        [activeReplies]="roomService.activeReplies.value()"
+        [replies]="roomService.activeReplies.value()"
       />
     } @else if (activeRoomMode() === 'presentation') {
       <app-presentation-preview [presentationContent]="activePresentationDebounced.value()" />

@@ -1,5 +1,5 @@
 <div class="poll-preview-wrapper">
-  @for (pageQuestions of parsedPoll().pages; track pageQuestions) {
+  @for (pageQuestions of parsedPoll().pages; track pageQuestions[0]) {
     <div class="poll-page">
       @for (questionIndex of pageQuestions; track questionIndex) {
         @let question = parsedPoll().questions[questionIndex];
@@ -7,9 +7,6 @@
           class="poll-question"
           [ngClass]="{ 'active-question': questionIndex === activeQuestionIndex() }"
         >
-          <div class="poll-question-text">
-            <app-spark-markdown [data]="question.question"></app-spark-markdown>
-          </div>
           <div class="poll-question-icons">
             @if (question.pollType === 'options') {
               <span
@@ -34,32 +31,47 @@
               >C</span
             >
           </div>
+          <div class="poll-question-text">
+            <app-spark-markdown [data]="question.question"></app-spark-markdown>
+          </div>
           @if (question.pollType === 'options') {
-            <ul
-              class="poll-question-options"
-              [ngClass]="{
-                'multi-select': question.multiSelect,
-                'single-select': !question.multiSelect,
-              }"
-            >
-              @for (option of question.options; track option.index) {
-                <li
-                  class="poll-question-option single-line-markdown"
-                  [ngClass]="{ 'correct-option': option.correct }"
+            <div class="poll-replies">
+              <div>
+                <ul
+                  class="poll-question-options"
+                  [ngClass]="{
+                    'multi-select': question.multiSelect,
+                    'single-select': !question.multiSelect,
+                  }"
                 >
-                  @if (showReplies()) {
-                    <span class="poll-question-reply-count">
-                      {{ activeReplyDistributions()[questionIndex]?.[option.index] || 0 }}
-                    </span>
+                  @for (option of question.options; track option.index) {
+                    <li
+                      class="poll-question-option single-line-markdown"
+                      [ngClass]="{ 'correct-option': option.correct }"
+                    >
+                      @if (showReplies()) {
+                        <span class="poll-question-reply-count">
+                          {{ replyDistributions()[questionIndex]?.[option.index] || 0 }}
+                        </span>
+                      }
+                      <app-spark-markdown [data]="option.option"></app-spark-markdown>
+                    </li>
                   }
-                  <app-spark-markdown [data]="option.option"></app-spark-markdown>
-                </li>
+                </ul>
+              </div>
+              @if (showReplies()) {
+                <div>
+                  <app-spark-chart
+                    [question]="question"
+                    [replyDistribution]="replyDistributions()[questionIndex]"
+                  ></app-spark-chart>
+                </div>
               }
-            </ul>
+            </div>
           } @else if (question.pollType === 'text') {
             <div class="poll-question-text-input">
               @if (showReplies()) {
-                @for (reply of activeRepliesByQuestion()[questionIndex]; track reply) {
+                @for (reply of repliesByQuestion()[questionIndex]; track reply) {
                   <div class="poll-question-text-reply">
                     {{ reply }}
                   </div>
@@ -67,30 +79,53 @@
               }
             </div>
           } @else if (question.pollType === 'rating') {
-            <div class="poll-question-rating">
-              @for (rating of ratingValues(question.maxRating); track rating) {
-                <div class="poll-question-rating-option">
-                  @if (showReplies()) {
-                    <span class="poll-question-reply-count">
-                      {{ activeReplyDistributions()[questionIndex]?.[rating] || 0 }}
-                    </span>
-                  }
-                  {{ rating }}
+            <div class="poll-replies">
+              <div class="poll-question-rating">
+                @for (rating of ratingValues(question.maxRating); track rating) {
+                  <div class="poll-question-rating-option">
+                    @if (showReplies()) {
+                      <span class="poll-question-reply-count">
+                        {{ replyDistributions()[questionIndex]?.[rating] || 0 }}
+                      </span>
+                    }
+                    {{ rating }}
+                  </div>
+                }
+              </div>
+              @if (showReplies()) {
+                <div>
+                  <app-spark-chart
+                    [question]="question"
+                    [replyDistribution]="replyDistributions()[questionIndex]"
+                  ></app-spark-chart>
                 </div>
               }
             </div>
           } @else if (question.pollType === 'estimate') {
-            <div class="poll-question-estimate">
-              <p>{{ question.minValue }} - {{ question.maxValue }}</p>
+            <div class="poll-replies">
+              <div class="poll-question-estimate">
+                <p>{{ question.minValue }} - {{ question.maxValue }}</p>
+                @if (showReplies()) {
+                  <ul>
+                    @for (
+                      distribution of estimateReplies(questionIndex);
+                      track distribution.value
+                    ) {
+                      <li>
+                        <span class="poll-question-reply-count">{{ distribution.count }} </span>
+                        {{ distribution.value }}
+                      </li>
+                    }
+                  </ul>
+                }
+              </div>
               @if (showReplies()) {
-                <ul>
-                  @for (distribution of estimateReplies(questionIndex); track distribution.value) {
-                    <li>
-                      <span class="poll-question-reply-count">{{ distribution.count }} </span>
-                      {{ distribution.value }}
-                    </li>
-                  }
-                </ul>
+                <div>
+                  <app-spark-chart
+                    [question]="question"
+                    [replyDistribution]="replyDistributions()[questionIndex]"
+                  ></app-spark-chart>
+                </div>
               }
             </div>
           }

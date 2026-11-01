@@ -3,6 +3,7 @@ import { computed, inject, Service, signal } from '@angular/core';
 import {
   ApiRoomInfo,
   ApiRoomInfoShort,
+  mapApiRoomInfoShortToRoomInfoShort,
   mapApiRoomInfoToRoomInfo,
   mapPartialApiRoomInfoToRoomInfo,
   RoomInfo,
@@ -71,7 +72,11 @@ export class RoomService {
   loadRooms() {
     this.httpClient.get<ApiResponse<ApiRoomInfoShort[]>>('/api/rooms', {}).subscribe((data) => {
       if (data.success) {
-        this.rooms.set(data.data ?? []);
+        this.rooms.set(
+          (data.data ?? [])
+            .map(mapApiRoomInfoShortToRoomInfoShort)
+            .sort((a, b) => a.slug.localeCompare(b.slug)),
+        );
       }
     });
   }

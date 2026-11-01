@@ -67,3 +67,9 @@ export function mapApiRoomInfoToRoomInfo(apiRoomInfo: ApiRoomInfo): RoomInfo {
     activeQuestionIndex: apiRoomInfo.active_question_index,
   };
 }
+
+export function mapApiRoomInfoShortToRoomInfoShort(
+  apiRoomInfoShort: ApiRoomInfoShort,
+): RoomInfoShort {
+  return apiRoomInfoShort;
+}

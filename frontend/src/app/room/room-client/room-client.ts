@@ -22,9 +22,9 @@ export class RoomClient {
   router = inject(Router);
   activatedRoute = inject(ActivatedRoute);
 
-  pendingAnswers = signal<Record<number, string>>({});
-  submittedAnswers = signal<Record<number, string>>({});
-  pendingAnswersDebounced = debounced(() => this.pendingAnswers(), 500);
+  pendingReplies = signal<Record<number, string>>({});
+  submittedReplies = signal<Record<number, string>>({});
+  pendingRepliesDebounced = debounced(() => this.pendingReplies(), 500);
 
   activePollParsed = computed(() => {
     const activeRoom = this.roomClientService.activeRoom();
@@ -55,17 +55,17 @@ export class RoomClient {
         return;
       }
       if (this.currentPollId !== activeRoom.activePollId) {
-        this.pendingAnswers.set({});
-        this.submittedAnswers.set({});
+        this.pendingReplies.set({});
+        this.submittedReplies.set({});
         this.currentPollId = activeRoom.activePollId;
 
-        const storedAnswers = localStorage.getItem('activePollAnswers');
-        if (storedAnswers) {
+        const storedReplies = localStorage.getItem('activePollReplies');
+        if (storedReplies) {
           try {
-            const parsed = JSON.parse(storedAnswers);
+            const parsed = JSON.parse(storedReplies);
             if (parsed.pollId === activeRoom.activePollId) {
-              this.pendingAnswers.set(parsed.pendingAnswers || {});
-              this.submittedAnswers.set(parsed.submittedAnswers || {});
+              this.pendingReplies.set(parsed.pendingReplies || {});
+              this.submittedReplies.set(parsed.submittedReplies || {});
             }
           } catch (e) {}
         }
@@ -74,15 +74,15 @@ export class RoomClient {
     });
 
     effect(() => {
-      const answers = {
+      const replies = {
         pollId: this.roomClientService.activeRoom()?.activePollId,
-        pendingAnswers: this.pendingAnswersDebounced.value(),
-        submittedAnswers: this.submittedAnswers(),
+        pendingReplies: this.pendingRepliesDebounced.value(),
+        submittedReplies: this.submittedReplies(),
       };
-      if (!answers.pollId) {
+      if (!replies.pollId) {
         return;
       }
-      localStorage.setItem('activePollAnswers', JSON.stringify(answers));
+      localStorage.setItem('activePollReplies', JSON.stringify(replies));
     });
   }
 
@@ -99,16 +99,16 @@ export class RoomClient {
     });
   }
 
-  setPendingAnswer(questionIndex: number, answer: string) {
-    this.pendingAnswers.update((current) => {
-      return { ...current, [questionIndex]: answer };
+  setPendingReply(questionIndex: number, reply: string) {
+    this.pendingReplies.update((current) => {
+      return { ...current, [questionIndex]: reply };
     });
   }
 
   toggleOption(questionIndex: number, optionIndex: number, submitImmediately: boolean = false) {
-    const currentAnswer = this.pendingAnswers()[questionIndex] || '';
+    const currentReply = this.pendingReplies()[questionIndex] || '';
     const selectedOptions = new Set(
-      currentAnswer
+      currentReply
         .split(',')
         .map((s) => s.trim())
         .filter((s) => s !== ''),
@@ -118,17 +118,17 @@ export class RoomClient {
     } else {
       selectedOptions.add(optionIndex.toString());
     }
-    this.setPendingAnswer(questionIndex, Array.from(selectedOptions).join(','));
+    this.setPendingReply(questionIndex, Array.from(selectedOptions).join(','));
 
     if (submitImmediately) {
-      this.submitPendingAnswer(questionIndex);
+      this.submitPendingReply(questionIndex);
     }
   }
 
   isOptionSelected(questionIndex: number, optionIndex: number): boolean {
-    const currentAnswer = this.pendingAnswers()[questionIndex] || '';
+    const currentReply = this.pendingReplies()[questionIndex] || '';
     const selectedOptions = new Set(
-      currentAnswer
+      currentReply
         .split(',')
         .map((s) => s.trim())
         .filter((s) => s !== ''),
@@ -144,19 +144,19 @@ export class RoomClient {
     return question.options.some((option) => option.correct);
   }
 
-  submitPendingAnswer(questionIndex: number) {
-    const answer = this.pendingAnswers()[questionIndex];
-    if (answer) {
-      this.submittedAnswers.update((current) => {
-        return { ...current, [questionIndex]: answer };
+  submitPendingReply(questionIndex: number) {
+    const reply = this.pendingReplies()[questionIndex];
+    if (reply) {
+      this.submittedReplies.update((current) => {
+        return { ...current, [questionIndex]: reply };
       });
-      this.roomClientService.addAnswer(answer, questionIndex);
+      this.roomClientService.addReply(reply, questionIndex);
     }
   }
 
-  submitAnswer(questionIndex: number, answer: string) {
-    this.setPendingAnswer(questionIndex, answer);
-    this.submitPendingAnswer(questionIndex);
+  submitReply(questionIndex: number, reply: string) {
+    this.setPendingReply(questionIndex, reply);
+    this.submitPendingReply(questionIndex);
   }
 
   ratingValues(maxRating: number): number[] {

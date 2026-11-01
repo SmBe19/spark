@@ -62,9 +62,9 @@ export class PollService {
     const baseQuestion = {
       index,
       question: questionText,
-      showReplies: !!flags['show'] && !flags['hide'],
+      showReplies: !!flags['repl'] && !flags['norepl'],
       showSolution: !!flags['sol'] && !flags['nosol'],
-      showCorrection: !!flags['corr'] && !flags['nocorr'],
+      showCorrection: !!flags['corr'] || !flags['nocorr'],
       individualProgress: !!flags['open'],
       joinWithPrevious: !!flags['join'],
     };
@@ -117,11 +117,12 @@ export class PollService {
           correct: !!(optionFlags['x'] || optionFlags['correct']),
         };
       });
+      const correctOptions = options.filter((option) => option.correct);
       return {
         ...baseQuestion,
         pollType: 'options',
         options,
-        multiSelect: !!flags['multi'],
+        multiSelect: !!flags['multi'] || correctOptions.length > 1,
       };
     }
     return {

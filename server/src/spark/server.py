@@ -71,7 +71,7 @@ socket_rooms.add_socket_routes(socketio)
 
 
 def debug_server():
-    subprocess.call(["npm", "run", "build"], cwd="../frontend")
+    # subprocess.call(["npm", "run", "build"], cwd="../frontend")
     socketio.run(app, debug=True, host="0.0.0.0", port=8000)
 
 

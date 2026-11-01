@@ -1,5 +1,5 @@
 import { HttpClient } from '@angular/common/http';
-import { inject, Service, signal } from '@angular/core';
+import { computed, inject, Service, signal } from '@angular/core';
 import {
   ApiRoomInfo,
   ApiRoomInfoShort,
@@ -11,10 +11,10 @@ import {
 } from '../model/rooms';
 import { ApiResponse } from '../model/api';
 import {
-  ApiQuestionAnswer,
-  mapApiQuestionAnswerToQuestionAnswer,
-  QuestionAnswer,
-} from '../model/answers';
+  ApiQuestionReply,
+  mapApiQuestionReplyToQuestionReply,
+  QuestionReply,
+} from '../model/replies';
 import { rxResource, toObservable } from '@angular/core/rxjs-interop';
 import { map, of } from 'rxjs';
 import { SocketService } from './socket-service';
@@ -22,43 +22,26 @@ import { SocketService } from './socket-service';
 @Service()
 export class RoomService {
   rooms = signal<RoomInfoShort[]>([]);
-  activeRoomId = signal<string | null>(null);
-  activeRoom = rxResource<RoomInfo | null, { activeRoomId: string | null }>({
-    defaultValue: null,
-    params: () => ({ activeRoomId: this.activeRoomId() }),
-    stream: (params) => {
-      const roomId = params.params.activeRoomId;
-      if (!roomId) {
-        return of(null);
-      }
-      return this.httpClient.get<ApiResponse<ApiRoomInfo>>('/api/rooms/' + roomId, {}).pipe(
-        map((data) => {
-          if (data.success) {
-            return mapApiRoomInfoToRoomInfo(data.data);
-          }
-          return null;
-        }),
-      );
-    },
-  });
-  loadAnswers = signal(false);
-  activeAnswers = rxResource<
-    QuestionAnswer[],
-    { activeRoomId: string | null; loadAnswers: boolean }
+  activeRoom = signal<RoomInfo | null>(null);
+  activeRoomId = computed(() => this.activeRoom()?.id || null);
+  loadReplies = signal(false);
+  activeReplies = rxResource<
+    QuestionReply[],
+    { activeRoomId: string | null; loadReplies: boolean }
   >({
     defaultValue: [],
-    params: () => ({ activeRoomId: this.activeRoomId(), loadAnswers: this.loadAnswers() }),
+    params: () => ({ activeRoomId: this.activeRoomId(), loadReplies: this.loadReplies() }),
     stream: (params) => {
       const roomId = params.params.activeRoomId;
-      if (!roomId || !params.params.loadAnswers) {
+      if (!roomId || !params.params.loadReplies) {
         return of([]);
       }
       return this.httpClient
-        .get<ApiResponse<ApiQuestionAnswer[]>>('/api/rooms/' + roomId + '/answers', {})
+        .get<ApiResponse<ApiQuestionReply[]>>('/api/rooms/' + roomId + '/replies', {})
         .pipe(
           map((data) => {
             if (data.success) {
-              return data.data.map((answer) => mapApiQuestionAnswerToQuestionAnswer(answer));
+              return data.data.map((reply) => mapApiQuestionReplyToQuestionReply(reply));
             }
             return [];
           }),
@@ -71,7 +54,7 @@ export class RoomService {
 
   constructor() {
     this.socketService.socket.on('room_update', (room: Partial<RoomInfo>) => {
-      if (this.activeRoom.hasValue() && this.activeRoom.value()) {
+      if (this.activeRoom()) {
         this.activeRoom.update((currentRoom) => {
           if (!currentRoom) {
             return null;
@@ -80,19 +63,12 @@ export class RoomService {
         });
       }
     });
-    this.socketService.socket.on('answer_added', (answer: ApiQuestionAnswer) => {
-      if (this.activeRoom.hasValue() && this.activeRoom.value() && this.loadAnswers()) {
-        this.activeAnswers.update((currentAnswers) => {
-          return [...currentAnswers, mapApiQuestionAnswerToQuestionAnswer(answer)];
+    this.socketService.socket.on('new_reply', (reply: ApiQuestionReply) => {
+      if (this.activeRoom() && this.loadReplies()) {
+        this.activeReplies.update((currentReplies) => {
+          return [...currentReplies, mapApiQuestionReplyToQuestionReply(reply)];
         });
       }
-    });
-    toObservable(this.activeRoomId).subscribe((roomId) => {
-      if (!roomId) {
-        return;
-      }
-      this.socketService.socket.emit('join_room', { room_id: roomId });
-      this.socketService.socket.emit('join_admin_room', { room_id: roomId });
     });
   }
 
@@ -104,12 +80,55 @@ export class RoomService {
     });
   }
 
-  loadActiveRoomAnswers() {
-    if (!this.activeRoom.hasValue() || !this.activeRoom.value()) {
-      this.activeAnswers.set([]);
+  joinRoomById(roomId: string, callback?: (success: boolean) => void) {
+    if (this.activeRoom()?.id === roomId) {
+      if (callback) {
+        callback(true);
+      }
       return;
     }
-    this.loadAnswers.set(true);
+    this.joinRoom({ room_id: roomId }, callback);
+  }
+
+  joinRoomBySlug(slug: string, callback?: (success: boolean) => void) {
+    if (this.activeRoom()?.slug === slug) {
+      if (callback) {
+        callback(true);
+      }
+      return;
+    }
+    this.joinRoom({ slug: slug.toLowerCase() }, callback);
+  }
+
+  private joinRoom(
+    roomFilter: { room_id?: string; slug?: string },
+    callback?: (success: boolean) => void,
+  ) {
+    this.socketService.socket.emit('join_room', roomFilter);
+    this.socketService.socket.emit(
+      'join_admin_room',
+      roomFilter,
+      (room: ApiResponse<ApiRoomInfo>) => {
+        if (!room.success) {
+          if (callback) {
+            callback(false);
+          }
+          return;
+        }
+        this.activeRoom.set(mapApiRoomInfoToRoomInfo(room.data));
+        if (callback) {
+          callback(true);
+        }
+      },
+    );
+  }
+
+  loadActiveRoomReplies() {
+    if (!!this.activeRoom()) {
+      this.activeReplies.set([]);
+      return;
+    }
+    this.loadReplies.set(true);
   }
 
   createRoom(slug: string, name: string) {
@@ -118,7 +137,9 @@ export class RoomService {
     }
     this.httpClient
       .post<ApiResponse<{ room_id: string }>>('/api/rooms', { slug, name })
-      .subscribe(() => {});
+      .subscribe(() => {
+        this.loadRooms();
+      });
   }
 
   updateRoomMeta(roomId: string, slug: string, name: string) {
@@ -166,7 +187,7 @@ export class RoomService {
       if (data.success) {
         this.loadRooms();
         if (this.activeRoomId() === roomId) {
-          this.activeRoomId.set(null);
+          this.activeRoom.set(null);
         }
       }
     });

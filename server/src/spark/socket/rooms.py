@@ -2,7 +2,7 @@ from bson import ObjectId
 from flask_socketio import join_room, leave_room, rooms
 
 from spark.db.mongo_utils import get_mongo_database
-from spark.db.rooms import db_add_answer_to_room, sanitize_room
+from spark.db.rooms import db_add_reply_to_room, sanitize_room
 from spark.decorators import is_logged_in
 
 
@@ -46,11 +46,11 @@ def add_socket_routes(socketio):
         join_room("room-admin:" + str(room["_id"]))
         return {"success": True, "data": sanitize_room(room)}
 
-    @socketio.on("add_answer")
-    def handle_add_answer(data):
-        res = db_add_answer_to_room(
+    @socketio.on("add_reply")
+    def handle_add_reply(data):
+        res = db_add_reply_to_room(
             data["room_id"],
-            data["answer"],
+            data["reply"],
             data["question_index"],
             data["user_hash"],
         )

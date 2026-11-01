@@ -49,7 +49,7 @@ def add_routes(app):
         return san
 
     def sanitize_archived_poll(poll):
-        san = sanitize_object(poll, ["archived_at", "poll", "answers"])
+        san = sanitize_object(poll, ["archived_at", "poll", "replies"])
         san["id"] = str(poll["_id"])
         san["room_id"] = str(poll["room_id"])
         return san

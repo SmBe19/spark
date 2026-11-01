@@ -29,7 +29,7 @@ export class AdminMain {
     this.roomService.loadRooms();
     const activeRoomId = localStorage.getItem('adminActiveRoomId');
     if (activeRoomId) {
-      this.roomService.activeRoomId.set(activeRoomId);
+      this.roomService.joinRoomById(activeRoomId);
     }
   }
 
@@ -40,7 +40,7 @@ export class AdminMain {
   }
 
   openRoom(roomId: string) {
-    this.roomService.activeRoomId.set(roomId);
+    this.roomService.joinRoomById(roomId);
     localStorage.setItem('adminActiveRoomId', roomId);
   }
 }

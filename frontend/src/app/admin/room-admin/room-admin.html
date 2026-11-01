@@ -11,6 +11,9 @@
         {{ showRoomEditForm() ? 'Hide' : 'Edit Room' }}
       </button>
     </div>
+    <div class="room-presenter-link">
+      <a [routerLink]="['/presenter', roomService.activeRoom()?.slug]" target="_blank">Presenter</a>
+    </div>
     <div class="room-edit-form" [ngClass]="{ 'hide-form': !showRoomEditForm() }">
       <div>
         <form (submit)="$event.preventDefault(); updateRoom()">

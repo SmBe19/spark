@@ -14,9 +14,9 @@ export const routes: Routes = [
     title: 'Spark',
   },
   {
-    path: 'presentation/:roomSlug',
+    path: 'presenter/:roomSlug',
     loadComponent: () =>
-      import('./room/room-presentation/room-presentation').then((m) => m.RoomPresentation),
+      import('./room/room-presenter/room-presenter').then((m) => m.RoomPresenter),
     title: 'Spark',
   },
   {

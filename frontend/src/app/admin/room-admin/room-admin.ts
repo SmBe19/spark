@@ -8,9 +8,10 @@ import { PollService } from '../../service/poll-service';
 import { NgClass } from '@angular/common';
 import { PollPreview } from '../poll-preview/poll-preview';
 import { PresentationPreview } from '../presentation-preview/presentation-preview';
+import { RouterLink } from '@angular/router';
 
 @Component({
-  imports: [FormField, FormsModule, NgClass, PollPreview, PresentationPreview],
+  imports: [FormField, FormsModule, RouterLink, NgClass, PollPreview, PresentationPreview],
   selector: 'app-room-admin',
   styleUrl: './room-admin.css',
   templateUrl: './room-admin.html',
@@ -32,7 +33,7 @@ export class RoomAdmin {
   activePresentationDebounced = debounced(() => this.roomInfoModel().activePresentation, 500);
   dirtyValues = computed(() => {
     const currentRoomInfo = this.roomInfoModel();
-    const activeRoom = this.roomService.activeRoom.value();
+    const activeRoom = this.roomService.activeRoom();
     if (!activeRoom) {
       return {
         slug: false,
@@ -50,7 +51,7 @@ export class RoomAdmin {
       activePresentation: currentRoomInfo.activePresentation !== activeRoom.activePresentation,
     };
   });
-  activeRoomMode = computed(() => this.roomService.activeRoom.value()?.activeMode || 'poll');
+  activeRoomMode = computed(() => this.roomService.activeRoom()?.activeMode || 'poll');
   showRoomEditForm = signal(false);
   deletingRoom = signal(false);
 
@@ -58,7 +59,7 @@ export class RoomAdmin {
   pollService = inject(PollService);
 
   constructor() {
-    toObservable(this.roomService.activeRoom.value).subscribe((room) => {
+    toObservable(this.roomService.activeRoom).subscribe((room) => {
       if (room) {
         this.roomInfoModel.set({
           slug: room.slug,
@@ -73,7 +74,7 @@ export class RoomAdmin {
 
   updateRoom() {
     this.roomService.updateRoomMeta(
-      this.roomService.activeRoom.value()?.id || '',
+      this.roomService.activeRoom()?.id || '',
       this.roomInfoModel().slug,
       this.roomInfoModel().name,
     );
@@ -84,7 +85,7 @@ export class RoomAdmin {
       return;
     }
     this.roomService.updateRoomActivePoll(
-      this.roomService.activeRoom.value()?.id || '',
+      this.roomService.activeRoom()?.id || '',
       this.roomInfoModel().activePoll,
     );
   }
@@ -94,7 +95,7 @@ export class RoomAdmin {
       return;
     }
     this.roomService.updateRoomActiveQuestionIndex(
-      this.roomService.activeRoom.value()?.id || '',
+      this.roomService.activeRoom()?.id || '',
       this.roomInfoModel().activeQuestionIndex,
     );
   }
@@ -129,22 +130,22 @@ export class RoomAdmin {
       return;
     }
     this.roomService.updateRoomActivePresentation(
-      this.roomService.activeRoom.value()?.id || '',
+      this.roomService.activeRoom()?.id || '',
       this.roomInfoModel().activePresentation,
     );
   }
 
   archivePoll() {
-    const roomId = this.roomService.activeRoom.value()?.id;
+    const roomId = this.roomService.activeRoom()?.id;
     if (roomId) {
       this.roomService.archivePoll(roomId);
     }
   }
 
   togglePresentationMode() {
-    const currentMode = this.roomService.activeRoom.value()?.activeMode;
+    const currentMode = this.roomService.activeRoom()?.activeMode;
     const newMode = currentMode === 'presentation' ? 'poll' : 'presentation';
-    this.roomService.updateRoomActiveMode(this.roomService.activeRoom.value()?.id || '', newMode);
+    this.roomService.updateRoomActiveMode(this.roomService.activeRoom()?.id || '', newMode);
   }
 
   startDeleteRoom() {
@@ -156,7 +157,7 @@ export class RoomAdmin {
   }
 
   confirmDeleteRoom() {
-    const roomId = this.roomService.activeRoom.value()?.id;
+    const roomId = this.roomService.activeRoom()?.id;
     if (roomId) {
       this.roomService.deleteRoom(roomId);
       this.deletingRoom.set(false);

@@ -25,7 +25,7 @@ A question can be one of the following types:
 
 There are three views: a main presentation view which can be shown on a beamer, an admin view to edit the poll and view the replies in detail, and the client view.
 
-By default, the replies are hidden on the presentation view. They can be made visible by default with `!repl`. With `!norepl`, they can be hidden explicitly.
+By default, the replies are hidden on the presentation view. They can be made visible with `!repl`. With `!norepl`, they can be hidden explicitly.
 
 By default, the correct solution is displayed to the client once they submit, but it is not visible on the main presentation. To show the solutions on the main presentation, add `!sol`, or hide explicitly with `!nosol`. The client view can be controlled with `!corr` and `!nocorr`.
 
@@ -33,6 +33,6 @@ By default, users can not advance on their own, they always see the same page as
 
 By default, each question appears on a separate page. A question can be joined on the same page with the previous one with `!join`. This implies `!open`.
 
-There is a shorthand for options where the answers are yes/no. `!yn` for just the options, and `!yny` or `!ynn` to mark one of the options as the correct solution. To translate the options, specify the language afterwards, e.g. `!yn:de`.
+There is a shorthand for options where the options are yes/no. `!yn` for just the options, and `!yny` or `!ynn` to mark one of the options as the correct solution. To translate the options, specify the language afterwards, e.g. `!yn:de`.
 
 To include an image, it needs to be hosted somewhere else.

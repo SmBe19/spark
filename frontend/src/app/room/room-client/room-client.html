@@ -17,8 +17,8 @@
         <div class="poll-question-text">
           <app-spark-markdown [data]="question.question"></app-spark-markdown>
         </div>
-        @let submittedAnswer = submittedAnswers()[question.index];
-        @let alreadySubmitted = submittedAnswer !== undefined;
+        @let submittedReply = submittedReplies()[question.index];
+        @let alreadySubmitted = submittedReply !== undefined;
         @if (question.pollType === 'options') {
           <div
             class="poll-question-options single-line-markdown"
@@ -32,8 +32,9 @@
                 (click)="toggleOption(question.index, option.index, !question.multiSelect)"
                 [ngClass]="{
                   'selected-option': isOptionSelected(question.index, option.index),
-                  'correct-option': question.showCorrection && option.correct,
-                  'incorrect-option': question.showCorrection && !option.correct,
+                  'correct-option': alreadySubmitted && question.showCorrection && option.correct,
+                  'incorrect-option':
+                    alreadySubmitted && question.showCorrection && !option.correct,
                 }"
               >
                 <app-spark-markdown [data]="option.option"></app-spark-markdown>
@@ -43,8 +44,8 @@
           @if (question.multiSelect) {
             <div class="poll-question-submit-button">
               <button
-                [disabled]="alreadySubmitted || !pendingAnswers()[question.index]"
-                (click)="submitPendingAnswer(question.index)"
+                [disabled]="alreadySubmitted || !pendingReplies()[question.index]"
+                (click)="submitPendingReply(question.index)"
               >
                 Submit
               </button>
@@ -55,14 +56,14 @@
             <div>
               <textarea
                 [disabled]="alreadySubmitted"
-                [ngModel]="pendingAnswers()[question.index] || ''"
-                (ngModelChange)="setPendingAnswer(question.index, $event)"
+                [ngModel]="pendingReplies()[question.index] || ''"
+                (ngModelChange)="setPendingReply(question.index, $event)"
               ></textarea>
             </div>
             <div class="poll-question-submit-button">
               <button
-                [disabled]="alreadySubmitted || !pendingAnswers()[question.index]"
-                (click)="submitPendingAnswer(question.index)"
+                [disabled]="alreadySubmitted || !pendingReplies()[question.index]"
+                (click)="submitPendingReply(question.index)"
               >
                 Submit
               </button>
@@ -73,8 +74,8 @@
             @for (rating of ratingValues(question.maxRating); track rating) {
               <button
                 [disabled]="alreadySubmitted"
-                (click)="submitAnswer(question.index, rating.toString())"
-                [ngClass]="{ 'selected-option': submittedAnswer === rating.toString() }"
+                (click)="submitReply(question.index, rating.toString())"
+                [ngClass]="{ 'selected-option': submittedReply === rating.toString() }"
               >
                 {{ rating }}
               </button>
@@ -83,7 +84,7 @@
         } @else if (question.pollType === 'estimate') {
           <div class="poll-question-estimate">
             <div class="poll-question-estimate-value">
-              {{ pendingAnswers()[question.index] || 0 }}
+              {{ pendingReplies()[question.index] || 0 }}
             </div>
             <div>
               <input
@@ -91,12 +92,12 @@
                 [disabled]="alreadySubmitted"
                 [min]="question.minValue"
                 [max]="question.maxValue"
-                [ngModel]="pendingAnswers()[question.index] || 0"
-                (ngModelChange)="setPendingAnswer(question.index, $event.toString())"
+                [ngModel]="pendingReplies()[question.index] || 0"
+                (ngModelChange)="setPendingReply(question.index, $event.toString())"
               />
             </div>
             <div class="poll-question-submit-button">
-              <button [disabled]="alreadySubmitted" (click)="submitPendingAnswer(question.index)">
+              <button [disabled]="alreadySubmitted" (click)="submitPendingReply(question.index)">
                 Submit
               </button>
             </div>

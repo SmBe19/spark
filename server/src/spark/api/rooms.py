@@ -4,8 +4,9 @@ from flask_socketio import emit
 
 from spark.db.mongo_utils import get_mongo_database
 from spark.db.rooms import (
-    db_add_answer_to_room,
+    db_add_reply_to_room,
     db_archive_poll_for_room,
+    sanitize_reply,
     sanitize_room,
     sanitize_room_short,
 )
@@ -31,31 +32,22 @@ def add_routes(app):
             return {"success": False, "error": "Room not found."}, 404
         return {"success": True, "data": sanitize_room(room)}
 
-    @app.route("/api/rooms/slug/<room_slug>", methods=["GET"])
-    @public_route
-    def get_room_by_slug(room_slug):
-        db = get_mongo_database()
-        room = db["rooms"].find_one({"slug": room_slug})
-        if room is None:
-            return {"success": False, "error": "Room not found."}, 404
-        return {"success": True, "data": sanitize_room(room)}
-
-    @app.route("/api/rooms/<room_id>/answers", methods=["GET"])
+    @app.route("/api/rooms/<room_id>/replies", methods=["GET"])
     @login_required
-    def get_answers_for_room(room_id):
+    def get_replies_for_room(room_id):
         db = get_mongo_database()
         room = db["rooms"].find_one({"room_id": ObjectId(room_id)})
         if room is None:
             return {"success": False, "error": "Room not found."}, 404
-        return {"success": True, "data": room.get("active_answers", [])}
+        return {"success": True, "data": [sanitize_reply(reply) for reply in room.get("active_replies", [])]}
 
-    @app.route("/api/rooms/<room_id>/answers", methods=["POST"])
+    @app.route("/api/rooms/<room_id>/replies", methods=["POST"])
     @public_route
-    def add_answer_to_room(room_id):
-        answer_content = request.json.get("answer")
+    def add_reply_to_room(room_id):
+        reply_content = request.json.get("reply")
         question_index = request.json.get("question_index")
         user_hash = request.json.get("user_hash")
-        return db_add_answer_to_room(room_id, answer_content, question_index, user_hash)
+        return db_add_reply_to_room(room_id, reply_content, question_index, user_hash)
 
     @app.route("/api/rooms/<room_id>", methods=["PUT"])
     @login_required
@@ -125,7 +117,7 @@ def add_routes(app):
                     "active_poll": "",
                     "active_presentation": "",
                     "active_mode": "poll",
-                    "active_answers": [],
+                    "active_replies": [],
                     "active_question_index": 0,
                 }
             )

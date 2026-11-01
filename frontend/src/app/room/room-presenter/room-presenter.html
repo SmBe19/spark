@@ -1,0 +1,65 @@
+<div
+  class="presenter-wrapper"
+  [ngStyle]="{
+    'font-size.px': activeFontSize(),
+    'max-width.px': activeWidth(),
+  }"
+>
+  @if (activeRoomMode() === 'presentation') {
+    <div class="presentation-wrapper">
+      @let activePresentation = roomService.activeRoom()?.activePresentation;
+      @if (activePresentation) {
+        <app-spark-markdown [data]="activePresentation"></app-spark-markdown>
+      }
+    </div>
+  } @else if (activeRoomMode() === 'poll') {
+    <div class="poll-wrapper">
+      @for (question of activeQuestions(); track question.index) {
+        <div class="poll-question">
+          <div class="poll-question-text">
+            <app-spark-markdown [data]="question.question"></app-spark-markdown>
+          </div>
+          @if (question.showReplies) {
+          } @else {
+            @if (question.pollType === 'options') {
+              <div class="poll-question-options single-line-markdown">
+                @for (option of question.options; track option.index) {
+                  <div
+                    class="poll-question-option"
+                    [ngClass]="{
+                      'correct-option': question.showSolution && option.correct,
+                    }"
+                  >
+                    <app-spark-markdown [data]="option.option"></app-spark-markdown>
+                  </div>
+                }
+              </div>
+            }
+          }
+        </div>
+      }
+    </div>
+  }
+</div>
+
+<div class="join-information" [ngClass]="{ 'join-information-big': joinInformationBig() }">
+  @if (joinInformationBig()) {
+    <div class="join-qr">
+      <qrcode
+        [qrdata]="'https://' + joinLink()"
+        [width]="512"
+        [errorCorrectionLevel]="'M'"
+      ></qrcode>
+    </div>
+  }
+  <div class="join-link">
+    {{ joinLink() }}
+  </div>
+</div>
+
+<div class="size-buttons">
+  <button (click)="decreaseWidth()">|-|</button>
+  <button (click)="increaseWidth()">|+|</button>
+  <button (click)="decreaseFontAndWidth()">A-</button>
+  <button (click)="increaseFontAndWidth()">A+</button>
+</div>

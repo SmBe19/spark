@@ -1,13 +1,13 @@
-import { ApiQuestionAnswer, QuestionAnswer } from './answers';
+import { ApiQuestionReply, QuestionReply } from './replies';
 
 export interface ApiArchivedPoll {
   archived_at: number;
   poll: string;
-  answers: ApiQuestionAnswer[];
+  replies: ApiQuestionReply[];
 }
 
 export interface ArchivedPoll {
   archivedAt: number;
   poll: string;
-  answers: QuestionAnswer[];
+  replies: QuestionReply[];
 }

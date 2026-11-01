@@ -63,13 +63,13 @@ export class RoomClientService {
     );
   }
 
-  addAnswer(answer: string, questionIndex: number) {
+  addReply(reply: string, questionIndex: number) {
     if (!this.activeRoom()) {
       throw new Error('No active room');
     }
-    this.socketService.socket.emit('add_answer', {
+    this.socketService.socket.emit('add_reply', {
       room_id: this.activeRoom()!.id,
-      answer,
+      reply,
       question_index: questionIndex,
       user_hash: this.userHash,
     });

@@ -32,3 +32,14 @@ def cli_list_users():
     for user in users:
         print(f"- {user['username']}")
     db.client.close()
+
+
+def cli_list_rooms():
+    db = get_new_mongo_database()
+    rooms = db["rooms"].find()
+    print("Rooms:")
+    for room in rooms:
+        print(room["name"])
+        print(room)
+        print("-----")
+    db.client.close()

@@ -4,7 +4,7 @@
     @if (!activePresentation) {
       <div class="no-active-presentation">{{ roomClientService.activeRoom()?.name }}</div>
     } @else {
-      <app-spark-markdown [data]="activePresentation"></app-spark-markdown>
+      <app-spark-markdown clipboard [data]="activePresentation"></app-spark-markdown>
     }
   </div>
 } @else if (activeRoomMode() === 'poll') {

@@ -28,3 +28,20 @@ pre[class*='language-']::before {
 pre[class*='language-']::after {
   box-shadow: 0 10px 8px var(--muted-color-very-light) !important;
 }
+
+.markdown-clipboard-toolbar {
+  top: 0 !important;
+  right: 0 !important;
+  font-size: 0.7rem;
+}
+
+.markdown-clipboard-toolbar button {
+  box-sizing: border-box;
+  border: 1px solid var(--muted-color-light);
+  background: none;
+  font-size: inherit;
+}
+
+.markdown-clipboard-toolbar:hover button {
+  background: var(--muted-color-light);
+}

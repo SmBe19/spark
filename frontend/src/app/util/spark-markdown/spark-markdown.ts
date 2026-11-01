@@ -9,4 +9,5 @@ import { MarkdownComponent } from 'ngx-markdown';
 })
 export class SparkMarkdown {
   data = input.required<string>();
+  clipboard = input<boolean | ''>(false);
 }

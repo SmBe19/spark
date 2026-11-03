@@ -22,8 +22,8 @@ export class RoomPresenter {
   router = inject(Router);
   activatedRoute = inject(ActivatedRoute);
 
-  activeFontSize = signal(28);
-  activeWidth = signal(800);
+  activeFontSize = signal(38);
+  activeWidth = signal(900);
 
   activePollParsed = computed(() => {
     const activeRoom = this.roomService.activeRoom();
@@ -51,7 +51,11 @@ export class RoomPresenter {
     this.pollService.getReplyDistributions(this.repliesByQuestion()),
   );
   activeRoomMode = computed(() => this.roomService.activeRoom()?.activeMode || 'poll');
+  joinInformationBigRequested = signal(false);
   joinInformationBig = computed(() => {
+    if (this.joinInformationBigRequested()) {
+      return true;
+    }
     if (this.activeRoomMode() === 'poll') {
       return this.activeQuestions().length === 0;
     } else if (this.activeRoomMode() === 'presentation') {

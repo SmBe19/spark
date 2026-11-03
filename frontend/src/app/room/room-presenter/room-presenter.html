@@ -60,7 +60,7 @@
       ></qrcode>
     </div>
   }
-  <div class="join-link">
+  <div class="join-link" (click)="joinInformationBigRequested.set(!joinInformationBigRequested())">
     {{ joinLink() }}
   </div>
 </div>

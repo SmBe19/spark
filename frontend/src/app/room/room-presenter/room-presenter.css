@@ -83,6 +83,11 @@
   color: black;
 }
 
+.join-link:hover {
+  cursor: pointer;
+  color: var(--secondary-accent-color);
+}
+
 .size-buttons {
   position: fixed;
   bottom: 0;

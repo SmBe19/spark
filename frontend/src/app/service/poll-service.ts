@@ -14,23 +14,25 @@ export class PollService {
       return { questions, presentationPages, clientPages };
     }
 
+    const parseLines = this.isListFormat(lines) ? lines : this.normalizeAlternativeFormat(lines);
+
     let currentLine = 0;
-    const globalFlagsMatch = lines[0].match(/^-\s+(!\w.*)$/);
+    const globalFlagsMatch = parseLines[0]?.match(/^-\s+(!\w.*)$/);
     let globalFlags = '';
     if (globalFlagsMatch) {
       globalFlags = globalFlagsMatch[1];
       currentLine++;
     }
-    while (currentLine < lines.length) {
-      if (!lines[currentLine].startsWith('-')) {
+    while (currentLine < parseLines.length) {
+      if (!parseLines[currentLine].startsWith('-')) {
         currentLine++;
         continue;
       }
-      const questionLines: string[] = [lines[currentLine] + ' ' + globalFlags];
+      const questionLines: string[] = [parseLines[currentLine] + ' ' + globalFlags];
       currentLine++;
-      while (currentLine < lines.length && !lines[currentLine].startsWith('-')) {
-        if (lines[currentLine].trim() !== '') {
-          questionLines.push(lines[currentLine]);
+      while (currentLine < parseLines.length && !parseLines[currentLine].startsWith('-')) {
+        if (parseLines[currentLine].trim() !== '') {
+          questionLines.push(parseLines[currentLine]);
         }
         currentLine++;
       }
@@ -226,6 +228,80 @@ export class PollService {
       }
     }
     return flags;
+  }
+
+  private isListFormat(lines: string[]): boolean {
+    const firstLine = lines.find((line) => line.trim() !== '');
+    return firstLine === undefined || firstLine.trimStart().startsWith('-');
+  }
+
+  private normalizeAlternativeFormat(lines: string[]): string[] {
+    const questionBlocks: string[][] = [];
+    let globalFlags = '';
+
+    for (const block of this.splitAlternativeBlocks(lines)) {
+      if (
+        questionBlocks.length === 0 &&
+        globalFlags === '' &&
+        block.every((line) => this.isFlagsOnly(line))
+      ) {
+        globalFlags = block.map((line) => line.trim()).join(' ');
+        continue;
+      }
+
+      const previousBlock = questionBlocks[questionBlocks.length - 1];
+      if (block[0].trimStart().startsWith('-') && previousBlock !== undefined) {
+        previousBlock.push(...block);
+      } else {
+        questionBlocks.push([...block]);
+      }
+    }
+
+    const normalized: string[] = [];
+    if (globalFlags !== '') {
+      normalized.push('- ' + globalFlags);
+    }
+
+    for (const block of questionBlocks) {
+      const optionStart = block.findIndex((line) => line.trimStart().startsWith('-'));
+      const questionLines = optionStart === -1 ? block : block.slice(0, optionStart);
+      const optionLines = optionStart === -1 ? [] : block.slice(optionStart);
+      if (questionLines.length === 0) {
+        continue;
+      }
+
+      normalized.push('- ' + questionLines.join('\n'));
+      for (const line of optionLines) {
+        normalized.push(line.startsWith('-') ? '  ' + line : line);
+      }
+    }
+
+    return normalized;
+  }
+
+  private splitAlternativeBlocks(lines: string[]): string[][] {
+    const blocks: string[][] = [];
+    let currentBlock: string[] = [];
+
+    for (const line of lines) {
+      if (line.trim() === '') {
+        if (currentBlock.length > 0) {
+          blocks.push(currentBlock);
+          currentBlock = [];
+        }
+      } else {
+        currentBlock.push(line);
+      }
+    }
+    if (currentBlock.length > 0) {
+      blocks.push(currentBlock);
+    }
+
+    return blocks;
+  }
+
+  private isFlagsOnly(line: string): boolean {
+    return /^!\S+(?:\s+!\S+)*$/.test(line.trim());
   }
 
   private splitLines(text: string): string[] {

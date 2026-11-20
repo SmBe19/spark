@@ -1,6 +1,7 @@
 export interface Poll {
   questions: PollQuestion[];
-  pages: number[][];
+  presentationPages: number[][];
+  clientPages: number[][];
 }
 
 export type PollType = 'options' | 'text' | 'rating' | 'estimate';

@@ -69,6 +69,11 @@ def db_archive_poll_for_room(room_id):
         to="room:" + str(room_id),
         namespace="/",
     )
+    emit(
+        "replies_archived",
+        to="room-admin:" + str(room_id),
+        namespace="/",
+    )
     return {"success": True}
 
 
@@ -101,3 +106,13 @@ def sanitize_room(room):
 def sanitize_reply(reply):
     san = sanitize_object(reply, ["reply", "question_index"])
     return san
+
+
+def validate_room_access(room_id, user_id):
+    db = get_mongo_database()
+    room = db["rooms"].find_one({"_id": ObjectId(room_id)})
+    if room is None:
+        return None, ({"success": False, "error": "Room not found."}, 404)
+    if user_id is not None and room.get("owner_id") != user_id:
+        return None, ({"success": False, "error": "Unauthorized access."}, 403)
+    return room, None

@@ -1,5 +1,8 @@
 <div class="poll-preview-wrapper">
-  @for (pageQuestions of parsedPoll().pages; track pageQuestions[0]) {
+  @for (pageQuestions of parsedPoll().presentationPages; track pageQuestions[0]) {
+    @if (!parsedPoll().questions[pageQuestions[0]].individualProgress) {
+      <div class="poll-wait-divider"></div>
+    }
     <div class="poll-page">
       @for (questionIndex of pageQuestions; track questionIndex) {
         @let question = parsedPoll().questions[questionIndex];

@@ -7,10 +7,11 @@ export class PollService {
   parsePoll(pollConfig: string): Poll {
     const lines = this.splitLines(pollConfig);
     const questions: PollQuestion[] = [];
-    const pages: number[][] = [];
+    const presentationPages: number[][] = [];
+    const clientPages: number[][] = [];
 
     if (lines.length === 0) {
-      return { questions, pages };
+      return { questions, presentationPages, clientPages };
     }
 
     let currentLine = 0;
@@ -34,14 +35,21 @@ export class PollService {
         currentLine++;
       }
       const question = this.parseQuestion(questions.length, questionLines);
-      if (pages.length === 0 || !question.joinWithPrevious) {
-        pages.push([]);
+      if (presentationPages.length === 0 || !question.joinWithPrevious) {
+        presentationPages.push([]);
       }
-      pages[pages.length - 1].push(question.index);
+      if (
+        clientPages.length === 0 ||
+        (!question.joinWithPrevious && !question.individualProgress)
+      ) {
+        clientPages.push([]);
+      }
+      presentationPages[presentationPages.length - 1].push(question.index);
+      clientPages[clientPages.length - 1].push(question.index);
       questions.push(question);
     }
 
-    return { questions, pages };
+    return { questions, presentationPages, clientPages };
   }
 
   getActivePage(pages: number[][], activeQuestionIndex: number): number[] {
@@ -125,7 +133,7 @@ export class PollService {
       showReplies: !!flags['repl'] && !flags['norepl'],
       showSolution: !!flags['sol'] && !flags['nosol'],
       showCorrection: !!flags['corr'] || !flags['nocorr'],
-      individualProgress: !!flags['open'],
+      individualProgress: !flags['wait'] || !!flags['nowait'],
       joinWithPrevious: !!flags['join'],
     };
 

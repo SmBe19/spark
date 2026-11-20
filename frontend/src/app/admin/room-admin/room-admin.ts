@@ -65,14 +65,14 @@ export class RoomAdmin {
   deletingRoom = signal(false);
   nextQuestionIndex = computed(() => {
     const nextPage = this.pollService.getNextPage(
-      this.activePollParsed().pages,
+      this.activePollParsed().presentationPages,
       this.roomInfoModel().activeQuestionIndex,
     );
     return nextPage ? nextPage[0] : null;
   });
   previousQuestionIndex = computed(() => {
     const previousPage = this.pollService.getPreviousPage(
-      this.activePollParsed().pages,
+      this.activePollParsed().presentationPages,
       this.roomInfoModel().activeQuestionIndex,
     );
     return previousPage ? previousPage[0] : null;

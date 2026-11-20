@@ -9,6 +9,7 @@ from spark.db.rooms import (
     sanitize_reply,
     sanitize_room,
     sanitize_room_short,
+    validate_room_access,
 )
 from spark.decorators import login_required, public_route
 from spark.utils import get_user_id, sanitize_object, validate_not_empty
@@ -26,19 +27,17 @@ def add_routes(app):
     @app.route("/api/rooms/<room_id>", methods=["GET"])
     @public_route
     def get_room(room_id):
-        db = get_mongo_database()
-        room = db["rooms"].find_one({"_id": ObjectId(room_id)})
-        if room is None:
-            return {"success": False, "error": "Room not found."}, 404
+        room, error_response = validate_room_access(room_id, None)
+        if error_response:
+            return error_response
         return {"success": True, "data": sanitize_room(room)}
 
     @app.route("/api/rooms/<room_id>/replies", methods=["GET"])
     @login_required
     def get_replies_for_room(room_id):
-        db = get_mongo_database()
-        room = db["rooms"].find_one({"_id": ObjectId(room_id)})
-        if room is None:
-            return {"success": False, "error": "Room not found."}, 404
+        room, error_response = validate_room_access(room_id, get_user_id())
+        if error_response:
+            return error_response
         return {
             "success": True,
             "data": [sanitize_reply(reply) for reply in room.get("active_replies", [])],
@@ -59,6 +58,9 @@ def add_routes(app):
         update_data = request.json
         if not validate_not_empty(update_data, ["slug", "name"]):
             return {"success": False, "error": "Room slug and name are required."}, 400
+        _, error_response = validate_room_access(room_id, get_user_id())
+        if error_response:
+            return error_response
         if "slug" in update_data:
             update_data["slug"] = update_data["slug"].lower()
         sanitized_data = sanitize_object(
@@ -78,7 +80,7 @@ def add_routes(app):
         ):
             db_archive_poll_for_room(room_id)
         result = db["rooms"].update_one(
-            {"_id": ObjectId(room_id)},
+            {"_id": ObjectId(room_id), "owner_id": get_user_id()},
             {"$set": sanitized_data},
         )
         if result.modified_count > 0:
@@ -91,7 +93,9 @@ def add_routes(app):
     @login_required
     def delete_room(room_id):
         db = get_mongo_database()
-        result = db["rooms"].delete_one({"_id": ObjectId(room_id)})
+        result = db["rooms"].delete_one(
+            {"_id": ObjectId(room_id), "owner_id": get_user_id()}
+        )
         if result.deleted_count > 0:
             db["archived_polls"].delete_many({"room_id": ObjectId(room_id)})
             return {"success": True}

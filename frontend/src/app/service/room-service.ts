@@ -67,6 +67,9 @@ export class RoomService {
         });
       }
     });
+    this.socketService.socket.on('replies_archived', () => {
+      this.activeReplies.set([]);
+    });
   }
 
   loadRooms() {

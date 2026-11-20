@@ -39,7 +39,7 @@ export class RoomPresenter {
       return [];
     }
     const activePage = this.pollService.getActivePage(
-      activePoll.pages,
+      activePoll.presentationPages,
       activeRoom.activeQuestionIndex,
     );
     return activePage.map((index) => activePoll.questions[index]);

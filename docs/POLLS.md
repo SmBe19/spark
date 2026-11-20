@@ -29,7 +29,7 @@ By default, the replies are hidden on the presentation view. They can be made vi
 
 By default, the correct solution is displayed to the client once they submit, but it is not visible on the main presentation. To show the solutions on the main presentation, add `!sol`, or hide explicitly with `!nosol`. The client view can be controlled with `!corr` and `!nocorr`.
 
-By default, users can not advance on their own, they always see the same page as on the presentation. With `!open`, the users can progress at their own pace to this question (i.e. they can progress from the previous question).
+By default, users can advance on their own. With `!wait`, the users can not progress at their own pace to this question and they have to wait until the presentation progresses to the question. With `!nowait`, advancing can be enabled explicitly.
 
 By default, each question appears on a separate page. A question can be joined on the same page with the previous one with `!join`. This implies `!open`.
 

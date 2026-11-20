@@ -102,7 +102,11 @@
             <button
               (click)="previousQuestion()"
               type="button"
-              [disabled]="dirtyValues().activeQuestionIndex || previousQuestionIndex() === null"
+              [disabled]="
+                dirtyValues().activeQuestionIndex ||
+                dirtyValues().activePoll ||
+                previousQuestionIndex() === null
+              "
             >
               &lt;
             </button>
@@ -111,7 +115,11 @@
             <button
               (click)="nextQuestion()"
               type="button"
-              [disabled]="dirtyValues().activeQuestionIndex || nextQuestionIndex() === null"
+              [disabled]="
+                dirtyValues().activeQuestionIndex ||
+                dirtyValues().activePoll ||
+                nextQuestionIndex() === null
+              "
             >
               &gt;
             </button>

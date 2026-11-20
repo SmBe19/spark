@@ -5,9 +5,10 @@ import { toObservable } from '@angular/core/rxjs-interop';
 import { FormsModule } from '@angular/forms';
 import { PresentationPreview } from '../presentation-preview/presentation-preview';
 import { PresentationService } from '../../service/presentation-service';
+import { PasteImage } from '../../util/paste-image/paste-image';
 
 @Component({
-  imports: [FormField, FormsModule, PresentationPreview],
+  imports: [FormField, FormsModule, PasteImage, PresentationPreview],
   selector: 'app-room-admin-presentation',
   styleUrl: './room-admin-presentation.css',
   templateUrl: './room-admin-presentation.html',

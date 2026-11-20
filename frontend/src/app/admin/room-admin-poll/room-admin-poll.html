@@ -5,6 +5,7 @@
         <div>
           <textarea
             placeholder="Poll"
+            appPasteImage
             [formField]="activePoll.poll"
             (keyup.control.enter)="$event.preventDefault(); updatePoll()"
           ></textarea>

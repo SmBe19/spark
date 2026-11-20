@@ -35,4 +35,4 @@ By default, each question appears on a separate page. A question can be joined o
 
 There is a shorthand for options where the options are yes/no. `!yn` for just the options, and `!yny` or `!ynn` to mark one of the options as the correct solution. To translate the options, specify the language afterwards, e.g. `!yn:de`.
 
-To include an image, it needs to be hosted somewhere else.
+To include an image, it needs to be hosted somewhere else. Alternatively, an image can be pasted from the clipboard into the editor in the admin view, which embeds it as a base64 encoded data link.

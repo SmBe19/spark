@@ -5,6 +5,7 @@
         <div>
           <textarea
             placeholder="Presentation"
+            appPasteImage
             [formField]="activePresentation.presentation"
             (keyup.control.enter)="$event.preventDefault(); updatePresentation()"
           ></textarea>

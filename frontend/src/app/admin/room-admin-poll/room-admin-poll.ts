@@ -5,9 +5,10 @@ import { PollService } from '../../service/poll-service';
 import { toObservable } from '@angular/core/rxjs-interop';
 import { PollPreview } from '../poll-preview/poll-preview';
 import { PasteImage } from '../../util/paste-image/paste-image';
+import { FormsModule } from '@angular/forms';
 
 @Component({
-  imports: [FormField, PasteImage, PollPreview],
+  imports: [FormsModule, FormField, PasteImage, PollPreview],
   selector: 'app-room-admin-poll',
   styleUrl: './room-admin-poll.css',
   templateUrl: './room-admin-poll.html',

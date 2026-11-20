@@ -2,9 +2,10 @@ import { Component, inject, signal } from '@angular/core';
 import { form, FormField, required } from '@angular/forms/signals';
 import { RoomService } from '../../service/room-service';
 import { NgClass } from '@angular/common';
+import { FormsModule } from '@angular/forms';
 
 @Component({
-  imports: [FormField, NgClass],
+  imports: [FormsModule, FormField, NgClass],
   selector: 'app-new-room-form',
   styleUrl: './new-room-form.css',
   templateUrl: './new-room-form.html',

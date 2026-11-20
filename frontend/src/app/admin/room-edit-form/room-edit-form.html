@@ -4,7 +4,7 @@
   </button>
 </div>
 <div class="room-nav-form" [ngClass]="{ 'room-nav-form-hide': !showRoomEditForm() }">
-  <form (submit)="$event.preventDefault(); updateRoom()">
+  <form (submit)="updateRoom()">
     <div class="room-nav-form-input">
       <label
         >Slug:
@@ -31,12 +31,12 @@
     } @else {
       <div>Are you sure you want to delete this room?</div>
       <div class="room-nav-form-input">
-        <button type="button" (click)="deletingRoom.set(false)">Cancel</button>
-      </div>
-      <div class="room-nav-form-input">
         <button type="button" class="danger-button" (click)="confirmDeleteRoom()">
           Yes, Delete
         </button>
+      </div>
+      <div class="room-nav-form-input">
+        <button type="button" (click)="deletingRoom.set(false)">Cancel</button>
       </div>
     }
   </form>

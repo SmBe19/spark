@@ -3,9 +3,10 @@ import { Component, computed, inject, signal } from '@angular/core';
 import { form, FormField, required } from '@angular/forms/signals';
 import { RoomService } from '../../service/room-service';
 import { toObservable } from '@angular/core/rxjs-interop';
+import { FormsModule } from '@angular/forms';
 
 @Component({
-  imports: [FormField, NgClass],
+  imports: [FormsModule, FormField, NgClass],
   selector: 'app-room-edit-form',
   styleUrl: './room-edit-form.css',
   templateUrl: './room-edit-form.html',

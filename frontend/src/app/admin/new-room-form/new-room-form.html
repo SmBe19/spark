@@ -4,7 +4,7 @@
   </button>
 </div>
 <div class="room-nav-form" [ngClass]="{ 'room-nav-form-hide': !showNewRoomForm() }">
-  <form (submit)="$event.preventDefault(); createRoom()">
+  <form (submit)="createRoom()">
     <div class="room-nav-form-input">
       <label
         >Slug:

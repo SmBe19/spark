@@ -1,15 +1,16 @@
 import { Component, inject } from '@angular/core';
-import { RoomService } from '../../service/room-service';
 import { RoomAdminArchive } from '../room-admin-archive/room-admin-archive';
 import { RoomAdminPresentation } from '../room-admin-presentation/room-admin-presentation';
 import { RoomAdminPoll } from '../room-admin-poll/room-admin-poll';
+import { RoomAdminTimer } from '../room-admin-timer/room-admin-timer';
+import { RoomInfoService } from '../../service/room-info-service';
 
 @Component({
-  imports: [RoomAdminPoll, RoomAdminPresentation, RoomAdminArchive],
+  imports: [RoomAdminPoll, RoomAdminPresentation, RoomAdminTimer, RoomAdminArchive],
   selector: 'app-room-admin',
   styleUrl: './room-admin.css',
   templateUrl: './room-admin.html',
 })
 export class RoomAdmin {
-  roomService = inject(RoomService);
+  roomInfoService = inject(RoomInfoService);
 }

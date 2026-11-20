@@ -1,5 +1,5 @@
 <div class="poll-wrapper">
-  @for (question of roomService.activeQuestions(); track question.index) {
+  @for (question of roomInfoService.activeQuestions(); track question.index) {
     <div class="poll-question">
       <div class="poll-question-text">
         <app-spark-markdown [data]="question.question"></app-spark-markdown>
@@ -32,3 +32,5 @@
     </div>
   }
 </div>
+
+<app-room-small-timer marginTop="5rem"></app-room-small-timer>

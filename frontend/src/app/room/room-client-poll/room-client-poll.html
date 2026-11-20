@@ -1,8 +1,8 @@
 <div class="poll-wrapper">
-  @if (roomClientService.activeQuestions().length === 0) {
-    <div class="no-active-questions">{{ roomClientService.activeRoom()?.name }}</div>
+  @if (roomInfoService.activeQuestions().length === 0) {
+    <div class="no-active-questions">{{ roomInfoService.activeRoom()?.name }}</div>
   }
-  @for (question of roomClientService.activeQuestions(); track question.index) {
+  @for (question of roomInfoService.activeQuestions(); track question.index) {
     <div class="poll-question">
       <div class="poll-question-text">
         <app-spark-markdown [data]="question.question"></app-spark-markdown>
@@ -96,3 +96,5 @@
     </div>
   }
 </div>
+
+<app-room-small-timer></app-room-small-timer>

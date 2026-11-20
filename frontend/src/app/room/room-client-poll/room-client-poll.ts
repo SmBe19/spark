@@ -3,9 +3,11 @@ import { RoomClientService } from '../../service/room-client-service';
 import { SparkMarkdown } from '../../util/spark-markdown/spark-markdown';
 import { FormsModule } from '@angular/forms';
 import { NgClass } from '@angular/common';
+import { RoomInfoService } from '../../service/room-info-service';
+import { RoomSmallTimer } from '../room-small-timer/room-small-timer';
 
 @Component({
-  imports: [FormsModule, NgClass, SparkMarkdown],
+  imports: [FormsModule, NgClass, SparkMarkdown, RoomSmallTimer],
   selector: 'app-room-client-poll',
   styleUrl: './room-client-poll.css',
   templateUrl: './room-client-poll.html',
@@ -14,6 +16,7 @@ export class RoomClientPoll {
   private currentPollId: string | null = null;
 
   roomClientService = inject(RoomClientService);
+  roomInfoService = inject(RoomInfoService);
 
   pendingReplies = signal<Record<number, string>>({});
   submittedReplies = signal<Record<number, string>>({});
@@ -21,7 +24,7 @@ export class RoomClientPoll {
 
   constructor() {
     effect(() => {
-      const activeRoom = this.roomClientService.activeRoom();
+      const activeRoom = this.roomInfoService.activeRoom();
       if (!activeRoom) {
         this.currentPollId = null;
         return;
@@ -46,7 +49,7 @@ export class RoomClientPoll {
 
     effect(() => {
       const replies = {
-        pollId: this.roomClientService.activeRoom()?.activePollId,
+        pollId: this.roomInfoService.activeRoom()?.activePollId,
         pendingReplies: this.pendingRepliesDebounced.value(),
         submittedReplies: this.submittedReplies(),
       };
@@ -94,9 +97,7 @@ export class RoomClientPoll {
   }
 
   questionHasCorrection(questionIndex: number): boolean {
-    const question = this.roomClientService
-      .activeQuestions()
-      .find((q) => q.index === questionIndex);
+    const question = this.roomInfoService.activeQuestions().find((q) => q.index === questionIndex);
     if (!question || question.pollType !== 'options') {
       return false;
     }

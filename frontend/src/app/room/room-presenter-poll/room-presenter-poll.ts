@@ -3,19 +3,20 @@ import { SparkMarkdown } from '../../util/spark-markdown/spark-markdown';
 import { SparkChart } from '../../util/spark-chart/spark-chart';
 import { NgClass } from '@angular/common';
 import { PollService } from '../../service/poll-service';
-import { RoomService } from '../../service/room-service';
+import { RoomInfoService } from '../../service/room-info-service';
+import { RoomSmallTimer } from '../room-small-timer/room-small-timer';
 
 @Component({
-  imports: [SparkMarkdown, SparkChart, NgClass],
+  imports: [SparkMarkdown, SparkChart, NgClass, RoomSmallTimer],
   selector: 'app-room-presenter-poll',
   styleUrl: './room-presenter-poll.css',
   templateUrl: './room-presenter-poll.html',
 })
 export class RoomPresenterPoll {
   pollService = inject(PollService);
-  roomService = inject(RoomService);
+  roomInfoService = inject(RoomInfoService);
   repliesByQuestion = computed(() =>
-    this.pollService.groupRepliesByQuestion(this.roomService.activeReplies.value()),
+    this.pollService.groupRepliesByQuestion(this.roomInfoService.activeReplies()),
   );
   replyDistributions = computed(() =>
     this.pollService.getReplyDistributions(this.repliesByQuestion()),

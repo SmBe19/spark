@@ -1,8 +1,8 @@
 import { Component, computed, inject, signal } from '@angular/core';
 import { SHORT_LINK_BASE } from '../../../consts';
-import { RoomService } from '../../service/room-service';
 import { NgClass } from '@angular/common';
 import { QRCodeComponent } from 'angularx-qrcode';
+import { RoomInfoService } from '../../service/room-info-service';
 
 @Component({
   imports: [NgClass, QRCodeComponent],
@@ -11,24 +11,22 @@ import { QRCodeComponent } from 'angularx-qrcode';
   templateUrl: './room-presenter-joininfo.html',
 })
 export class RoomPresenterJoininfo {
-  roomService = inject(RoomService);
+  roomInfoService = inject(RoomInfoService);
 
   joinInformationBigRequested = signal(false);
   joinInformationBig = computed(() => {
     if (this.joinInformationBigRequested()) {
       return true;
     }
-    if (this.roomService.activeRoomMode() === 'poll') {
-      return this.roomService.activeQuestions().length === 0;
-    } else if (this.roomService.activeRoomMode() === 'presentation') {
-      return this.roomService.activePresentationSlides().length === 0;
-    } else if (this.roomService.activeRoomMode() === 'blank') {
-      return false;
+    if (this.roomInfoService.activeRoomMode() === 'poll') {
+      return this.roomInfoService.activeQuestions().length === 0;
+    } else if (this.roomInfoService.activeRoomMode() === 'presentation') {
+      return this.roomInfoService.activePresentationSlides().length === 0;
     }
-    return true;
+    return false;
   });
   joinLink = computed(() => {
-    const activeRoom = this.roomService.activeRoom();
+    const activeRoom = this.roomInfoService.activeRoom();
     if (!activeRoom) {
       return '';
     }

@@ -1,6 +1,6 @@
-export type RoomMode = 'presentation' | 'poll' | 'blank';
+export type RoomMode = 'presentation' | 'poll' | 'timer' | 'blank';
 
-export type PreviewRoomMode = 'presentation' | 'poll' | 'poll-archive';
+export type PreviewRoomMode = 'presentation' | 'poll' | 'timer' | 'poll-archive';
 
 export interface ApiRoomInfoShort {
   id: string;
@@ -12,6 +12,7 @@ export interface ApiRoomInfo extends RoomInfoShort {
   active_poll_id: string;
   active_poll: string;
   active_presentation: string;
+  active_timer_end_time: number;
   active_mode: RoomMode;
   active_question_index: number;
   active_slide_index: number;
@@ -23,6 +24,7 @@ export interface RoomInfo extends RoomInfoShort {
   activePollId: string;
   activePoll: string;
   activePresentation: string;
+  activeTimerEndTimeMs: number;
   activeMode: RoomMode;
   activeQuestionIndex: number;
   activeSlideIndex: number;
@@ -50,6 +52,9 @@ export function mapPartialApiRoomInfoToRoomInfo(
   if (apiRoomInfo.active_presentation !== undefined) {
     mapped.activePresentation = apiRoomInfo.active_presentation;
   }
+  if (apiRoomInfo.active_timer_end_time !== undefined) {
+    mapped.activeTimerEndTimeMs = apiRoomInfo.active_timer_end_time * 1000;
+  }
   if (apiRoomInfo.active_mode !== undefined) {
     mapped.activeMode = apiRoomInfo.active_mode;
   }
@@ -72,7 +77,8 @@ export function mapApiRoomInfoToRoomInfo(apiRoomInfo: ApiRoomInfo): RoomInfo {
     activePresentation: apiRoomInfo.active_presentation,
     activeMode: apiRoomInfo.active_mode,
     activeQuestionIndex: apiRoomInfo.active_question_index,
-    activeSlideIndex: apiRoomInfo.active_slide_index ?? 0,
+    activeTimerEndTimeMs: apiRoomInfo.active_timer_end_time * 1000,
+    activeSlideIndex: apiRoomInfo.active_slide_index,
   };
 }
 

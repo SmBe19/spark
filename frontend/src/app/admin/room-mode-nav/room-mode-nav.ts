@@ -3,6 +3,7 @@ import { Component, inject } from '@angular/core';
 import { RoomService } from '../../service/room-service';
 import { RouterLink } from '@angular/router';
 import { PreviewRoomMode, RoomMode } from '../../model/rooms';
+import { RoomInfoService } from '../../service/room-info-service';
 
 @Component({
   imports: [NgClass, RouterLink],
@@ -11,12 +12,14 @@ import { PreviewRoomMode, RoomMode } from '../../model/rooms';
   templateUrl: './room-mode-nav.html',
 })
 export class RoomModeNav {
+  roomInfoService = inject(RoomInfoService);
   roomService = inject(RoomService);
 
   navItems: NavItem[] = [
     { label: 'Archive', previewMode: 'poll-archive' },
     { label: 'Poll', mode: 'poll', previewMode: 'poll' },
     { label: 'Presentation', mode: 'presentation', previewMode: 'presentation' },
+    { label: 'Timer', mode: 'timer', previewMode: 'timer' },
     { label: 'Blank', mode: 'blank' },
   ];
 

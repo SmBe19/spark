@@ -5,7 +5,9 @@
       @if (item.previewMode) {
         <div
           class="nav-item nav-mode"
-          [ngClass]="{ 'active-mode': roomService.activePreviewRoomMode() === item.previewMode }"
+          [ngClass]="{
+            'active-mode': roomInfoService.activePreviewRoomMode() === item.previewMode,
+          }"
           (click)="switchPreviewRoomMode(item.previewMode!)"
         >
           {{ item.label }}
@@ -19,7 +21,7 @@
       @if (item.mode) {
         <div
           class="nav-item nav-mode"
-          [ngClass]="{ 'active-mode': roomService.activeRoomMode() === item.mode }"
+          [ngClass]="{ 'active-mode': roomInfoService.activeRoomMode() === item.mode }"
           (click)="switchRoomMode(item.mode!)"
         >
           {{ item.label }}
@@ -27,7 +29,9 @@
       }
     }
     <div class="nav-item nav-link">
-      <a [routerLink]="['/presenter', roomService.activeRoom()?.slug]" target="_blank">Presenter</a>
+      <a [routerLink]="['/presenter', roomInfoService.activeRoom()?.slug]" target="_blank"
+        >Presenter</a
+      >
     </div>
   </div>
 </nav>

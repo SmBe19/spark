@@ -7,12 +7,15 @@ import { RoomPresenterPresentation } from '../room-presenter-presentation/room-p
 import { RoomPresenterPoll } from '../room-presenter-poll/room-presenter-poll';
 import { RoomPresenterSizer } from '../room-presenter-sizer/room-presenter-sizer';
 import { RoomPresenterJoininfo } from '../room-presenter-joininfo/room-presenter-joininfo';
+import { RoomInfoService } from '../../service/room-info-service';
+import { RoomFullscreenTimer } from '../room-fullscreen-timer/room-fullscreen-timer';
 
 @Component({
   imports: [
     NgStyle,
     RoomPresenterPresentation,
     RoomPresenterPoll,
+    RoomFullscreenTimer,
     RoomPresenterSizer,
     RoomPresenterJoininfo,
   ],
@@ -22,6 +25,7 @@ import { RoomPresenterJoininfo } from '../room-presenter-joininfo/room-presenter
 })
 export class RoomPresenter {
   titleService = inject(Title);
+  roomInfoService = inject(RoomInfoService);
   roomService = inject(RoomService);
   router = inject(Router);
   activatedRoute = inject(ActivatedRoute);
@@ -31,7 +35,7 @@ export class RoomPresenter {
 
   constructor() {
     effect(() => {
-      const activeRoom = this.roomService.activeRoom();
+      const activeRoom = this.roomInfoService.activeRoom();
       if (!activeRoom) {
         return;
       }

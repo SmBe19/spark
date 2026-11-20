@@ -1,0 +1,5 @@
+<div class="timer-wrapper">
+  <div class="timer-remaining" [ngClass]="{ 'timer-inactive': !timerService.hasActiveTimer() }">
+    {{ timerService.remainingTimeString() }}
+  </div>
+</div>

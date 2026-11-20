@@ -21,49 +21,13 @@ import {
 import { rxResource } from '@angular/core/rxjs-interop';
 import { map, of } from 'rxjs';
 import { SocketService } from './socket-service';
-import { PollService } from './poll-service';
-import { PresentationService } from './presentation-service';
 
 @Service()
 export class RoomService {
   rooms = signal<RoomInfoShort[]>([]);
   activeRoom = signal<RoomInfo | null>(null);
-  activeRoomMode = computed(() => this.activeRoom()?.activeMode || 'poll');
   activePreviewRoomMode = signal<PreviewRoomMode>('poll');
   activeRoomId = computed(() => this.activeRoom()?.id || null);
-  activePollParsed = computed(() => {
-    const activeRoom = this.activeRoom();
-    if (!activeRoom) {
-      return null;
-    }
-    return this.pollService.parsePoll(activeRoom.activePoll);
-  });
-  activePresentationSlides = computed(() => {
-    const activeRoom = this.activeRoom();
-    if (!activeRoom) {
-      return [];
-    }
-    return this.presentationService.parsePresentation(activeRoom.activePresentation);
-  });
-  activePresentationSlide = computed(() => {
-    const index = this.activeRoom()?.activeSlideIndex ?? 0;
-    if (index >= this.activePresentationSlides().length) {
-      return null;
-    }
-    return this.activePresentationSlides()[index];
-  });
-  activeQuestions = computed(() => {
-    const activeRoom = this.activeRoom();
-    const activePoll = this.activePollParsed();
-    if (!activeRoom || !activePoll) {
-      return [];
-    }
-    const activePage = this.pollService.getActivePage(
-      activePoll.presentationPages,
-      activeRoom.activeQuestionIndex,
-    );
-    return activePage.map((index) => activePoll.questions[index]);
-  });
   activeReplies = rxResource<QuestionReply[], { activeRoomId: string | null }>({
     defaultValue: [],
     params: () => ({ activeRoomId: this.activeRoomId() }),
@@ -85,8 +49,6 @@ export class RoomService {
     },
   });
 
-  private pollService = inject(PollService);
-  private presentationService = inject(PresentationService);
   private httpClient = inject(HttpClient);
   private socketService = inject(SocketService);
 
@@ -217,6 +179,14 @@ export class RoomService {
   updateRoomActiveSlideIndex(roomId: string, index: number) {
     this.httpClient
       .put<ApiResponse<null>>('/api/rooms/' + roomId, { active_slide_index: index })
+      .subscribe(() => {});
+  }
+
+  updateRoomActiveTimerEndTime(roomId: string, endTimeMs: number) {
+    this.httpClient
+      .put<ApiResponse<null>>('/api/rooms/' + roomId, {
+        active_timer_end_time: Math.floor(endTimeMs / 1000),
+      })
       .subscribe(() => {});
   }
 

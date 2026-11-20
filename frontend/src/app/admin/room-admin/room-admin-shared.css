@@ -54,13 +54,36 @@
   background: var(--muted-color-light);
 }
 
+.admin-edit-control-buttons {
+  margin-bottom: 1rem;
+  display: flex;
+  flex-flow: row wrap;
+  gap: 1rem;
+}
+
+.admin-edit-control-buttons button {
+  flex-grow: 1;
+}
+
+.admin-edit-input {
+  display: flex;
+  flex-flow: column;
+  gap: 0.25rem;
+}
+
+.admin-edit-input label {
+  font-weight: bold;
+}
+
 .admin-edit-content-form textarea {
   width: 100%;
   min-height: 20rem;
   resize: vertical;
+  margin-bottom: 1rem;
 }
 
-.admin-edit-content-form button {
-  margin-top: 1rem;
+.admin-edit-content-form button,
+.admin-edit-content-form input {
+  margin-bottom: 1rem;
   width: 100%;
 }

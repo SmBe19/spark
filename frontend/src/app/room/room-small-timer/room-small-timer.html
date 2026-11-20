@@ -1,0 +1,7 @@
+@if (timerService.timerWasRecentlyActive()) {
+  <div class="timer-wrapper" [ngStyle]="{ top: marginTop() }">
+    <div class="timer-remaining">
+      {{ timerService.remainingTimeString() }}
+    </div>
+  </div>
+}

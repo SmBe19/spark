@@ -4,9 +4,11 @@ import { ActivatedRoute, Router } from '@angular/router';
 import { Title } from '@angular/platform-browser';
 import { RoomClientPresentation } from '../room-client-presentation/room-client-presentation';
 import { RoomClientPoll } from '../room-client-poll/room-client-poll';
+import { RoomInfoService } from '../../service/room-info-service';
+import { RoomFullscreenTimer } from '../room-fullscreen-timer/room-fullscreen-timer';
 
 @Component({
-  imports: [RoomClientPresentation, RoomClientPoll],
+  imports: [RoomClientPresentation, RoomClientPoll, RoomFullscreenTimer],
   selector: 'app-room-client',
   styleUrl: './room-client.css',
   templateUrl: './room-client.html',
@@ -14,12 +16,13 @@ import { RoomClientPoll } from '../room-client-poll/room-client-poll';
 export class RoomClient {
   titleService = inject(Title);
   roomClientService = inject(RoomClientService);
+  roomInfoService = inject(RoomInfoService);
   router = inject(Router);
   activatedRoute = inject(ActivatedRoute);
 
   constructor() {
     effect(() => {
-      const activeRoom = this.roomClientService.activeRoom();
+      const activeRoom = this.roomInfoService.activeRoom();
       if (!activeRoom) {
         return;
       }

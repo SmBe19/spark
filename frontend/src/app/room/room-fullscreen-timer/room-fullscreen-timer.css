@@ -1,0 +1,24 @@
+.timer-wrapper {
+  position: absolute;
+  box-sizing: border-box;
+  left: 0;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  padding: 1rem;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.timer-remaining {
+  margin-bottom: 20vh;
+  font-family: monospace;
+  font-size: 6em;
+  text-align: center;
+  color: var(--primary-accent-color);
+}
+
+.timer-remaining.timer-inactive {
+  color: var(--muted-color-light);
+}

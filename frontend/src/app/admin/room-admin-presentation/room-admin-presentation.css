@@ -1,16 +1,5 @@
 @import '../room-admin/room-admin-shared.css';
 
-.presentation-control-buttons {
-  margin-top: 1rem;
-  display: flex;
-  flex-flow: row wrap;
-  gap: 1rem;
-}
-
-.presentation-control-buttons button {
-  flex-grow: 1;
-}
-
 .slide-index-input {
   display: flex;
   gap: 0.5rem;

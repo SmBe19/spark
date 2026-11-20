@@ -1,8 +1,9 @@
 import { Component, input } from '@angular/core';
 import { SparkMarkdown } from '../../util/spark-markdown/spark-markdown';
+import { RoomSmallTimer } from '../room-small-timer/room-small-timer';
 
 @Component({
-  imports: [SparkMarkdown],
+  imports: [SparkMarkdown, RoomSmallTimer],
   selector: 'app-room-client-presentation',
   styleUrl: './room-client-presentation.css',
   templateUrl: './room-client-presentation.html',

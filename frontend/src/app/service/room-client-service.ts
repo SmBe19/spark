@@ -7,50 +7,12 @@ import {
 } from '../model/rooms';
 import { ApiResponse } from '../model/api';
 import { SocketService } from './socket-service';
-import { PollService } from './poll-service';
-import { PresentationService } from './presentation-service';
 
 @Service()
 export class RoomClientService {
   activeRoom = signal<RoomInfo | null>(null);
-  activeRoomMode = computed(() => this.activeRoom()?.activeMode || 'poll');
-  activePollParsed = computed(() => {
-    const activeRoom = this.activeRoom();
-    if (!activeRoom) {
-      return undefined;
-    }
-    return this.pollService.parsePoll(activeRoom.activePoll);
-  });
-  activePresentationSlides = computed(() => {
-    const activeRoom = this.activeRoom();
-    if (!activeRoom) {
-      return [];
-    }
-    return this.presentationService.parsePresentation(activeRoom.activePresentation);
-  });
-  activePresentationSlide = computed(() => {
-    const index = this.activeRoom()?.activeSlideIndex ?? 0;
-    if (index >= this.activePresentationSlides().length) {
-      return undefined;
-    }
-    return this.activePresentationSlides()[index];
-  });
-  activeQuestions = computed(() => {
-    const activeRoom = this.activeRoom();
-    const activePoll = this.activePollParsed();
-    if (!activeRoom || !activePoll) {
-      return [];
-    }
-    const activePage = this.pollService.getActivePage(
-      activePoll.clientPages,
-      activeRoom.activeQuestionIndex,
-    );
-    return activePage.map((index) => activePoll.questions[index]);
-  });
   roomJoinError = signal<string | null>(null);
 
-  private pollService = inject(PollService);
-  private presentationService = inject(PresentationService);
   private socketService = inject(SocketService);
   private userHash: string | null = null;
 

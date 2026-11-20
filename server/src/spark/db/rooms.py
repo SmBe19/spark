@@ -92,6 +92,7 @@ def sanitize_room(room):
             "active_poll_id",
             "active_poll",
             "active_presentation",
+            "active_timer_end_time",
             "active_mode",
             "active_question_index",
             "active_slide_index",

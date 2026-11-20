@@ -1,0 +1,49 @@
+<div class="admin-columns-wrapper">
+  <div class="admin-left-column">
+    <div class="admin-edit-form">
+      <form (submit)="updateEndTime()" class="admin-edit-content-form">
+        <div class="admin-edit-input">
+          <label for="timer-end-time">End Time</label>
+          <input
+            id="timer-end-time"
+            type="datetime-local"
+            step="1"
+            [formField]="timerForm.endTime"
+          />
+        </div>
+        <div>
+          <button type="submit" [disabled]="!timerModel().endTime">Set End Time</button>
+        </div>
+      </form>
+      <form (submit)="updateDuration()" class="admin-edit-content-form">
+        <div class="admin-edit-input">
+          <label for="timer-duration">Duration (minutes from now)</label>
+          <input
+            id="timer-duration"
+            type="number"
+            placeholder="Duration"
+            [formField]="timerForm.durationMinutes"
+          />
+        </div>
+        <div>
+          <button type="submit">Set Duration</button>
+        </div>
+      </form>
+      <div class="admin-edit-control-buttons">
+        <button type="button" (click)="resetTimer()" [disabled]="!timerService.hasActiveTimer()">
+          Reset Timer
+        </button>
+      </div>
+    </div>
+  </div>
+  <div class="admin-right-column">
+    <div class="timer-preview-wrapper">
+      <div
+        class="timer-preview-remaining"
+        [ngClass]="{ 'timer-preview-inactive': !timerService.hasActiveTimer() }"
+      >
+        {{ timerService.remainingTimeString() }}
+      </div>
+    </div>
+  </div>
+</div>

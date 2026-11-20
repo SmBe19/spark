@@ -1,7 +1,9 @@
-@if (roomService.activePreviewRoomMode() === 'poll') {
+@if (roomInfoService.activePreviewRoomMode() === 'poll') {
   <app-room-admin-poll></app-room-admin-poll>
-} @else if (roomService.activePreviewRoomMode() === 'presentation') {
+} @else if (roomInfoService.activePreviewRoomMode() === 'presentation') {
   <app-room-admin-presentation></app-room-admin-presentation>
-} @else if (roomService.activePreviewRoomMode() === 'poll-archive') {
+} @else if (roomInfoService.activePreviewRoomMode() === 'timer') {
+  <app-room-admin-timer></app-room-admin-timer>
+} @else if (roomInfoService.activePreviewRoomMode() === 'poll-archive') {
   <app-room-admin-archive></app-room-admin-archive>
 }

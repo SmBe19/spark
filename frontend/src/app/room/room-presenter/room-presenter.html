@@ -5,16 +5,18 @@
     'max-width.px': activeWidth(),
   }"
 >
-  @if (roomService.activeRoomMode() === 'presentation') {
-    @let activeSlide = roomService.activePresentationSlide();
+  @if (roomInfoService.activeRoomMode() === 'presentation') {
+    @let activeSlide = roomInfoService.activePresentationSlide();
     @if (activeSlide) {
       <app-room-presenter-presentation
         [activeSlide]="activeSlide"
       ></app-room-presenter-presentation>
     }
-  } @else if (roomService.activeRoomMode() === 'poll') {
+  } @else if (roomInfoService.activeRoomMode() === 'poll') {
     <app-room-presenter-poll></app-room-presenter-poll>
-  } @else if (roomService.activeRoomMode() === 'blank') {
+  } @else if (roomInfoService.activeRoomMode() === 'timer') {
+    <app-room-fullscreen-timer></app-room-fullscreen-timer>
+  } @else {
     <div class="blank-mode"></div>
   }
 </div>

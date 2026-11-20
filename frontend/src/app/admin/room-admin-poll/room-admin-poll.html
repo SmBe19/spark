@@ -14,13 +14,13 @@
           <button type="submit" [disabled]="!dirtyValues().poll">Update</button>
         </div>
       </form>
-      <div class="poll-control-buttons">
+      <div class="admin-edit-control-buttons">
         <button (click)="archivePoll()">Archive!</button>
         <button (click)="showReplies.set(!showReplies())">
           {{ showReplies() ? 'Hide Replies' : 'Show Replies' }}
         </button>
       </div>
-      <div class="poll-control-buttons">
+      <div class="admin-edit-control-buttons">
         <form (submit)="updateActiveQuestionIndex()">
           <div class="question-index-input">
             <input

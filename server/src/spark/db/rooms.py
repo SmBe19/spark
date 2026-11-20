@@ -94,6 +94,7 @@ def sanitize_room(room):
             "active_presentation",
             "active_mode",
             "active_question_index",
+            "active_slide_index",
         ],
     )
     if "_id" in room:

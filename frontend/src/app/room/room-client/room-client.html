@@ -1,7 +1,7 @@
 @if (roomClientService.activeRoomMode() === 'presentation') {
   <app-room-client-presentation
     [roomName]="roomClientService.activeRoom()?.name"
-    [activePresentation]="roomClientService.activeRoom()?.activePresentation"
+    [activeSlide]="roomClientService.activePresentationSlide()"
   ></app-room-client-presentation>
 } @else if (roomClientService.activeRoomMode() === 'poll') {
   <app-room-client-poll></app-room-client-poll>

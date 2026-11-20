@@ -8,5 +8,5 @@ import { SparkMarkdown } from '../../util/spark-markdown/spark-markdown';
   templateUrl: './room-presenter-presentation.html',
 })
 export class RoomPresenterPresentation {
-  activePresentation = input.required<string>();
+  activeSlide = input.required<string>();
 }

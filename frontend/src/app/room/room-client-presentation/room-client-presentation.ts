@@ -9,5 +9,5 @@ import { SparkMarkdown } from '../../util/spark-markdown/spark-markdown';
 })
 export class RoomClientPresentation {
   roomName = input.required<string | undefined>();
-  activePresentation = input.required<string | undefined>();
+  activeSlide = input.required<string | undefined>();
 }

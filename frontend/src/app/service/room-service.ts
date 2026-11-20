@@ -22,6 +22,7 @@ import { rxResource } from '@angular/core/rxjs-interop';
 import { map, of } from 'rxjs';
 import { SocketService } from './socket-service';
 import { PollService } from './poll-service';
+import { PresentationService } from './presentation-service';
 
 @Service()
 export class RoomService {
@@ -36,6 +37,20 @@ export class RoomService {
       return null;
     }
     return this.pollService.parsePoll(activeRoom.activePoll);
+  });
+  activePresentationSlides = computed(() => {
+    const activeRoom = this.activeRoom();
+    if (!activeRoom) {
+      return [];
+    }
+    return this.presentationService.parsePresentation(activeRoom.activePresentation);
+  });
+  activePresentationSlide = computed(() => {
+    const index = this.activeRoom()?.activeSlideIndex ?? 0;
+    if (index >= this.activePresentationSlides().length) {
+      return null;
+    }
+    return this.activePresentationSlides()[index];
   });
   activeQuestions = computed(() => {
     const activeRoom = this.activeRoom();
@@ -71,6 +86,7 @@ export class RoomService {
   });
 
   private pollService = inject(PollService);
+  private presentationService = inject(PresentationService);
   private httpClient = inject(HttpClient);
   private socketService = inject(SocketService);
 
@@ -195,6 +211,12 @@ export class RoomService {
   updateRoomActiveQuestionIndex(roomId: string, index: number) {
     this.httpClient
       .put<ApiResponse<null>>('/api/rooms/' + roomId, { active_question_index: index })
+      .subscribe(() => {});
+  }
+
+  updateRoomActiveSlideIndex(roomId: string, index: number) {
+    this.httpClient
+      .put<ApiResponse<null>>('/api/rooms/' + roomId, { active_slide_index: index })
       .subscribe(() => {});
   }
 

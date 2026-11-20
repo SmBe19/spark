@@ -1,3 +1,13 @@
-<div class="presentation-preview-wrapper">
-  <app-spark-markdown [data]="presentationContent()"></app-spark-markdown>
+<div
+  class="presentation-preview-wrapper"
+  [ngClass]="{ 'single-slide': presentation().length <= 1 }"
+>
+  @for (slide of slidesWithIndex(); track slide.index) {
+    <div
+      class="presentation-slide"
+      [class.active-slide]="presentation().length > 1 && slide.index === activeSlideIndex()"
+    >
+      <app-spark-markdown [data]="slide.slide"></app-spark-markdown>
+    </div>
+  }
 </div>

@@ -13,9 +13,51 @@
           <button type="submit" [disabled]="!dirtyValues().presentation">Update</button>
         </div>
       </form>
+      <div class="presentation-control-buttons">
+        <form (submit)="$event.preventDefault(); updateActiveSlideIndex()">
+          <div class="slide-index-input">
+            <input
+              type="number"
+              placeholder="Active Slide Index"
+              [formField]="activePresentation.slideIndex"
+            />
+            <button
+              type="submit"
+              [disabled]="dirtyValues().presentation || !dirtyValues().slideIndex"
+            >
+              Update
+            </button>
+          </div>
+        </form>
+        <button
+          (click)="previousSlide()"
+          type="button"
+          [disabled]="
+            dirtyValues().slideIndex ||
+            dirtyValues().presentation ||
+            activePresentationModel().slideIndex === 0
+          "
+        >
+          &lt;
+        </button>
+        <button
+          (click)="nextSlide()"
+          type="button"
+          [disabled]="
+            dirtyValues().slideIndex ||
+            dirtyValues().presentation ||
+            activePresentationModel().slideIndex === presentationSlides().length - 1
+          "
+        >
+          &gt;
+        </button>
+      </div>
     </div>
   </div>
   <div class="admin-right-column">
-    <app-presentation-preview [presentationContent]="activePresentationDebounced.value()" />
+    <app-presentation-preview
+      [presentation]="presentationSlides()"
+      [activeSlideIndex]="activePresentationModel().slideIndex"
+    />
   </div>
 </div>

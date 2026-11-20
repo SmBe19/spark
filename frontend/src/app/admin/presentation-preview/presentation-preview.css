@@ -1,3 +1,22 @@
 .presentation-preview-wrapper {
   margin: 1rem;
 }
+
+.presentation-slide {
+  box-sizing: border-box;
+  width: 100%;
+  border: 1px solid var(--muted-color-dark);
+  margin-bottom: 1rem;
+  padding: 1rem;
+}
+
+.presentation-slide.active-slide {
+  margin-left: -1px;
+  border-left: 2px solid var(--primary-accent-color);
+}
+
+.presentation-preview-wrapper.single-slide .presentation-slide {
+  border: none;
+  margin: 0;
+  padding: 0;
+}

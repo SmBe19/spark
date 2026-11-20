@@ -14,6 +14,7 @@ export interface ApiRoomInfo extends RoomInfoShort {
   active_presentation: string;
   active_mode: RoomMode;
   active_question_index: number;
+  active_slide_index: number;
 }
 
 export type RoomInfoShort = ApiRoomInfoShort;
@@ -24,6 +25,7 @@ export interface RoomInfo extends RoomInfoShort {
   activePresentation: string;
   activeMode: RoomMode;
   activeQuestionIndex: number;
+  activeSlideIndex: number;
 }
 
 export function mapPartialApiRoomInfoToRoomInfo(
@@ -54,6 +56,9 @@ export function mapPartialApiRoomInfoToRoomInfo(
   if (apiRoomInfo.active_question_index !== undefined) {
     mapped.activeQuestionIndex = apiRoomInfo.active_question_index;
   }
+  if (apiRoomInfo.active_slide_index !== undefined) {
+    mapped.activeSlideIndex = apiRoomInfo.active_slide_index;
+  }
   return mapped;
 }
 
@@ -67,6 +72,7 @@ export function mapApiRoomInfoToRoomInfo(apiRoomInfo: ApiRoomInfo): RoomInfo {
     activePresentation: apiRoomInfo.active_presentation,
     activeMode: apiRoomInfo.active_mode,
     activeQuestionIndex: apiRoomInfo.active_question_index,
+    activeSlideIndex: apiRoomInfo.active_slide_index ?? 0,
   };
 }
 

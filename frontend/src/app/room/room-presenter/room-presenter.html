@@ -6,10 +6,10 @@
   }"
 >
   @if (roomService.activeRoomMode() === 'presentation') {
-    @let activePresentation = roomService.activeRoom()?.activePresentation;
-    @if (activePresentation) {
+    @let activeSlide = roomService.activePresentationSlide();
+    @if (activeSlide) {
       <app-room-presenter-presentation
-        [activePresentation]="activePresentation"
+        [activeSlide]="activeSlide"
       ></app-room-presenter-presentation>
     }
   } @else if (roomService.activeRoomMode() === 'poll') {

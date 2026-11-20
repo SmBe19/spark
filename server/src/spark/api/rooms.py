@@ -72,6 +72,7 @@ def add_routes(app):
                 "active_presentation",
                 "active_mode",
                 "active_question_index",
+                "active_slide_index",
             ],
         )
         if (
@@ -126,6 +127,7 @@ def add_routes(app):
                     "active_mode": "poll",
                     "active_replies": [],
                     "active_question_index": 0,
+                    "active_slide_index": 0,
                 }
             )
             .inserted_id

@@ -1,0 +1,62 @@
+.room-nav {
+  height: 100%;
+  grid-column: 1 / 2;
+  box-sizing: border-box;
+  border-right: 1px solid var(--muted-color-light);
+  background: var(--admin-surface);
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  padding-bottom: 1rem;
+}
+
+.room-nav ul {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  padding: 0;
+  margin: 0;
+  list-style: none;
+}
+
+.room-nav li {
+  padding: 0.5rem 1rem;
+  color: var(--muted-color-medium);
+  font-size: 0.9rem;
+  cursor: pointer;
+}
+
+.room-nav li:hover {
+  background: var(--muted-color-very-light);
+  color: var(--primary-accent-color);
+}
+
+.room-nav li.active-room {
+  background: var(--list-active-item);
+  color: var(--primary-accent-color);
+  font-weight: 600;
+}
+
+@media (max-width: 640px) {
+  .room-nav {
+    border-right: 0;
+    border-bottom: 1px solid var(--muted-color-light);
+    flex-direction: row;
+    align-items: flex-start;
+    padding-bottom: 0;
+  }
+
+  .room-nav-forms {
+    display: flex;
+  }
+
+  .room-nav ul {
+    flex-direction: row;
+    overflow-x: auto;
+  }
+
+  .room-nav li {
+    flex: 0 0 auto;
+  }
+}

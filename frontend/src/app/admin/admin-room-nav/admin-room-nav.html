@@ -1,0 +1,18 @@
+<nav class="room-nav">
+  <div>
+    <ul>
+      @for (room of roomService.rooms(); track room.id) {
+        <li
+          (click)="openRoom(room.id)"
+          [ngClass]="{ 'active-room': roomService.activeRoomId() === room.id }"
+        >
+          {{ room.name }} ({{ room.slug }})
+        </li>
+      }
+    </ul>
+  </div>
+  <div class="room-nav-forms">
+    <app-room-edit-form></app-room-edit-form>
+    <app-new-room-form></app-new-room-form>
+  </div>
+</nav>

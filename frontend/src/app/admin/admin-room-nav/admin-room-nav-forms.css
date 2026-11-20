@@ -1,0 +1,70 @@
+.room-nav-form-button button {
+  width: 100%;
+  border: 0;
+  padding: 0.5rem 1rem;
+  background: transparent;
+  color: var(--muted-color-medium);
+  text-align: left;
+}
+
+.room-nav-form-button button:hover {
+  background: var(--muted-color-light);
+  color: var(--primary-accent-color);
+  cursor: pointer;
+}
+.room-nav-form {
+  margin: 0.5rem 0;
+  padding: 0 1rem;
+}
+
+.room-nav-form form {
+  display: grid;
+  gap: 0.75rem;
+}
+
+.room-nav-form-hide {
+  display: none;
+}
+
+.room-nav-form-input label {
+  display: grid;
+  gap: 0.35rem;
+  color: var(--muted-color-medium);
+  font-size: 0.8rem;
+}
+
+.room-nav-form-input input,
+.room-nav-form-input button {
+  box-sizing: border-box;
+  width: 100%;
+  padding: 0.5rem;
+  border-radius: 0.5rem;
+}
+
+.room-nav-form-input input {
+  border: 1px solid var(--muted-color-light);
+}
+
+.room-nav-form-input button {
+  border: 0;
+  background-color: var(--primary-accent-color);
+  color: white;
+  font: inherit;
+}
+
+.room-nav-form-input button:hover:enabled {
+  background: var(--secondary-accent-color);
+  cursor: pointer;
+}
+
+.room-nav-form-input button:disabled {
+  color: var(--muted-color-medium);
+  background-color: var(--muted-color-light);
+}
+
+@media (max-width: 640px) {
+  .room-nav-form-button,
+  .room-nav-form {
+    flex: 0 0 auto;
+  }
+}

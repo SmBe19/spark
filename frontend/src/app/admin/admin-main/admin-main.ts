@@ -1,46 +1,16 @@
-import { Component, inject, signal } from '@angular/core';
+import { Component, inject } from '@angular/core';
 import { AuthService } from '../../service/auth-service';
 import { RoomService } from '../../service/room-service';
-import { form, FormField, required } from '@angular/forms/signals';
-import { NgClass } from '@angular/common';
 import { RoomAdmin } from '../room-admin/room-admin';
+import { AdminRoomNav } from '../admin-room-nav/admin-room-nav';
 
 @Component({
-  imports: [FormField, NgClass, RoomAdmin],
+  imports: [RoomAdmin, AdminRoomNav],
   selector: 'app-admin-main',
   styleUrl: './admin-main.css',
   templateUrl: './admin-main.html',
 })
 export class AdminMain {
-  newRoomModel = signal({
-    slug: '',
-    name: '',
-  });
-  newRoomForm = form(this.newRoomModel, (schemaPath) => {
-    required(schemaPath.slug);
-    required(schemaPath.name);
-  });
-  showNewRoomForm = signal(false);
-
   authService = inject(AuthService);
   roomService = inject(RoomService);
-
-  ngOnInit() {
-    this.roomService.loadRooms();
-    const activeRoomId = localStorage.getItem('adminActiveRoomId');
-    if (activeRoomId) {
-      this.roomService.joinRoomById(activeRoomId);
-    }
-  }
-
-  createRoom() {
-    const newRoom = this.newRoomModel();
-    this.roomService.createRoom(newRoom.slug, newRoom.name);
-    this.showNewRoomForm.set(false);
-  }
-
-  openRoom(roomId: string) {
-    this.roomService.joinRoomById(roomId);
-    localStorage.setItem('adminActiveRoomId', roomId);
-  }
 }

@@ -8,42 +8,7 @@
       </div>
     </div>
   </header>
-  <nav class="room-nav">
-    <ul>
-      @for (room of roomService.rooms(); track room.id) {
-        <li
-          (click)="openRoom(room.id)"
-          [ngClass]="{ 'active-room': roomService.activeRoomId() === room.id }"
-        >
-          {{ room.name }} ({{ room.slug }})
-        </li>
-      }
-    </ul>
-    <div class="new-room-button">
-      <button (click)="showNewRoomForm.set(!showNewRoomForm())">
-        {{ showNewRoomForm() ? 'Hide' : 'New Room' }}
-      </button>
-    </div>
-    <div class="new-room-form" [ngClass]="{ 'hide-form': !showNewRoomForm() }">
-      <form (submit)="$event.preventDefault(); createRoom()">
-        <div class="form-input">
-          <label
-            >Slug:
-            <input type="text" placeholder="Slug" [formField]="newRoomForm.slug" />
-          </label>
-        </div>
-        <div class="form-input">
-          <label
-            >Name:
-            <input type="text" placeholder="Name" [formField]="newRoomForm.name" />
-          </label>
-        </div>
-        <div class="form-input">
-          <button type="submit" [disabled]="newRoomForm().invalid()">Create Room</button>
-        </div>
-      </form>
-    </div>
-  </nav>
+  <app-admin-room-nav></app-admin-room-nav>
   <main>
     @if (roomService.activeRoomId()) {
       <app-room-admin />

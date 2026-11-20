@@ -1,0 +1,6 @@
+@import '../admin-room-nav/admin-room-nav-forms.css';
+
+.danger-button {
+  background: red !important;
+  color: white;
+}

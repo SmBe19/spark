@@ -1,0 +1,24 @@
+<div class="room-nav-form-button">
+  <button (click)="showNewRoomForm.set(!showNewRoomForm())">
+    {{ showNewRoomForm() ? 'Hide' : 'New Room' }}
+  </button>
+</div>
+<div class="room-nav-form" [ngClass]="{ 'room-nav-form-hide': !showNewRoomForm() }">
+  <form (submit)="$event.preventDefault(); createRoom()">
+    <div class="room-nav-form-input">
+      <label
+        >Slug:
+        <input type="text" placeholder="Slug" [formField]="newRoomForm.slug" />
+      </label>
+    </div>
+    <div class="room-nav-form-input">
+      <label
+        >Name:
+        <input type="text" placeholder="Name" [formField]="newRoomForm.name" />
+      </label>
+    </div>
+    <div class="room-nav-form-input">
+      <button type="submit" [disabled]="newRoomForm().invalid()">Create Room</button>
+    </div>
+  </form>
+</div>

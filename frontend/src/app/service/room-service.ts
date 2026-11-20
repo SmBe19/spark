@@ -6,6 +6,8 @@ import {
   mapApiRoomInfoShortToRoomInfoShort,
   mapApiRoomInfoToRoomInfo,
   mapPartialApiRoomInfoToRoomInfo,
+  mapRoomModeToPreviewRoomMode,
+  PreviewRoomMode,
   RoomInfo,
   RoomInfoShort,
   RoomMode,
@@ -26,6 +28,7 @@ export class RoomService {
   rooms = signal<RoomInfoShort[]>([]);
   activeRoom = signal<RoomInfo | null>(null);
   activeRoomMode = computed(() => this.activeRoom()?.activeMode || 'poll');
+  activePreviewRoomMode = signal<PreviewRoomMode>('poll');
   activeRoomId = computed(() => this.activeRoom()?.id || null);
   activePollParsed = computed(() => {
     const activeRoom = this.activeRoom();
@@ -142,6 +145,7 @@ export class RoomService {
           return;
         }
         this.activeRoom.set(mapApiRoomInfoToRoomInfo(room.data));
+        this.activePreviewRoomMode.set(mapRoomModeToPreviewRoomMode(this.activeRoom()?.activeMode));
         if (callback) {
           callback(true);
         }

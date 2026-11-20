@@ -1,4 +1,6 @@
-export type RoomMode = 'presentation' | 'poll';
+export type RoomMode = 'presentation' | 'poll' | 'blank';
+
+export type PreviewRoomMode = 'presentation' | 'poll' | 'poll-archive';
 
 export interface ApiRoomInfoShort {
   id: string;
@@ -72,4 +74,11 @@ export function mapApiRoomInfoShortToRoomInfoShort(
   apiRoomInfoShort: ApiRoomInfoShort,
 ): RoomInfoShort {
   return apiRoomInfoShort;
+}
+
+export function mapRoomModeToPreviewRoomMode(mode: RoomMode | undefined): PreviewRoomMode {
+  if (!mode || mode === 'blank') {
+    return 'poll';
+  }
+  return mode;
 }

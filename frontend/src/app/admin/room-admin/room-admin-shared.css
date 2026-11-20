@@ -1,0 +1,66 @@
+.admin-columns-wrapper {
+  width: 100%;
+  display: flex;
+  flex-flow: row wrap;
+}
+
+.admin-left-column {
+  box-sizing: border-box;
+  flex-grow: 1;
+  width: 25rem;
+  max-height: calc(100vh - 3rem);
+  overflow-y: auto;
+}
+
+.admin-right-column {
+  box-sizing: border-box;
+  flex-grow: 100;
+  width: 30rem;
+  max-height: calc(100vh - 3rem);
+  overflow-y: auto;
+}
+
+.admin-edit-form {
+  margin: 1rem;
+}
+
+.admin-edit-form input,
+.admin-edit-form textarea,
+.admin-edit-form button {
+  box-sizing: border-box;
+  padding: 0.5rem;
+  border-radius: 0.5rem;
+}
+
+.admin-edit-form input,
+.admin-edit-form textarea {
+  border: 1px solid var(--muted-color-light);
+}
+
+.admin-edit-form button {
+  border: 0;
+  background: var(--primary-accent-color);
+  color: white;
+  font: inherit;
+}
+
+.admin-edit-form button:hover:enabled {
+  background: var(--secondary-accent-color);
+  cursor: pointer;
+}
+
+.admin-edit-form button:disabled {
+  color: var(--muted-color-medium);
+  background: var(--muted-color-light);
+}
+
+.admin-edit-content-form textarea {
+  width: 100%;
+  min-height: 20rem;
+  resize: vertical;
+}
+
+.admin-edit-content-form button {
+  margin-top: 1rem;
+  width: 100%;
+}

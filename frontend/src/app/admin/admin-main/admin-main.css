@@ -1,7 +1,7 @@
 .page-wrapper {
   min-height: 100vh;
   display: grid;
-  grid-template-columns: minmax(8rem, 14rem) minmax(0, 1fr);
+  grid-template-columns: minmax(8rem, 14rem) minmax(8rem, 14rem) minmax(0, 1fr);
   grid-template-rows: auto minmax(0, 1fr);
 }
 
@@ -37,8 +37,16 @@ header {
   background-color: var(--muted-color-light);
 }
 
+app-admin-room-nav {
+  grid-column: 1 / 2;
+}
+
+app-room-mode-nav {
+  grid-column: 2 / 3;
+}
+
 main {
-  grid-column: 2 / -1;
+  grid-column: 3 / -1;
   overflow: auto;
 }
 

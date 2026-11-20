@@ -1,0 +1,27 @@
+@import '../room-admin/room-admin-shared.css';
+
+.poll-control-buttons {
+  margin-top: 1rem;
+  display: flex;
+  flex-flow: row wrap;
+  gap: 1rem;
+}
+
+.poll-control-buttons button {
+  flex-grow: 1;
+}
+
+.question-index-input {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.question-index-input input {
+  width: 5rem;
+  flex-grow: 1;
+}
+
+.question-index-input button {
+  width: 5rem;
+  flex-grow: 1;
+}

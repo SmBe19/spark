@@ -3,9 +3,10 @@ import { AuthService } from '../../service/auth-service';
 import { RoomService } from '../../service/room-service';
 import { RoomAdmin } from '../room-admin/room-admin';
 import { AdminRoomNav } from '../admin-room-nav/admin-room-nav';
+import { RoomModeNav } from '../room-mode-nav/room-mode-nav';
 
 @Component({
-  imports: [RoomAdmin, AdminRoomNav],
+  imports: [RoomAdmin, AdminRoomNav, RoomModeNav],
   selector: 'app-admin-main',
   styleUrl: './admin-main.css',
   templateUrl: './admin-main.html',

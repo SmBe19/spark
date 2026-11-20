@@ -1,7 +1,9 @@
 <div class="presentation-wrapper">
   @let presentation = activePresentation();
   @if (!presentation) {
-    <div class="no-active-presentation">{{ roomName() }}</div>
+    <div class="no-active-presentation">
+      <div>{{ roomName() }}</div>
+    </div>
   } @else {
     <app-spark-markdown clipboard [data]="presentation"></app-spark-markdown>
   }

@@ -1,0 +1,35 @@
+<div class="admin-columns-wrapper">
+  <div class="admin-left-column">
+    <div class="poll-archive">
+      @let activeArchivedPoll = archiveService.activeArchivedPoll.value();
+      @if (activeArchivedPoll) {
+        <div class="poll-archive-poll">
+          <textarea
+            placeholder="Archived Poll"
+            [value]="activeArchivedPoll.poll"
+            readonly
+          ></textarea>
+        </div>
+      }
+      <div class="poll-archive-polls">
+        @for (archivedPoll of archiveService.roomArchives.value(); track archivedPoll.id) {
+          <div
+            class="poll-archive-poll-item"
+            [ngClass]="{ 'active-archive': archiveService.activePollId() === archivedPoll.id }"
+            (click)="archiveService.activePollId.set(archivedPoll.id)"
+          >
+            {{ archivedPoll.archivedAtMs | date: 'yyyy-MM-ddTHH:mm:ss' }}
+          </div>
+        }
+      </div>
+    </div>
+  </div>
+  <div class="admin-right-column">
+    <app-poll-preview
+      [parsedPoll]="archiveService.activeArchivedPollParsed()"
+      [activeQuestionIndex]="0"
+      [showReplies]="true"
+      [replies]="archiveService.activeArchivedPoll.value()?.replies || []"
+    />
+  </div>
+</div>

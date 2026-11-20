@@ -1,3 +1,13 @@
 .presenter-wrapper {
   margin: 0 auto;
 }
+
+.blank-mode {
+  position: fixed;
+  left: 0;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  background: black;
+  z-index: 9999;
+}

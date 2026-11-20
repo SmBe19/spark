@@ -5,4 +5,8 @@
   ></app-room-client-presentation>
 } @else if (roomClientService.activeRoomMode() === 'poll') {
   <app-room-client-poll></app-room-client-poll>
+} @else if (roomClientService.activeRoomMode() === 'blank') {
+  <div class="blank-mode">
+    <div>{{ roomClientService.activeRoom()?.name }}</div>
+  </div>
 }

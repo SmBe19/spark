@@ -1,6 +1,5 @@
 .room-nav {
   height: 100%;
-  grid-column: 1 / 2;
   box-sizing: border-box;
   border-right: 1px solid var(--muted-color-light);
   background: var(--admin-surface);

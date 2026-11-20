@@ -1,0 +1,10 @@
+.blank-mode {
+  width: 100%;
+  min-height: 100vh;
+  background: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.5rem;
+  color: var(--muted-color-dark);
+}

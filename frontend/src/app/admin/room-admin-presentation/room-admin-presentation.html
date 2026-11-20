@@ -1,0 +1,21 @@
+<div class="admin-columns-wrapper">
+  <div class="admin-left-column">
+    <div class="admin-edit-form">
+      <form (submit)="updatePresentation()" class="admin-edit-content-form">
+        <div>
+          <textarea
+            placeholder="Presentation"
+            [formField]="activePresentation.presentation"
+            (keyup.control.enter)="$event.preventDefault(); updatePresentation()"
+          ></textarea>
+        </div>
+        <div>
+          <button type="submit" [disabled]="!dirtyValues().presentation">Update</button>
+        </div>
+      </form>
+    </div>
+  </div>
+  <div class="admin-right-column">
+    <app-presentation-preview [presentationContent]="activePresentationDebounced.value()" />
+  </div>
+</div>

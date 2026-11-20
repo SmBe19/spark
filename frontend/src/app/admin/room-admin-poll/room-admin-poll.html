@@ -1,0 +1,64 @@
+<div class="admin-columns-wrapper">
+  <div class="admin-left-column">
+    <div class="admin-edit-form">
+      <form (submit)="updatePoll()" class="admin-edit-content-form">
+        <div>
+          <textarea
+            placeholder="Poll"
+            [formField]="activePoll.poll"
+            (keyup.control.enter)="$event.preventDefault(); updatePoll()"
+          ></textarea>
+        </div>
+        <div>
+          <button type="submit" [disabled]="!dirtyValues().poll">Update</button>
+        </div>
+      </form>
+      <div class="poll-control-buttons">
+        <button (click)="archivePoll()">Archive!</button>
+        <button (click)="showReplies.set(!showReplies())">
+          {{ showReplies() ? 'Hide Replies' : 'Show Replies' }}
+        </button>
+      </div>
+      <div class="poll-control-buttons">
+        <form (submit)="$event.preventDefault(); updateActiveQuestionIndex()">
+          <div class="question-index-input">
+            <input
+              type="number"
+              placeholder="Active Question Index"
+              [formField]="activePoll.questionIndex"
+            />
+            <button type="submit" [disabled]="dirtyValues().poll || !dirtyValues().questionIndex">
+              Update
+            </button>
+          </div>
+        </form>
+        <button
+          (click)="previousQuestion()"
+          type="button"
+          [disabled]="
+            dirtyValues().questionIndex || dirtyValues().poll || previousQuestionIndex() === null
+          "
+        >
+          &lt;
+        </button>
+        <button
+          (click)="nextQuestion()"
+          type="button"
+          [disabled]="
+            dirtyValues().questionIndex || dirtyValues().poll || nextQuestionIndex() === null
+          "
+        >
+          &gt;
+        </button>
+      </div>
+    </div>
+  </div>
+  <div class="admin-right-column">
+    <app-poll-preview
+      [parsedPoll]="activePollParsed()"
+      [activeQuestionIndex]="activePollModel().questionIndex"
+      [showReplies]="showReplies()"
+      [replies]="roomService.activeReplies.value()"
+    />
+  </div>
+</div>

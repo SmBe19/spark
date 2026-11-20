@@ -14,6 +14,8 @@
     }
   } @else if (roomService.activeRoomMode() === 'poll') {
     <app-room-presenter-poll></app-room-presenter-poll>
+  } @else if (roomService.activeRoomMode() === 'blank') {
+    <div class="blank-mode"></div>
   }
 </div>
 

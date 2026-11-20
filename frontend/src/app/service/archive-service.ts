@@ -15,12 +15,11 @@ import { PollService } from './poll-service';
 
 @Service()
 export class ArchiveService {
-  loadArchive = signal(false);
   activePollId = signal<string | null>(null);
   roomArchives = rxResource<ArchivedPoll[], { loadArchive: boolean; activeRoomId: string | null }>({
     defaultValue: [],
     params: () => ({
-      loadArchive: this.loadArchive(),
+      loadArchive: this.roomService.activePreviewRoomMode() === 'poll-archive',
       activeRoomId: this.roomService.activeRoomId(),
     }),
     stream: (params) => {
@@ -33,7 +32,8 @@ export class ArchiveService {
         .pipe(
           map((data) => {
             if (data.success) {
-              return data.data.map((archive) => mapApiArchivedPollShortToArchivedPoll(archive));
+              const sortedData = data.data.sort((a, b) => b.archived_at - a.archived_at);
+              return sortedData.map((archive) => mapApiArchivedPollShortToArchivedPoll(archive));
             }
             return [];
           }),

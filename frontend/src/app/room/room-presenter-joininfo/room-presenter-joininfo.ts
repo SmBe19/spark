@@ -22,6 +22,8 @@ export class RoomPresenterJoininfo {
       return this.roomService.activeQuestions().length === 0;
     } else if (this.roomService.activeRoomMode() === 'presentation') {
       return !this.roomService.activeRoom()?.activePresentation;
+    } else if (this.roomService.activeRoomMode() === 'blank') {
+      return false;
     }
     return true;
   });

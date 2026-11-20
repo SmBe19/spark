@@ -7,7 +7,11 @@
 }
 
 .no-active-presentation {
-  text-align: center;
+  width: 100%;
+  height: calc(100vh - 2rem);
+  display: flex;
+  align-items: center;
+  justify-content: center;
   font-size: 1.5rem;
   color: var(--muted-color-dark);
 }

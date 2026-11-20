@@ -1,0 +1,98 @@
+<div class="poll-wrapper">
+  @if (roomClientService.activeQuestions().length === 0) {
+    <div class="no-active-questions">{{ roomClientService.activeRoom()?.name }}</div>
+  }
+  @for (question of roomClientService.activeQuestions(); track question.index) {
+    <div class="poll-question">
+      <div class="poll-question-text">
+        <app-spark-markdown [data]="question.question"></app-spark-markdown>
+      </div>
+      @let submittedReply = submittedReplies()[question.index];
+      @let alreadySubmitted = submittedReply !== undefined;
+      @if (question.pollType === 'options') {
+        <div
+          class="poll-question-options single-line-markdown"
+          [ngClass]="{
+            'has-correction': question.showCorrection && questionHasCorrection(question.index),
+          }"
+        >
+          @for (option of question.options; track option.index) {
+            <button
+              [disabled]="alreadySubmitted"
+              (click)="toggleOption(question.index, option.index, !question.multiSelect)"
+              [ngClass]="{
+                'selected-option': isOptionSelected(question.index, option.index),
+                'correct-option': alreadySubmitted && question.showCorrection && option.correct,
+                'incorrect-option': alreadySubmitted && question.showCorrection && !option.correct,
+              }"
+            >
+              <app-spark-markdown [data]="option.option"></app-spark-markdown>
+            </button>
+          }
+        </div>
+        @if (question.multiSelect) {
+          <div class="poll-question-submit-button">
+            <button
+              [disabled]="alreadySubmitted || !pendingReplies()[question.index]"
+              (click)="submitPendingReply(question.index)"
+            >
+              Submit
+            </button>
+          </div>
+        }
+      } @else if (question.pollType === 'text') {
+        <div class="poll-question-text-input">
+          <div>
+            <textarea
+              [disabled]="alreadySubmitted"
+              [ngModel]="pendingReplies()[question.index] || ''"
+              (ngModelChange)="setPendingReply(question.index, $event)"
+              [maxLength]="question.maxLength || 999999"
+            ></textarea>
+          </div>
+          <div class="poll-question-submit-button">
+            <button
+              [disabled]="alreadySubmitted || !pendingReplies()[question.index]"
+              (click)="submitPendingReply(question.index)"
+            >
+              Submit
+            </button>
+          </div>
+        </div>
+      } @else if (question.pollType === 'rating') {
+        <div class="poll-question-rating">
+          @for (rating of ratingValues(question.maxRating); track rating) {
+            <button
+              [disabled]="alreadySubmitted"
+              (click)="submitReply(question.index, rating.toString())"
+              [ngClass]="{ 'selected-option': submittedReply === rating.toString() }"
+            >
+              {{ rating }}
+            </button>
+          }
+        </div>
+      } @else if (question.pollType === 'estimate') {
+        <div class="poll-question-estimate">
+          <div class="poll-question-estimate-value">
+            {{ pendingReplies()[question.index] || 0 }}
+          </div>
+          <div>
+            <input
+              type="range"
+              [disabled]="alreadySubmitted"
+              [min]="question.minValue"
+              [max]="question.maxValue"
+              [ngModel]="pendingReplies()[question.index] || 0"
+              (ngModelChange)="setPendingReply(question.index, $event.toString())"
+            />
+          </div>
+          <div class="poll-question-submit-button">
+            <button [disabled]="alreadySubmitted" (click)="submitPendingReply(question.index)">
+              Submit
+            </button>
+          </div>
+        </div>
+      }
+    </div>
+  }
+</div>

@@ -1,0 +1,37 @@
+.join-information {
+  position: fixed;
+  top: 0;
+  right: 0;
+  background: var(--muted-color-very-light);
+  color: var(--muted-color-medium);
+  border-bottom-left-radius: 0.5rem;
+  z-index: 100;
+  padding: 1rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+.join-information-big {
+  left: 0;
+  bottom: 0;
+}
+
+.join-qr {
+  margin-bottom: 2rem;
+}
+
+.join-link {
+  font-size: 2rem;
+}
+
+.join-information-big .join-link {
+  font-size: 4rem;
+  color: black;
+}
+
+.join-link:hover {
+  cursor: pointer;
+  color: var(--secondary-accent-color);
+}

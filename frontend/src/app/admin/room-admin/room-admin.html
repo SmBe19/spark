@@ -1,14 +1,14 @@
 <div class="room-admin-wrapper">
   <div class="poll-edit">
     <div class="room-edit-buttons">
-      @if (activeRoomMode() === 'poll') {
+      @if (roomService.activeRoomMode() === 'poll') {
         <button (click)="togglePollArchive()">
           {{ archiveService.loadArchive() ? 'Hide Archive' : 'Show Archive' }}
         </button>
         <button (click)="archivePoll()">Archive!</button>
       }
       <button (click)="togglePresentationMode()">
-        {{ activeRoomMode() === 'presentation' ? 'Presentation Mode' : 'Poll Mode' }}
+        {{ roomService.activeRoomMode() === 'presentation' ? 'Presentation Mode' : 'Poll Mode' }}
       </button>
       <button (click)="showRoomEditForm.set(!showRoomEditForm())">
         {{ showRoomEditForm() ? 'Finish Editing' : 'Edit Room' }}
@@ -51,7 +51,7 @@
         }
       </div>
     </div>
-    @if (activeRoomMode() === 'poll') {
+    @if (roomService.activeRoomMode() === 'poll') {
       @if (archiveService.loadArchive()) {
         <div class="poll-archive">
           <div class="poll-archive-polls">
@@ -140,7 +140,7 @@
           </form>
         </div>
       }
-    } @else if (activeRoomMode() === 'presentation') {
+    } @else if (roomService.activeRoomMode() === 'presentation') {
       <div class="content-form">
         <form (submit)="updatePresentation()">
           <div>
@@ -158,7 +158,7 @@
     }
   </div>
   <div class="content-preview">
-    @if (activeRoomMode() === 'poll') {
+    @if (roomService.activeRoomMode() === 'poll') {
       @if (archiveService.loadArchive()) {
         <app-poll-preview
           [parsedPoll]="archiveService.activeArchivedPollParsed()"
@@ -174,7 +174,7 @@
           [replies]="roomService.activeReplies.value()"
         />
       }
-    } @else if (activeRoomMode() === 'presentation') {
+    } @else if (roomService.activeRoomMode() === 'presentation') {
       <app-presentation-preview [presentationContent]="activePresentationDebounced.value()" />
     }
   </div>

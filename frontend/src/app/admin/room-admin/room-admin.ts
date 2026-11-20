@@ -59,7 +59,6 @@ export class RoomAdmin {
       activePresentation: currentRoomInfo.activePresentation !== activeRoom.activePresentation,
     };
   });
-  activeRoomMode = computed(() => this.roomService.activeRoom()?.activeMode || 'poll');
   showReplies = signal(false);
   showRoomEditForm = signal(false);
   deletingRoom = signal(false);

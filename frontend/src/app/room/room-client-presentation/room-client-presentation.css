@@ -1,0 +1,13 @@
+.presentation-wrapper {
+  box-sizing: border-box;
+  max-width: 800px;
+  min-height: 100vh;
+  margin: 0 auto;
+  padding: 1rem;
+}
+
+.no-active-presentation {
+  text-align: center;
+  font-size: 1.5rem;
+  color: var(--muted-color-dark);
+}

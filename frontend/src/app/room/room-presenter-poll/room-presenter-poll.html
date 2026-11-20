@@ -1,0 +1,34 @@
+<div class="poll-wrapper">
+  @for (question of roomService.activeQuestions(); track question.index) {
+    <div class="poll-question">
+      <div class="poll-question-text">
+        <app-spark-markdown [data]="question.question"></app-spark-markdown>
+      </div>
+      @if (question.showReplies) {
+        @if (question.pollType !== 'text') {
+          <div class="poll-replies-chart">
+            <app-spark-chart
+              [question]="question"
+              [replyDistribution]="replyDistributions()[question.index]"
+            ></app-spark-chart>
+          </div>
+        }
+      } @else {
+        @if (question.pollType === 'options') {
+          <div class="poll-question-options single-line-markdown">
+            @for (option of question.options; track option.index) {
+              <div
+                class="poll-question-option"
+                [ngClass]="{
+                  'correct-option': question.showSolution && option.correct,
+                }"
+              >
+                <app-spark-markdown [data]="option.option"></app-spark-markdown>
+              </div>
+            }
+          </div>
+        }
+      }
+    </div>
+  }
+</div>

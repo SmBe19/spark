@@ -19,12 +19,33 @@ import {
 import { rxResource } from '@angular/core/rxjs-interop';
 import { map, of } from 'rxjs';
 import { SocketService } from './socket-service';
+import { PollService } from './poll-service';
 
 @Service()
 export class RoomService {
   rooms = signal<RoomInfoShort[]>([]);
   activeRoom = signal<RoomInfo | null>(null);
+  activeRoomMode = computed(() => this.activeRoom()?.activeMode || 'poll');
   activeRoomId = computed(() => this.activeRoom()?.id || null);
+  activePollParsed = computed(() => {
+    const activeRoom = this.activeRoom();
+    if (!activeRoom) {
+      return null;
+    }
+    return this.pollService.parsePoll(activeRoom.activePoll);
+  });
+  activeQuestions = computed(() => {
+    const activeRoom = this.activeRoom();
+    const activePoll = this.activePollParsed();
+    if (!activeRoom || !activePoll) {
+      return [];
+    }
+    const activePage = this.pollService.getActivePage(
+      activePoll.presentationPages,
+      activeRoom.activeQuestionIndex,
+    );
+    return activePage.map((index) => activePoll.questions[index]);
+  });
   activeReplies = rxResource<QuestionReply[], { activeRoomId: string | null }>({
     defaultValue: [],
     params: () => ({ activeRoomId: this.activeRoomId() }),
@@ -46,6 +67,7 @@ export class RoomService {
     },
   });
 
+  private pollService = inject(PollService);
   private httpClient = inject(HttpClient);
   private socketService = inject(SocketService);
 

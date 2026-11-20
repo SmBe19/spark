@@ -1,0 +1,20 @@
+.size-buttons {
+  position: fixed;
+  bottom: 0;
+  right: 0;
+  padding: 0.5rem;
+}
+
+.size-buttons button {
+  box-sizing: border-box;
+  border: none;
+  background: none;
+  text-decoration: underline;
+  padding: 1rem;
+  color: var(--muted-color-light);
+}
+
+.size-buttons button:hover {
+  cursor: pointer;
+  color: var(--secondary-accent-color);
+}

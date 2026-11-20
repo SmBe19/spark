@@ -1,9 +1,6 @@
-import { HttpClient } from '@angular/common/http';
-import { Component, inject, signal } from '@angular/core';
+import { Component, inject } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
-import { ApiRoomInfoShort } from '../../model/rooms';
-import { ApiResponse } from '../../model/api';
 import { RoomClientService } from '../../service/room-client-service';
 
 @Component({

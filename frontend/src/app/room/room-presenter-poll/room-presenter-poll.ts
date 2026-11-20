@@ -1,4 +1,4 @@
-import { Component, computed, inject, input } from '@angular/core';
+import { Component, computed, inject } from '@angular/core';
 import { SparkMarkdown } from '../../util/spark-markdown/spark-markdown';
 import { SparkChart } from '../../util/spark-chart/spark-chart';
 import { NgClass } from '@angular/common';

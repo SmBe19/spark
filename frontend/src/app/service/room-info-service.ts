@@ -11,18 +11,10 @@ export class RoomInfoService {
   activePreviewRoomMode = computed(() => this.roomService.activePreviewRoomMode() || 'poll');
   activeRoomId = computed(() => this.activeRoom()?.id || null);
   activePollParsed = computed(() => {
-    const activeRoom = this.activeRoom();
-    if (!activeRoom) {
-      return undefined;
-    }
-    return this.pollService.parsePoll(activeRoom.activePoll);
+    return this.pollService.parsePoll(this.activeRoom()?.activePoll || '');
   });
   activePresentationSlides = computed(() => {
-    const activeRoom = this.activeRoom();
-    if (!activeRoom) {
-      return [];
-    }
-    return this.presentationService.parsePresentation(activeRoom.activePresentation);
+    return this.presentationService.parsePresentation(this.activeRoom()?.activePresentation || '');
   });
   activePresentationSlide = computed(() => {
     const index = this.activeRoom()?.activeSlideIndex ?? 0;

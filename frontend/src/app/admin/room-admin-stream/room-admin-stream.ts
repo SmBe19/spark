@@ -1,9 +1,10 @@
-import { Component, computed, effect, inject, signal } from '@angular/core';
+import { Component, computed, effect, HostListener, inject, signal } from '@angular/core';
 import { RoomService } from '../../service/room-service';
 import { form, FormField, min } from '@angular/forms/signals';
 import { FormsModule } from '@angular/forms';
 import { StreamService } from '../../service/stream-service';
 import { NgClass } from '@angular/common';
+import { handleKeyboardEvent } from '../../util/keyboard/keyboard';
 
 @Component({
   imports: [FormsModule, FormField, NgClass],
@@ -45,6 +46,7 @@ export class RoomAdminStream {
     return dirtyValues.webrtcBitrateKbps || dirtyValues.framePreviewIntervalMs;
   });
   activeStreamId = computed(() => this.roomService.activeRoom()?.stream.activeStreamId || '');
+  hoveredStreamId = signal<string | null>(null);
 
   constructor() {
     effect(() => {
@@ -92,11 +94,21 @@ export class RoomAdminStream {
   }
 
   assignChannel(streamId: string, channel: string) {
+    const activeRoom = this.roomService.activeRoom();
+    if (!activeRoom) {
+      return;
+    }
+    const channelUpdate = {
+      [channel]: streamId,
+    };
+    for (const [otherChannel, otherStreamId] of Object.entries(activeRoom.stream.channels)) {
+      if (otherStreamId === streamId && otherChannel !== channel) {
+        channelUpdate[otherChannel] = '';
+      }
+    }
     this.roomService.updateActiveRoomSettings({
       stream: {
-        channels: {
-          [channel]: streamId,
-        },
+        channels: channelUpdate,
       },
     });
   }
@@ -106,6 +118,31 @@ export class RoomAdminStream {
       stream: {
         active_stream_id: streamId,
       },
+    });
+  }
+
+  hoverStream(streamId: string) {
+    this.hoveredStreamId.set(streamId);
+  }
+
+  leaveStream(streamId: string) {
+    if (this.hoveredStreamId() === streamId) {
+      this.hoveredStreamId.set(null);
+    }
+  }
+
+  @HostListener('window:keydown', ['$event'])
+  handleKeydown(event: KeyboardEvent) {
+    handleKeyboardEvent(event, (event) => {
+      if (event.key < '1' || event.key > '9') {
+        return false;
+      }
+      const streamId = this.hoveredStreamId();
+      if (!streamId) {
+        return false;
+      }
+      this.assignChannel(streamId, event.key);
+      return true;
     });
   }
 }

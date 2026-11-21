@@ -12,6 +12,7 @@
     @if (activeSlide) {
       <app-room-presenter-presentation
         [activeSlide]="activeSlide"
+        allowKeyboardNavigation
       ></app-room-presenter-presentation>
     }
   } @else if (roomInfoService.activeRoomMode() === 'stream') {

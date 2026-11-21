@@ -5,6 +5,7 @@ import { FormsModule } from '@angular/forms';
 import { PresentationPreview } from '../presentation-preview/presentation-preview';
 import { PresentationService } from '../../service/presentation-service';
 import { PasteImage } from '../../util/paste-image/paste-image';
+import { PresentationNavigationService } from '../../service/presentation-navigation-service';
 
 @Component({
   imports: [FormField, FormsModule, PasteImage, PresentationPreview],
@@ -46,6 +47,7 @@ export class RoomAdminPresentation {
 
   roomService = inject(RoomService);
   presentationService = inject(PresentationService);
+  presentationNavigationService = inject(PresentationNavigationService);
 
   constructor() {
     effect(() => {
@@ -76,29 +78,5 @@ export class RoomAdminPresentation {
     this.roomService.updateActiveRoomSettings({
       active_slide_index: this.activePresentationModel().slideIndex,
     });
-  }
-
-  nextSlide() {
-    const nextSlideIndex = this.activePresentationModel().slideIndex + 1;
-    if (nextSlideIndex >= this.presentationSlides().length) {
-      return;
-    }
-    this.activePresentationModel.update((presentation) => ({
-      ...presentation,
-      slideIndex: nextSlideIndex,
-    }));
-    this.updateActiveSlideIndex();
-  }
-
-  previousSlide() {
-    const nextSlideIndex = this.activePresentationModel().slideIndex - 1;
-    if (nextSlideIndex < 0) {
-      return;
-    }
-    this.activePresentationModel.update((presentation) => ({
-      ...presentation,
-      slideIndex: nextSlideIndex,
-    }));
-    this.updateActiveSlideIndex();
   }
 }

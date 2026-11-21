@@ -34,16 +34,16 @@
           </div>
         </form>
         <button
-          (click)="previousQuestion()"
+          (click)="pollNavigationService.previousQuestion()"
           type="button"
-          [disabled]="anyDirtyValues() || previousQuestionIndex() === null"
+          [disabled]="anyDirtyValues() || pollNavigationService.previousQuestionIndex() === null"
         >
           &lt;
         </button>
         <button
-          (click)="nextQuestion()"
+          (click)="pollNavigationService.nextQuestion()"
           type="button"
-          [disabled]="anyDirtyValues() || nextQuestionIndex() === null"
+          [disabled]="anyDirtyValues() || pollNavigationService.nextQuestionIndex() === null"
         >
           &gt;
         </button>

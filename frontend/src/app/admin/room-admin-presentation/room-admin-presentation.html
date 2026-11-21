@@ -31,14 +31,14 @@
           </div>
         </form>
         <button
-          (click)="previousSlide()"
+          (click)="presentationNavigationService.previousSlide()"
           type="button"
           [disabled]="anyDirtyValues() || activePresentationModel().slideIndex === 0"
         >
           &lt;
         </button>
         <button
-          (click)="nextSlide()"
+          (click)="presentationNavigationService.nextSlide()"
           type="button"
           [disabled]="
             anyDirtyValues() ||

@@ -1,8 +1,11 @@
-import { Component, computed, effect, inject, signal } from '@angular/core';
+import { Component, computed, effect, HostListener, inject, signal } from '@angular/core';
 import { Title } from '@angular/platform-browser';
 import { RoomService } from '../../service/room-service';
 import { ActivatedRoute, Router } from '@angular/router';
 import { NgStyle } from '@angular/common';
+import { RoomMode, StreamChannels } from '../../model/rooms';
+import { PollService } from '../../service/poll-service';
+import { handleKeyboardEvent } from '../../util/keyboard/keyboard';
 import { RoomPresenterPresentation } from '../room-presenter-presentation/room-presenter-presentation';
 import { RoomPresenterPoll } from '../room-presenter-poll/room-presenter-poll';
 import { RoomPresenterSizer } from '../room-presenter-sizer/room-presenter-sizer';
@@ -29,6 +32,7 @@ export class RoomPresenter {
   titleService = inject(Title);
   roomInfoService = inject(RoomInfoService);
   roomService = inject(RoomService);
+  pollService = inject(PollService);
   router = inject(Router);
   activatedRoute = inject(ActivatedRoute);
 
@@ -61,6 +65,52 @@ export class RoomPresenter {
           this.router.navigate(['/']);
         }
       });
+    });
+  }
+
+  @HostListener('window:keydown', ['$event'])
+  handleKeydown(event: KeyboardEvent) {
+    handleKeyboardEvent(event, (event) => {
+      if (event.key >= '1' && event.key <= '9') {
+        this.switchToStreamChannel(event.key as keyof StreamChannels);
+        return true;
+      }
+
+      switch (event.key) {
+        case '0':
+          this.switchRoomMode('blank');
+          break;
+        case 'p':
+        case 'P':
+          this.switchRoomMode('poll');
+          break;
+        case 's':
+        case 'S':
+          this.switchRoomMode('presentation');
+          break;
+        case 't':
+        case 'T':
+          this.switchRoomMode('timer');
+          break;
+        default:
+          return false;
+      }
+      return true;
+    });
+  }
+
+  switchRoomMode(mode: RoomMode) {
+    this.roomService.updateActiveRoomSettings({ active_mode: mode });
+  }
+
+  switchToStreamChannel(channel: keyof StreamChannels) {
+    const streamId = this.roomInfoService.activeRoom()?.stream.channels[channel];
+    if (!streamId) {
+      return;
+    }
+    this.roomService.updateActiveRoomSettings({
+      active_mode: 'stream',
+      stream: { active_stream_id: streamId },
     });
   }
 }

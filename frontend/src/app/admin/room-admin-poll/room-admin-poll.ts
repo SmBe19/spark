@@ -5,6 +5,7 @@ import { PollService } from '../../service/poll-service';
 import { PollPreview } from '../poll-preview/poll-preview';
 import { PasteImage } from '../../util/paste-image/paste-image';
 import { FormsModule } from '@angular/forms';
+import { PollNavigationService } from '../../service/poll-navigation-service';
 
 @Component({
   imports: [FormsModule, FormField, PasteImage, PollPreview],
@@ -41,24 +42,11 @@ export class RoomAdminPoll {
     const dirtyValues = this.dirtyValues();
     return dirtyValues.poll || dirtyValues.questionIndex;
   });
-  nextQuestionIndex = computed(() => {
-    const nextPage = this.pollService.getNextPage(
-      this.activePollParsed().presentationPages,
-      this.activePollModel().questionIndex,
-    );
-    return nextPage ? nextPage[0] : null;
-  });
-  previousQuestionIndex = computed(() => {
-    const previousPage = this.pollService.getPreviousPage(
-      this.activePollParsed().presentationPages,
-      this.activePollModel().questionIndex,
-    );
-    return previousPage ? previousPage[0] : null;
-  });
   showReplies = signal(false);
 
   roomService = inject(RoomService);
   pollService = inject(PollService);
+  pollNavigationService = inject(PollNavigationService);
 
   constructor() {
     effect(() => {
@@ -87,30 +75,6 @@ export class RoomAdminPoll {
     this.roomService.updateActiveRoomSettings({
       active_question_index: this.activePollModel().questionIndex,
     });
-  }
-
-  nextQuestion() {
-    const questionIndex = this.nextQuestionIndex();
-    if (questionIndex === null) {
-      return;
-    }
-    this.activePollModel.update((poll) => ({
-      ...poll,
-      questionIndex,
-    }));
-    this.updateActiveQuestionIndex();
-  }
-
-  previousQuestion() {
-    const questionIndex = this.previousQuestionIndex();
-    if (questionIndex === null) {
-      return;
-    }
-    this.activePollModel.update((poll) => ({
-      ...poll,
-      questionIndex: questionIndex,
-    }));
-    this.updateActiveQuestionIndex();
   }
 
   archivePoll() {

@@ -58,10 +58,15 @@
         <div
           class="stream"
           [ngClass]="{ 'stream-active': stream.id === activeStreamId() }"
+          (mouseenter)="hoverStream(stream.id)"
+          (mouseleave)="leaveStream(stream.id)"
           (click)="activateStream(stream.id)"
         >
           <video [srcObject]="stream.stream" autoplay muted playsinline></video>
           <div class="stream-label">{{ stream.label }}</div>
+          @if (stream.channel) {
+            <div class="stream-channel">#{{ stream.channel }}</div>
+          }
           <button
             type="button"
             class="local-stream-stop-button"
@@ -75,10 +80,15 @@
         <div
           class="stream"
           [ngClass]="{ 'stream-active': stream.id === activeStreamId() }"
+          (mouseenter)="hoverStream(stream.id)"
+          (mouseleave)="leaveStream(stream.id)"
           (click)="activateStream(stream.id)"
         >
           <img [src]="stream.currentPreviewFrame" alt="Stream Frame" />
           <div class="stream-label">{{ stream.label }}</div>
+          @if (stream.channel) {
+            <div class="stream-channel">#{{ stream.channel }}</div>
+          }
         </div>
       }
     </div>

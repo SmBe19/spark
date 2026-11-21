@@ -15,6 +15,7 @@ import { ApiResponse } from '../model/api';
 @Service()
 export class StreamService {
   private static readonly remoteStreamTimeoutMs = 10000;
+  private static readonly previewScale = 0.25;
 
   streamCaptureSupported = !!(navigator.mediaDevices && navigator.mediaDevices.getDisplayMedia);
 
@@ -71,41 +72,49 @@ export class StreamService {
       this.applyRemoteStreamUpdate(data, true);
     });
 
-    // TODO make the timeout configurable
-    timer(0, 1000).subscribe(() => {
-      for (const localStream of Object.values(this.localStreams())) {
-        const dataUrl = this.renderStreamFrame(localStream.videoElement, localStream.canvas, 0.25);
-        if (!dataUrl) {
-          continue;
-        }
-        this.socketService.socket.emit(
-          'add_stream_preview_frame',
-          {
-            stream_id: localStream.id,
-            room_id: localStream.roomId,
-            label: localStream.label,
-            current_frame: dataUrl,
-          },
-          (response: ApiResponse<ApiStreamFrameResponse>) => {
-            if (response.success && response.data.need_big_frame) {
-              const bigFrameDataUrl = this.renderStreamFrame(
-                localStream.videoElement,
-                localStream.canvas,
-                1,
-              );
-              if (!bigFrameDataUrl) {
-                return;
+    effect((onCleanup) => {
+      const framePreviewIntervalMs =
+        this.roomInfoService.activeRoom()?.stream.framePreviewIntervalMs ?? 1000;
+      const subscription = timer(0, framePreviewIntervalMs).subscribe(() => {
+        for (const localStream of Object.values(this.localStreams())) {
+          const dataUrl = this.renderStreamFrame(
+            localStream.videoElement,
+            localStream.canvas,
+            StreamService.previewScale,
+          );
+          if (!dataUrl) {
+            continue;
+          }
+          this.socketService.socket.emit(
+            'add_stream_preview_frame',
+            {
+              stream_id: localStream.id,
+              room_id: localStream.roomId,
+              label: localStream.label,
+              current_frame: dataUrl,
+            },
+            (response: ApiResponse<ApiStreamFrameResponse>) => {
+              if (response.success && response.data.need_big_frame) {
+                const bigFrameDataUrl = this.renderStreamFrame(
+                  localStream.videoElement,
+                  localStream.canvas,
+                  1,
+                );
+                if (!bigFrameDataUrl) {
+                  return;
+                }
+                this.socketService.socket.emit('add_stream_big_frame', {
+                  stream_id: localStream.id,
+                  room_id: localStream.roomId,
+                  label: localStream.label,
+                  current_frame: bigFrameDataUrl,
+                });
               }
-              this.socketService.socket.emit('add_stream_big_frame', {
-                stream_id: localStream.id,
-                room_id: localStream.roomId,
-                label: localStream.label,
-                current_frame: bigFrameDataUrl,
-              });
-            }
-          },
-        );
-      }
+            },
+          );
+        }
+      });
+      onCleanup(() => subscription.unsubscribe());
     });
   }
 

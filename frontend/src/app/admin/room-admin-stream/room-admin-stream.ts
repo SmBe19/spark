@@ -23,7 +23,7 @@ export class RoomAdminStream {
   });
   streamForm = form(this.streamModel, (schemaPath) => {
     min(schemaPath.webrtcBitrateKbps, 1);
-    min(schemaPath.framePreviewIntervalMs, 10);
+    min(schemaPath.framePreviewIntervalMs, 250);
   });
   dirtyValues = computed(() => {
     const streamSettings = this.streamModel();

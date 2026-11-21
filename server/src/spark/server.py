@@ -3,7 +3,7 @@ import os
 from flask import Flask, request, send_from_directory, session
 from flask_socketio import SocketIO
 
-from spark.api import archive, rooms
+from spark.api import archive, rooms, streams
 from spark.auth import login_user
 from spark.db.mongo_utils import get_new_mongo_database, init_mongo_app
 from spark.decorators import public_route
@@ -67,6 +67,7 @@ def whoami():
 
 rooms.add_routes(app)
 archive.add_routes(app)
+streams.add_routes(app)
 socket_rooms.add_socket_routes(socketio)
 socket_streams.add_socket_routes(socketio)
 

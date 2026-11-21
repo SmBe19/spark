@@ -169,7 +169,7 @@ def add_routes(app):
                         "stream_to_clients": False,
                         "webrtc_streaming": False,
                         "webrtc_bitrate_kbps": 250,
-                        "frame_preview_interval_ms": 1000,
+                        "frame_preview_interval_ms": 2500,
                     },
                 }
             )

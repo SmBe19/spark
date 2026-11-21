@@ -77,7 +77,7 @@ export class StreamService {
         this.roomInfoService.activeRoom()?.stream.framePreviewIntervalMs ?? 1000;
       const subscription = timer(0, framePreviewIntervalMs).subscribe(() => {
         for (const localStream of Object.values(this.localStreams())) {
-          const dataUrl = this.renderStreamFrame(
+          const dataUrl = this.renderStreamFrameDataURL(
             localStream.videoElement,
             localStream.canvas,
             StreamService.previewScale,
@@ -95,20 +95,7 @@ export class StreamService {
             },
             (response: ApiResponse<ApiStreamFrameResponse>) => {
               if (response.success && response.data.need_big_frame) {
-                const bigFrameDataUrl = this.renderStreamFrame(
-                  localStream.videoElement,
-                  localStream.canvas,
-                  1,
-                );
-                if (!bigFrameDataUrl) {
-                  return;
-                }
-                this.socketService.socket.emit('add_stream_big_frame', {
-                  stream_id: localStream.id,
-                  room_id: localStream.roomId,
-                  label: localStream.label,
-                  current_frame: bigFrameDataUrl,
-                });
+                void this.uploadBigFrame(localStream);
               }
             },
           );
@@ -148,18 +135,73 @@ export class StreamService {
     });
   }
 
-  renderStreamFrame(videoElement: HTMLVideoElement, canvas: HTMLCanvasElement, scale: number) {
-    if (videoElement.readyState < HTMLMediaElement.HAVE_CURRENT_DATA) {
+  private renderStreamFrameDataURL(
+    videoElement: HTMLVideoElement,
+    canvas: HTMLCanvasElement,
+    scale: number,
+  ) {
+    if (!this.drawStreamFrame(videoElement, canvas, scale)) {
       return null;
+    }
+    return canvas.toDataURL('image/png');
+  }
+
+  private renderStreamFrameBlob(
+    videoElement: HTMLVideoElement,
+    canvas: HTMLCanvasElement,
+    scale: number,
+  ): Promise<Blob | null> {
+    if (!this.drawStreamFrame(videoElement, canvas, scale)) {
+      return Promise.resolve(null);
+    }
+    return new Promise((resolve) => canvas.toBlob(resolve, 'image/png'));
+  }
+
+  private drawStreamFrame(
+    videoElement: HTMLVideoElement,
+    canvas: HTMLCanvasElement,
+    scale: number,
+  ) {
+    if (videoElement.readyState < HTMLMediaElement.HAVE_CURRENT_DATA) {
+      return false;
     }
     canvas.width = videoElement.videoWidth * scale;
     canvas.height = videoElement.videoHeight * scale;
     const ctx = canvas.getContext('2d');
     if (!ctx) {
-      return null;
+      return false;
     }
     ctx.drawImage(videoElement, 0, 0, canvas.width, canvas.height);
-    return canvas.toDataURL('image/png');
+    return true;
+  }
+
+  private async uploadBigFrame(localStream: LocalStream) {
+    const blob = await this.renderStreamFrameBlob(localStream.videoElement, localStream.canvas, 1);
+    if (!blob) {
+      return;
+    }
+    const params = new URLSearchParams({
+      room_id: localStream.roomId,
+      label: localStream.label,
+    });
+    try {
+      const response = await fetch(
+        '/api/streams/' + encodeURIComponent(localStream.id) + '/bigframe?' + params.toString(),
+        {
+          method: 'POST',
+          body: blob,
+          headers: { 'Content-Type': blob.type || 'image/png' },
+          credentials: 'same-origin',
+        },
+      );
+      if (!response.ok) {
+        this.errorMessage.set(
+          'Error uploading big stream frame: Server returned ' + response.status + '.',
+        );
+      }
+    } catch (error) {
+      this.errorMessage.set('Error uploading big stream frame: ' + (error as Error).message);
+    }
   }
 
   async addLocalStream() {

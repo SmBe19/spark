@@ -130,7 +130,7 @@ def migrate_room(room):
             "stream_to_clients": False,
             "webrtc_streaming": False,
             "webrtc_bitrate_kbps": 250,
-            "frame_preview_interval_ms": 1000,
+            "frame_preview_interval_ms": 2500,
         }
         db["rooms"].update_one({"_id": room["_id"]}, {"$set": {"stream": new_stream}})
         room["stream"] = new_stream

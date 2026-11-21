@@ -1,8 +1,7 @@
 import { NgClass } from '@angular/common';
-import { Component, computed, inject, signal } from '@angular/core';
+import { Component, computed, effect, inject, signal } from '@angular/core';
 import { form, FormField, required } from '@angular/forms/signals';
 import { RoomService } from '../../service/room-service';
-import { toObservable } from '@angular/core/rxjs-interop';
 import { FormsModule } from '@angular/forms';
 
 @Component({
@@ -41,13 +40,15 @@ export class RoomEditForm {
   });
 
   constructor() {
-    toObservable(this.roomService.activeRoom).subscribe((room) => {
-      if (room) {
-        this.roomInfoModel.set({
-          slug: room.slug,
-          name: room.name,
-        });
+    effect(() => {
+      const activeRoom = this.roomService.activeRoom();
+      if (!activeRoom) {
+        return;
       }
+      this.roomInfoModel.set({
+        slug: activeRoom.slug,
+        name: activeRoom.name,
+      });
     });
   }
 
@@ -65,7 +66,7 @@ export class RoomEditForm {
   }
 
   confirmDeleteRoom() {
-    const roomId = this.roomService.activeRoom()?.id;
+    const roomId = this.roomService.activeRoomId();
     if (roomId) {
       this.roomService.deleteRoom(roomId);
       this.deletingRoom.set(false);

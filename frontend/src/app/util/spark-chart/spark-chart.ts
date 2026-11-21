@@ -1,7 +1,6 @@
-import { Component, computed, input, signal } from '@angular/core';
+import { Component, computed, effect, input, signal } from '@angular/core';
 import { BaseChartDirective } from 'ng2-charts';
 import { PollQuestion } from '../../model/poll';
-import { toObservable } from '@angular/core/rxjs-interop';
 
 @Component({
   imports: [BaseChartDirective],
@@ -71,7 +70,8 @@ export class SparkChart {
   });
 
   constructor() {
-    toObservable(this.barChartData).subscribe((barChartData) => {
+    effect(() => {
+      const barChartData = this.barChartData();
       if (JSON.stringify(this.labels()) !== JSON.stringify(barChartData.labels)) {
         this.labels.set(barChartData.labels);
       }

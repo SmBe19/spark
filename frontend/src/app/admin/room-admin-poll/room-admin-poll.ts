@@ -1,8 +1,7 @@
-import { Component, computed, debounced, inject, signal } from '@angular/core';
+import { Component, computed, debounced, effect, inject, signal } from '@angular/core';
 import { form, FormField, max, min } from '@angular/forms/signals';
 import { RoomService } from '../../service/room-service';
 import { PollService } from '../../service/poll-service';
-import { toObservable } from '@angular/core/rxjs-interop';
 import { PollPreview } from '../poll-preview/poll-preview';
 import { PasteImage } from '../../util/paste-image/paste-image';
 import { FormsModule } from '@angular/forms';
@@ -38,6 +37,10 @@ export class RoomAdminPoll {
       questionIndex: activePoll.questionIndex !== activeRoom.activeQuestionIndex,
     };
   });
+  anyDirtyValues = computed(() => {
+    const dirtyValues = this.dirtyValues();
+    return dirtyValues.poll || dirtyValues.questionIndex;
+  });
   nextQuestionIndex = computed(() => {
     const nextPage = this.pollService.getNextPage(
       this.activePollParsed().presentationPages,
@@ -58,13 +61,15 @@ export class RoomAdminPoll {
   pollService = inject(PollService);
 
   constructor() {
-    toObservable(this.roomService.activeRoom).subscribe((room) => {
-      if (room) {
-        this.activePollModel.set({
-          poll: room.activePoll,
-          questionIndex: room.activeQuestionIndex,
-        });
+    effect(() => {
+      const activeRoom = this.roomService.activeRoom();
+      if (!activeRoom) {
+        return;
       }
+      this.activePollModel.set({
+        poll: activeRoom.activePoll,
+        questionIndex: activeRoom.activeQuestionIndex,
+      });
     });
   }
 
@@ -72,20 +77,16 @@ export class RoomAdminPoll {
     if (!this.dirtyValues().poll) {
       return;
     }
-    this.roomService.updateRoomActivePoll(
-      this.roomService.activeRoom()?.id || '',
-      this.activePollModel().poll,
-    );
+    this.roomService.updateActiveRoomSettings({ active_poll: this.activePollModel().poll });
   }
 
   updateActiveQuestionIndex() {
     if (!this.dirtyValues().questionIndex) {
       return;
     }
-    this.roomService.updateRoomActiveQuestionIndex(
-      this.roomService.activeRoom()?.id || '',
-      this.activePollModel().questionIndex,
-    );
+    this.roomService.updateActiveRoomSettings({
+      active_question_index: this.activePollModel().questionIndex,
+    });
   }
 
   nextQuestion() {
@@ -113,7 +114,7 @@ export class RoomAdminPoll {
   }
 
   archivePoll() {
-    const roomId = this.roomService.activeRoom()?.id;
+    const roomId = this.roomService.activeRoomId();
     if (roomId) {
       this.roomService.archivePoll(roomId);
     }

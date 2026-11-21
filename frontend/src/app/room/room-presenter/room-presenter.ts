@@ -1,4 +1,4 @@
-import { Component, effect, inject, signal } from '@angular/core';
+import { Component, computed, effect, inject, signal } from '@angular/core';
 import { Title } from '@angular/platform-browser';
 import { RoomService } from '../../service/room-service';
 import { ActivatedRoute, Router } from '@angular/router';
@@ -9,12 +9,14 @@ import { RoomPresenterSizer } from '../room-presenter-sizer/room-presenter-sizer
 import { RoomPresenterJoininfo } from '../room-presenter-joininfo/room-presenter-joininfo';
 import { RoomInfoService } from '../../service/room-info-service';
 import { RoomFullscreenTimer } from '../room-fullscreen-timer/room-fullscreen-timer';
+import { RoomStream } from '../room-stream/room-stream';
 
 @Component({
   imports: [
     NgStyle,
-    RoomPresenterPresentation,
     RoomPresenterPoll,
+    RoomPresenterPresentation,
+    RoomStream,
     RoomFullscreenTimer,
     RoomPresenterSizer,
     RoomPresenterJoininfo,
@@ -32,6 +34,10 @@ export class RoomPresenter {
 
   activeFontSize = signal(38);
   activeWidth = signal(900);
+  displaySizer = computed(() => {
+    const activeMode = this.roomInfoService.activeRoomMode();
+    return activeMode !== 'blank' && activeMode !== 'stream';
+  });
 
   constructor() {
     effect(() => {

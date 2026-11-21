@@ -1,10 +1,15 @@
-@if (roomInfoService.activeRoomMode() === 'presentation') {
+@if (roomInfoService.activeRoomMode() === 'poll') {
+  <app-room-client-poll></app-room-client-poll>
+} @else if (roomInfoService.activeRoomMode() === 'presentation') {
   <app-room-client-presentation
     [roomName]="roomInfoService.activeRoom()?.name"
     [activeSlide]="roomInfoService.activePresentationSlide()"
   ></app-room-client-presentation>
-} @else if (roomInfoService.activeRoomMode() === 'poll') {
-  <app-room-client-poll></app-room-client-poll>
+} @else if (
+  roomInfoService.activeRoomMode() === 'stream' &&
+  roomInfoService.activeRoom()?.stream.streamToClients
+) {
+  <app-room-stream></app-room-stream>
 } @else if (roomInfoService.activeRoomMode() === 'timer') {
   <app-room-fullscreen-timer></app-room-fullscreen-timer>
 } @else {

@@ -1,6 +1,6 @@
-export type RoomMode = 'presentation' | 'poll' | 'timer' | 'blank';
+export type RoomMode = 'poll' | 'presentation' | 'stream' | 'timer' | 'blank';
 
-export type PreviewRoomMode = 'presentation' | 'poll' | 'timer' | 'poll-archive';
+export type PreviewRoomMode = 'poll' | 'presentation' | 'stream' | 'timer' | 'poll-archive';
 
 export interface ApiRoomInfoShort {
   id: string;
@@ -12,11 +12,43 @@ export interface ApiRoomInfo extends RoomInfoShort {
   active_poll_id: string;
   active_poll: string;
   active_presentation: string;
-  active_timer_end_time: number;
+  active_timer_end_time_s: number;
   active_mode: RoomMode;
   active_question_index: number;
   active_slide_index: number;
+  stream: ApiStream;
 }
+
+export type PartialApiRoomInfo = Partial<Omit<ApiRoomInfo, 'stream'>> & {
+  stream?: PartialApiStream;
+};
+
+export interface ApiStream {
+  active_stream_id: string;
+  channels: ApiStreamChannels;
+  stream_to_clients: boolean;
+  webrtc_streaming: boolean;
+  webrtc_bitrate_kbps: number;
+  frame_preview_interval_ms: number;
+}
+
+export type PartialApiStream = Partial<Omit<ApiStream, 'channels'>> & {
+  channels?: PartialApiStreamChannels;
+};
+
+export interface ApiStreamChannels {
+  '1': string;
+  '2': string;
+  '3': string;
+  '4': string;
+  '5': string;
+  '6': string;
+  '7': string;
+  '8': string;
+  '9': string;
+}
+
+export type PartialApiStreamChannels = Partial<ApiStreamChannels>;
 
 export type RoomInfoShort = ApiRoomInfoShort;
 
@@ -28,43 +60,83 @@ export interface RoomInfo extends RoomInfoShort {
   activeMode: RoomMode;
   activeQuestionIndex: number;
   activeSlideIndex: number;
+  stream: Stream;
 }
 
-export function mapPartialApiRoomInfoToRoomInfo(
-  apiRoomInfo: Partial<ApiRoomInfo>,
-): Partial<RoomInfo> {
-  const mapped: Partial<RoomInfo> = {};
-  if (apiRoomInfo.id !== undefined) {
-    mapped.id = apiRoomInfo.id;
+export interface Stream {
+  activeStreamId: string;
+  channels: StreamChannels;
+  streamToClients: boolean;
+  webrtcStreaming: boolean;
+  webrtcBitrateKbps: number;
+  framePreviewIntervalMs: number;
+}
+
+export interface StreamChannels {
+  '1': string;
+  '2': string;
+  '3': string;
+  '4': string;
+  '5': string;
+  '6': string;
+  '7': string;
+  '8': string;
+  '9': string;
+}
+
+export function mergePartialApiRoomInfo(base: RoomInfo, update: PartialApiRoomInfo): RoomInfo {
+  const merged: RoomInfo = { ...base };
+  if (update.id !== undefined) {
+    merged.id = update.id;
   }
-  if (apiRoomInfo.slug !== undefined) {
-    mapped.slug = apiRoomInfo.slug;
+  if (update.slug !== undefined) {
+    merged.slug = update.slug;
   }
-  if (apiRoomInfo.name !== undefined) {
-    mapped.name = apiRoomInfo.name;
+  if (update.name !== undefined) {
+    merged.name = update.name;
   }
-  if (apiRoomInfo.active_poll_id !== undefined) {
-    mapped.activePollId = apiRoomInfo.active_poll_id;
+  if (update.active_poll_id !== undefined) {
+    merged.activePollId = update.active_poll_id;
   }
-  if (apiRoomInfo.active_poll !== undefined) {
-    mapped.activePoll = apiRoomInfo.active_poll;
+  if (update.active_poll !== undefined) {
+    merged.activePoll = update.active_poll;
   }
-  if (apiRoomInfo.active_presentation !== undefined) {
-    mapped.activePresentation = apiRoomInfo.active_presentation;
+  if (update.active_presentation !== undefined) {
+    merged.activePresentation = update.active_presentation;
   }
-  if (apiRoomInfo.active_timer_end_time !== undefined) {
-    mapped.activeTimerEndTimeMs = apiRoomInfo.active_timer_end_time * 1000;
+  if (update.active_timer_end_time_s !== undefined) {
+    merged.activeTimerEndTimeMs = update.active_timer_end_time_s * 1000;
   }
-  if (apiRoomInfo.active_mode !== undefined) {
-    mapped.activeMode = apiRoomInfo.active_mode;
+  if (update.active_mode !== undefined) {
+    merged.activeMode = update.active_mode;
   }
-  if (apiRoomInfo.active_question_index !== undefined) {
-    mapped.activeQuestionIndex = apiRoomInfo.active_question_index;
+  if (update.active_question_index !== undefined) {
+    merged.activeQuestionIndex = update.active_question_index;
   }
-  if (apiRoomInfo.active_slide_index !== undefined) {
-    mapped.activeSlideIndex = apiRoomInfo.active_slide_index;
+  if (update.active_slide_index !== undefined) {
+    merged.activeSlideIndex = update.active_slide_index;
   }
-  return mapped;
+  if (update.stream !== undefined) {
+    if (update.stream.active_stream_id !== undefined) {
+      merged.stream.activeStreamId = update.stream.active_stream_id;
+    }
+    if (update.stream.stream_to_clients !== undefined) {
+      merged.stream.streamToClients = update.stream.stream_to_clients;
+    }
+    if (update.stream.webrtc_streaming !== undefined) {
+      merged.stream.webrtcStreaming = update.stream.webrtc_streaming;
+    }
+    if (update.stream.webrtc_bitrate_kbps !== undefined) {
+      merged.stream.webrtcBitrateKbps = update.stream.webrtc_bitrate_kbps;
+    }
+    if (update.stream.frame_preview_interval_ms !== undefined) {
+      merged.stream.framePreviewIntervalMs = update.stream.frame_preview_interval_ms;
+    }
+    if (update.stream.channels !== undefined) {
+      merged.stream.channels = { ...merged.stream.channels, ...update.stream.channels };
+    }
+  }
+  return merged;
 }
 
 export function mapApiRoomInfoToRoomInfo(apiRoomInfo: ApiRoomInfo): RoomInfo {
@@ -77,8 +149,16 @@ export function mapApiRoomInfoToRoomInfo(apiRoomInfo: ApiRoomInfo): RoomInfo {
     activePresentation: apiRoomInfo.active_presentation,
     activeMode: apiRoomInfo.active_mode,
     activeQuestionIndex: apiRoomInfo.active_question_index,
-    activeTimerEndTimeMs: apiRoomInfo.active_timer_end_time * 1000,
+    activeTimerEndTimeMs: apiRoomInfo.active_timer_end_time_s * 1000,
     activeSlideIndex: apiRoomInfo.active_slide_index,
+    stream: {
+      activeStreamId: apiRoomInfo.stream.active_stream_id,
+      channels: apiRoomInfo.stream.channels,
+      streamToClients: apiRoomInfo.stream.stream_to_clients,
+      webrtcStreaming: apiRoomInfo.stream.webrtc_streaming,
+      webrtcBitrateKbps: apiRoomInfo.stream.webrtc_bitrate_kbps,
+      framePreviewIntervalMs: apiRoomInfo.stream.frame_preview_interval_ms,
+    },
   };
 }
 

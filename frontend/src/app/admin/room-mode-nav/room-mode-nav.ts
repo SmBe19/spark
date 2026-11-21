@@ -19,6 +19,7 @@ export class RoomModeNav {
     { label: 'Archive', previewMode: 'poll-archive' },
     { label: 'Poll', mode: 'poll', previewMode: 'poll' },
     { label: 'Presentation', mode: 'presentation', previewMode: 'presentation' },
+    { label: 'Stream', mode: 'stream', previewMode: 'stream' },
     { label: 'Timer', mode: 'timer', previewMode: 'timer' },
     { label: 'Blank', mode: 'blank' },
   ];
@@ -28,7 +29,7 @@ export class RoomModeNav {
   }
 
   switchRoomMode(mode: RoomMode) {
-    this.roomService.updateRoomActiveMode(this.roomService.activeRoomId()!, mode);
+    this.roomService.updateActiveRoomSettings({ active_mode: mode });
   }
 }
 

@@ -1,7 +1,5 @@
-import { Component, computed, inject, signal } from '@angular/core';
+import { Component, effect, inject, signal } from '@angular/core';
 import { form, FormField, min } from '@angular/forms/signals';
-import { toObservable, toSignal } from '@angular/core/rxjs-interop';
-import { map, timer } from 'rxjs';
 import { RoomService } from '../../service/room-service';
 import { FormsModule } from '@angular/forms';
 import { NgClass } from '@angular/common';
@@ -26,14 +24,17 @@ export class RoomAdminTimer {
   });
 
   constructor() {
-    toObservable(this.roomService.activeRoom).subscribe((room) => {
-      if (room) {
-        const endTimeMs = room.activeTimerEndTimeMs > 0 ? room.activeTimerEndTimeMs : Date.now();
-        this.timerModel.update((model) => ({
-          ...model,
-          endTime: this.toDateTimeLocalValue(endTimeMs),
-        }));
+    effect(() => {
+      const activeRoom = this.roomService.activeRoom();
+      if (!activeRoom) {
+        return;
       }
+      const endTimeMs =
+        activeRoom.activeTimerEndTimeMs > 0 ? activeRoom.activeTimerEndTimeMs : Date.now();
+      this.timerModel.update((model) => ({
+        ...model,
+        endTime: this.toDateTimeLocalValue(endTimeMs),
+      }));
     });
   }
 
@@ -58,10 +59,9 @@ export class RoomAdminTimer {
   }
 
   private setTimerEndTime(endTimeMs: number) {
-    const roomId = this.roomService.activeRoom()?.id;
-    if (roomId) {
-      this.roomService.updateRoomActiveTimerEndTime(roomId, endTimeMs);
-    }
+    this.roomService.updateActiveRoomSettings({
+      active_timer_end_time_s: Math.floor(endTimeMs / 1000),
+    });
   }
 
   private toDateTimeLocalValue(timestampMs: number): string {

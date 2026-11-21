@@ -36,18 +36,14 @@
         <button
           (click)="previousQuestion()"
           type="button"
-          [disabled]="
-            dirtyValues().questionIndex || dirtyValues().poll || previousQuestionIndex() === null
-          "
+          [disabled]="anyDirtyValues() || previousQuestionIndex() === null"
         >
           &lt;
         </button>
         <button
           (click)="nextQuestion()"
           type="button"
-          [disabled]="
-            dirtyValues().questionIndex || dirtyValues().poll || nextQuestionIndex() === null
-          "
+          [disabled]="anyDirtyValues() || nextQuestionIndex() === null"
         >
           &gt;
         </button>

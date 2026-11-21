@@ -1,0 +1,5 @@
+<div class="stream-wrapper">
+  @if (currentStream()) {
+    <img [src]="currentStream()!.currentBigFrame" alt="Stream Frame" />
+  }
+</div>

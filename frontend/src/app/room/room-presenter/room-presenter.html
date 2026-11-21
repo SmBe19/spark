@@ -5,15 +5,17 @@
     'max-width.px': activeWidth(),
   }"
 >
-  @if (roomInfoService.activeRoomMode() === 'presentation') {
+  @if (roomInfoService.activeRoomMode() === 'poll') {
+    <app-room-presenter-poll></app-room-presenter-poll>
+  } @else if (roomInfoService.activeRoomMode() === 'presentation') {
     @let activeSlide = roomInfoService.activePresentationSlide();
     @if (activeSlide) {
       <app-room-presenter-presentation
         [activeSlide]="activeSlide"
       ></app-room-presenter-presentation>
     }
-  } @else if (roomInfoService.activeRoomMode() === 'poll') {
-    <app-room-presenter-poll></app-room-presenter-poll>
+  } @else if (roomInfoService.activeRoomMode() === 'stream') {
+    <app-room-stream></app-room-stream>
   } @else if (roomInfoService.activeRoomMode() === 'timer') {
     <app-room-fullscreen-timer></app-room-fullscreen-timer>
   } @else {
@@ -23,7 +25,9 @@
 
 <app-room-presenter-joininfo></app-room-presenter-joininfo>
 
-<app-room-presenter-sizer
-  [(activeFontSize)]="activeFontSize"
-  [(activeWidth)]="activeWidth"
-></app-room-presenter-sizer>
+@if (displaySizer()) {
+  <app-room-presenter-sizer
+    [(activeFontSize)]="activeFontSize"
+    [(activeWidth)]="activeWidth"
+  ></app-room-presenter-sizer>
+}

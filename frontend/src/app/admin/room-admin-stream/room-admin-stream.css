@@ -1,0 +1,59 @@
+@import '../room-admin/room-admin-shared.css';
+
+.warning-text {
+  color: orangered;
+}
+
+.streams {
+  display: flex;
+  flex-flow: row wrap;
+}
+
+.stream {
+  position: relative;
+  margin: 0.5rem;
+  border: 2px solid var(--muted-color-light);
+}
+
+.stream:not(.stream-active):hover {
+  margin: calc(0.5rem - 2px);
+  border: 4px solid var(--primary-accent-color);
+}
+
+.stream-active {
+  margin: calc(0.5rem - 2px);
+  border: 4px solid var(--secondary-accent-color);
+}
+
+.stream-label {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  background-color: var(--muted-color-light);
+  color: var(--muted-color-dark);
+  padding: 2px 4px;
+  font-size: 0.8rem;
+}
+
+.local-stream-stop-button {
+  position: absolute;
+  bottom: 0;
+  right: 0;
+  background-color: var(--muted-color-light);
+  color: var(--muted-color-dark);
+  border: none;
+  padding: 2px 4px;
+  font-size: 0.8rem;
+}
+
+.local-stream-stop-button:hover {
+  background-color: var(--muted-color-dark);
+  color: white;
+  cursor: pointer;
+}
+
+.stream video,
+.stream img {
+  height: 180px;
+  object-fit: contain;
+}

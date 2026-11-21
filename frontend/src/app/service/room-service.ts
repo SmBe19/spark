@@ -5,8 +5,9 @@ import {
   ApiRoomInfoShort,
   mapApiRoomInfoShortToRoomInfoShort,
   mapApiRoomInfoToRoomInfo,
-  mapPartialApiRoomInfoToRoomInfo,
   mapRoomModeToPreviewRoomMode,
+  mergePartialApiRoomInfo,
+  PartialApiRoomInfo,
   PreviewRoomMode,
   RoomInfo,
   RoomInfoShort,
@@ -53,13 +54,13 @@ export class RoomService {
   private socketService = inject(SocketService);
 
   constructor() {
-    this.socketService.socket.on('room_update', (room: Partial<RoomInfo>) => {
+    this.socketService.socket.on('room_update', (room: PartialApiRoomInfo) => {
       if (this.activeRoom()) {
         this.activeRoom.update((currentRoom) => {
           if (!currentRoom) {
             return null;
           }
-          return { ...currentRoom, ...mapPartialApiRoomInfoToRoomInfo(room) };
+          return mergePartialApiRoomInfo(currentRoom, room);
         });
       }
     });
@@ -88,7 +89,7 @@ export class RoomService {
   }
 
   joinRoomById(roomId: string, callback?: (success: boolean) => void) {
-    if (this.activeRoom()?.id === roomId) {
+    if (this.activeRoomId() === roomId) {
       if (callback) {
         callback(true);
       }
@@ -143,51 +144,17 @@ export class RoomService {
   }
 
   updateRoomMeta(roomId: string, slug: string, name: string) {
-    this.httpClient
-      .put<ApiResponse<null>>('/api/rooms/' + roomId, { slug, name })
-      .subscribe((data) => {
-        if (data.success) {
-          this.loadRooms();
-        }
-      });
+    this.updateActiveRoomSettings({ slug, name }, () => {
+      this.loadRooms();
+    });
   }
 
-  updateRoomActivePoll(roomId: string, poll: string) {
-    this.httpClient
-      .put<ApiResponse<null>>('/api/rooms/' + roomId, { active_poll: poll })
-      .subscribe(() => {});
-  }
-
-  updateRoomActivePresentation(roomId: string, presentation: string) {
-    this.httpClient
-      .put<ApiResponse<null>>('/api/rooms/' + roomId, { active_presentation: presentation })
-      .subscribe(() => {});
-  }
-
-  updateRoomActiveMode(roomId: string, mode: RoomMode) {
-    this.httpClient
-      .put<ApiResponse<null>>('/api/rooms/' + roomId, { active_mode: mode })
-      .subscribe(() => {});
-  }
-
-  updateRoomActiveQuestionIndex(roomId: string, index: number) {
-    this.httpClient
-      .put<ApiResponse<null>>('/api/rooms/' + roomId, { active_question_index: index })
-      .subscribe(() => {});
-  }
-
-  updateRoomActiveSlideIndex(roomId: string, index: number) {
-    this.httpClient
-      .put<ApiResponse<null>>('/api/rooms/' + roomId, { active_slide_index: index })
-      .subscribe(() => {});
-  }
-
-  updateRoomActiveTimerEndTime(roomId: string, endTimeMs: number) {
-    this.httpClient
-      .put<ApiResponse<null>>('/api/rooms/' + roomId, {
-        active_timer_end_time: Math.floor(endTimeMs / 1000),
-      })
-      .subscribe(() => {});
+  updateActiveRoomSettings(settings: PartialApiRoomInfo, callback: () => void = () => {}) {
+    const roomId = this.activeRoomId();
+    if (!roomId) {
+      return;
+    }
+    this.httpClient.put<ApiResponse<null>>('/api/rooms/' + roomId, settings).subscribe(callback);
   }
 
   archivePoll(roomId: string) {

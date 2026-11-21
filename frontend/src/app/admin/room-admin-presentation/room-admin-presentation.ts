@@ -1,7 +1,6 @@
-import { Component, computed, debounced, inject, signal } from '@angular/core';
+import { Component, computed, debounced, effect, inject, signal } from '@angular/core';
 import { form, FormField, max, min } from '@angular/forms/signals';
 import { RoomService } from '../../service/room-service';
-import { toObservable } from '@angular/core/rxjs-interop';
 import { FormsModule } from '@angular/forms';
 import { PresentationPreview } from '../presentation-preview/presentation-preview';
 import { PresentationService } from '../../service/presentation-service';
@@ -40,18 +39,24 @@ export class RoomAdminPresentation {
       slideIndex: activePresentation.slideIndex !== activeRoom.activeSlideIndex,
     };
   });
+  anyDirtyValues = computed(() => {
+    const dirtyValues = this.dirtyValues();
+    return dirtyValues.presentation || dirtyValues.slideIndex;
+  });
 
   roomService = inject(RoomService);
   presentationService = inject(PresentationService);
 
   constructor() {
-    toObservable(this.roomService.activeRoom).subscribe((room) => {
-      if (room) {
-        this.activePresentationModel.set({
-          presentation: room.activePresentation,
-          slideIndex: room.activeSlideIndex,
-        });
+    effect(() => {
+      const activeRoom = this.roomService.activeRoom();
+      if (!activeRoom) {
+        return;
       }
+      this.activePresentationModel.set({
+        presentation: activeRoom.activePresentation,
+        slideIndex: activeRoom.activeSlideIndex,
+      });
     });
   }
 
@@ -59,20 +64,18 @@ export class RoomAdminPresentation {
     if (!this.dirtyValues().presentation) {
       return;
     }
-    this.roomService.updateRoomActivePresentation(
-      this.roomService.activeRoom()?.id || '',
-      this.activePresentationModel().presentation,
-    );
+    this.roomService.updateActiveRoomSettings({
+      active_presentation: this.activePresentationModel().presentation,
+    });
   }
 
   updateActiveSlideIndex() {
     if (!this.dirtyValues().slideIndex) {
       return;
     }
-    this.roomService.updateRoomActiveSlideIndex(
-      this.roomService.activeRoom()?.id || '',
-      this.activePresentationModel().slideIndex,
-    );
+    this.roomService.updateActiveRoomSettings({
+      active_slide_index: this.activePresentationModel().slideIndex,
+    });
   }
 
   nextSlide() {

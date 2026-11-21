@@ -6,13 +6,20 @@ from spark.db.mongo_utils import get_mongo_database
 from spark.db.rooms import (
     db_add_reply_to_room,
     db_archive_poll_for_room,
+    migrate_room,
     sanitize_reply,
     sanitize_room,
     sanitize_room_short,
     validate_room_access,
 )
 from spark.decorators import login_required, public_route
-from spark.utils import get_user_id, sanitize_object, validate_not_empty
+from spark.utils import (
+    get_user_id,
+    prefixed_object_to_nested_object,
+    sanitize_and_prefix_object,
+    sanitize_object,
+    validate_not_empty,
+)
 
 
 def add_routes(app):
@@ -22,6 +29,7 @@ def add_routes(app):
     def get_rooms():
         db = get_mongo_database()
         rooms = db["rooms"].find({"owner_id": get_user_id()})
+        rooms = [migrate_room(room) for room in rooms]
         return {"success": True, "data": [sanitize_room_short(room) for room in rooms]}
 
     @app.route("/api/rooms/<room_id>", methods=["GET"])
@@ -70,12 +78,34 @@ def add_routes(app):
                 "name",
                 "active_poll",
                 "active_presentation",
-                "active_timer_end_time",
+                "active_timer_end_time_s",
                 "active_mode",
                 "active_question_index",
                 "active_slide_index",
             ],
         )
+        if "stream" in update_data:
+            sanitized_data.update(
+                sanitize_and_prefix_object(
+                    update_data["stream"],
+                    [
+                        "active_stream_id",
+                        "stream_to_clients",
+                        "webrtc_streaming",
+                        "webrtc_bitrate_kbps",
+                        "frame_preview_interval_ms",
+                    ],
+                    "stream",
+                )
+            )
+            if "channels" in update_data["stream"]:
+                sanitized_data.update(
+                    sanitize_and_prefix_object(
+                        update_data["stream"]["channels"],
+                        ["1", "2", "3", "4", "5", "6", "7", "8", "9"],
+                        "stream.channels",
+                    )
+                )
         if (
             "active_poll" in sanitized_data
             and sanitized_data["active_poll"].strip() == ""
@@ -87,7 +117,10 @@ def add_routes(app):
         )
         if result.modified_count > 0:
             emit(
-                "room_update", sanitized_data, to="room:" + str(room_id), namespace="/"
+                "room_update",
+                prefixed_object_to_nested_object(sanitized_data),
+                to="room:" + str(room_id),
+                namespace="/",
             )
         return {"success": True}
 
@@ -125,11 +158,19 @@ def add_routes(app):
                     "active_poll_id": ObjectId(),
                     "active_poll": "",
                     "active_presentation": "",
-                    "active_timer_end_time": 0,
+                    "active_timer_end_time_s": 0,
                     "active_mode": "poll",
                     "active_replies": [],
                     "active_question_index": 0,
                     "active_slide_index": 0,
+                    "stream": {
+                        "active_stream_id": "",
+                        "channels": {},
+                        "stream_to_clients": False,
+                        "webrtc_streaming": False,
+                        "webrtc_bitrate_kbps": 250,
+                        "frame_preview_interval_ms": 1000,
+                    },
                 }
             )
             .inserted_id

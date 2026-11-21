@@ -92,10 +92,11 @@ def sanitize_room(room):
             "active_poll_id",
             "active_poll",
             "active_presentation",
-            "active_timer_end_time",
+            "active_timer_end_time_s",
             "active_mode",
             "active_question_index",
             "active_slide_index",
+            "stream",
         ],
     )
     if "_id" in room:
@@ -118,3 +119,19 @@ def validate_room_access(room_id, user_id):
     if user_id is not None and room.get("owner_id") != user_id:
         return None, ({"success": False, "error": "Unauthorized access."}, 403)
     return room, None
+
+
+def migrate_room(room):
+    if "stream" not in room:
+        db = get_mongo_database()
+        new_stream = {
+            "active_stream_id": "",
+            "channels": {},
+            "stream_to_clients": False,
+            "webrtc_streaming": False,
+            "webrtc_bitrate_kbps": 250,
+            "frame_preview_interval_ms": 1000,
+        }
+        db["rooms"].update_one({"_id": room["_id"]}, {"$set": {"stream": new_stream}})
+        room["stream"] = new_stream
+    return room

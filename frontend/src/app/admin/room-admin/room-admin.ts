@@ -4,9 +4,16 @@ import { RoomAdminPresentation } from '../room-admin-presentation/room-admin-pre
 import { RoomAdminPoll } from '../room-admin-poll/room-admin-poll';
 import { RoomAdminTimer } from '../room-admin-timer/room-admin-timer';
 import { RoomInfoService } from '../../service/room-info-service';
+import { RoomAdminStream } from '../room-admin-stream/room-admin-stream';
 
 @Component({
-  imports: [RoomAdminPoll, RoomAdminPresentation, RoomAdminTimer, RoomAdminArchive],
+  imports: [
+    RoomAdminPoll,
+    RoomAdminPresentation,
+    RoomAdminStream,
+    RoomAdminTimer,
+    RoomAdminArchive,
+  ],
   selector: 'app-room-admin',
   styleUrl: './room-admin.css',
   templateUrl: './room-admin.html',

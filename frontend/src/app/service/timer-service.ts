@@ -5,6 +5,8 @@ import { map, timer } from 'rxjs';
 
 @Service()
 export class TimerService {
+  private static readonly removeTimerDelayMs = 30000;
+
   currentTime = toSignal(timer(0, 500).pipe(map(() => Date.now())), {
     initialValue: Date.now(),
   });
@@ -16,7 +18,8 @@ export class TimerService {
   );
   timerWasRecentlyActive = computed(
     () =>
-      this.activeTimerEndTimeMs() > 0 && this.activeTimerEndTimeMs() + 30000 > this.currentTime(),
+      this.activeTimerEndTimeMs() > 0 &&
+      this.activeTimerEndTimeMs() + TimerService.removeTimerDelayMs > this.currentTime(),
   );
   remainingTimeString = computed(() => {
     const remainingMs = Math.max(0, this.activeTimerEndTimeMs() - this.currentTime());

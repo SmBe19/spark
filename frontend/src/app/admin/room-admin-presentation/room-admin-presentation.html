@@ -33,11 +33,7 @@
         <button
           (click)="previousSlide()"
           type="button"
-          [disabled]="
-            dirtyValues().slideIndex ||
-            dirtyValues().presentation ||
-            activePresentationModel().slideIndex === 0
-          "
+          [disabled]="anyDirtyValues() || activePresentationModel().slideIndex === 0"
         >
           &lt;
         </button>
@@ -45,8 +41,7 @@
           (click)="nextSlide()"
           type="button"
           [disabled]="
-            dirtyValues().slideIndex ||
-            dirtyValues().presentation ||
+            anyDirtyValues() ||
             activePresentationModel().slideIndex === presentationSlides().length - 1
           "
         >

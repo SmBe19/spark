@@ -2,6 +2,8 @@
   <app-room-admin-poll></app-room-admin-poll>
 } @else if (roomInfoService.activePreviewRoomMode() === 'presentation') {
   <app-room-admin-presentation></app-room-admin-presentation>
+} @else if (roomInfoService.activePreviewRoomMode() === 'stream') {
+  <app-room-admin-stream></app-room-admin-stream>
 } @else if (roomInfoService.activePreviewRoomMode() === 'timer') {
   <app-room-admin-timer></app-room-admin-timer>
 } @else if (roomInfoService.activePreviewRoomMode() === 'poll-archive') {

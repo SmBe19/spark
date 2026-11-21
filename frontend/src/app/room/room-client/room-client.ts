@@ -6,9 +6,10 @@ import { RoomClientPresentation } from '../room-client-presentation/room-client-
 import { RoomClientPoll } from '../room-client-poll/room-client-poll';
 import { RoomInfoService } from '../../service/room-info-service';
 import { RoomFullscreenTimer } from '../room-fullscreen-timer/room-fullscreen-timer';
+import { RoomStream } from '../room-stream/room-stream';
 
 @Component({
-  imports: [RoomClientPresentation, RoomClientPoll, RoomFullscreenTimer],
+  imports: [RoomClientPoll, RoomClientPresentation, RoomStream, RoomFullscreenTimer],
   selector: 'app-room-client',
   styleUrl: './room-client.css',
   templateUrl: './room-client.html',

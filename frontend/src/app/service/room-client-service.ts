@@ -1,8 +1,9 @@
-import { computed, inject, Service, signal } from '@angular/core';
+import { inject, Service, signal } from '@angular/core';
 import {
   ApiRoomInfo,
   mapApiRoomInfoToRoomInfo,
-  mapPartialApiRoomInfoToRoomInfo,
+  mergePartialApiRoomInfo,
+  PartialApiRoomInfo,
   RoomInfo,
 } from '../model/rooms';
 import { ApiResponse } from '../model/api';
@@ -17,13 +18,13 @@ export class RoomClientService {
   private userHash: string | null = null;
 
   constructor() {
-    this.socketService.socket.on('room_update', (room: Partial<RoomInfo>) => {
+    this.socketService.socket.on('room_update', (room: PartialApiRoomInfo) => {
       if (this.activeRoom()) {
         this.activeRoom.update((currentRoom) => {
           if (!currentRoom) {
             return null;
           }
-          return { ...currentRoom, ...mapPartialApiRoomInfoToRoomInfo(room) };
+          return mergePartialApiRoomInfo(currentRoom, room);
         });
       }
     });

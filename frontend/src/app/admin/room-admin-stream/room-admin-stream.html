@@ -1,0 +1,86 @@
+<div class="admin-columns-wrapper">
+  <div class="admin-left-column">
+    <div class="admin-edit-form">
+      @if (streamService.streamCaptureSupported) {
+        <div class="admin-edit-control-buttons">
+          <button
+            type="button"
+            [disabled]="anyDirtyValues()"
+            (click)="streamService.addLocalStream()"
+          >
+            Add Local Stream
+          </button>
+        </div>
+      } @else {
+        <p class="warning-text">Your browser does not support screen capture.</p>
+      }
+      @if (streamService.errorMessage()) {
+        <p class="warning-text">{{ streamService.errorMessage() }}</p>
+      }
+      <div class="admin-edit-control-buttons">
+        <button type="button" [disabled]="anyDirtyValues()" (click)="toggleStreamToClients()">
+          @if (streamModel().streamToClients) {
+            Disable Client Stream
+          } @else {
+            Enable Client Stream
+          }
+        </button>
+        <button type="button" [disabled]="anyDirtyValues()" (click)="toggleWebrtcStreaming()">
+          @if (streamModel().webrtcStreaming) {
+            Disable WebRTC
+          } @else {
+            Enable WebRTC
+          }
+        </button>
+      </div>
+      <form (submit)="updateStreamSettings()" class="admin-edit-content-form">
+        <div class="admin-edit-input">
+          <label for="webrtc-bitrate">WebRTC Bitrate (kbps)</label>
+          <input id="webrtc-bitrate" type="number" [formField]="streamForm.webrtcBitrateKbps" />
+        </div>
+        <div class="admin-edit-input">
+          <label for="frame-preview-interval">Frame Preview Interval (ms)</label>
+          <input
+            id="frame-preview-interval"
+            type="number"
+            [formField]="streamForm.framePreviewIntervalMs"
+          />
+        </div>
+        <div>
+          <button type="submit" [disabled]="!anyDirtyValues()">Update Settings</button>
+        </div>
+      </form>
+    </div>
+  </div>
+  <div class="admin-right-column">
+    <div class="streams">
+      @for (stream of streamService.localStreamsArray(); track stream.id) {
+        <div
+          class="stream"
+          [ngClass]="{ 'stream-active': stream.id === activeStreamId() }"
+          (click)="activateStream(stream.id)"
+        >
+          <video [srcObject]="stream.stream" autoplay muted playsinline></video>
+          <div class="stream-label">{{ stream.label }}</div>
+          <button
+            type="button"
+            class="local-stream-stop-button"
+            (click)="streamService.stopLocalStream(stream.id)"
+          >
+            Stop Stream
+          </button>
+        </div>
+      }
+      @for (stream of streamService.remoteStreamsArray(); track stream.id) {
+        <div
+          class="stream"
+          [ngClass]="{ 'stream-active': stream.id === activeStreamId() }"
+          (click)="activateStream(stream.id)"
+        >
+          <img [src]="stream.currentPreviewFrame" alt="Stream Frame" />
+          <div class="stream-label">{{ stream.label }}</div>
+        </div>
+      }
+    </div>
+  </div>
+</div>

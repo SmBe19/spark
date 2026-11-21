@@ -1,12 +1,12 @@
 <div class="admin-columns-wrapper">
   <div class="admin-left-column">
     <div class="admin-edit-form">
-      @if (streamService.streamCaptureSupported) {
+      @if (localStreamService.streamCaptureSupported) {
         <div class="admin-edit-control-buttons">
           <button
             type="button"
             [disabled]="anyDirtyValues()"
-            (click)="streamService.addLocalStream()"
+            (click)="localStreamService.addLocalStream()"
           >
             Add Local Stream
           </button>
@@ -14,8 +14,8 @@
       } @else {
         <p class="warning-text">Your browser does not support screen capture.</p>
       }
-      @if (streamService.errorMessage()) {
-        <p class="warning-text">{{ streamService.errorMessage() }}</p>
+      @if (errorMessage()) {
+        <p class="warning-text">{{ errorMessage() }}</p>
       }
       <div class="admin-edit-control-buttons">
         <button type="button" [disabled]="anyDirtyValues()" (click)="toggleStreamToClients()">
@@ -54,7 +54,7 @@
   </div>
   <div class="admin-right-column">
     <div class="streams">
-      @for (stream of streamService.localStreamsArray(); track stream.id) {
+      @for (stream of localStreamService.localStreamsArray(); track stream.id) {
         <div
           class="stream"
           [ngClass]="{ 'stream-active': stream.id === activeStreamId() }"
@@ -70,13 +70,13 @@
           <button
             type="button"
             class="local-stream-stop-button"
-            (click)="streamService.stopLocalStream(stream.id)"
+            (click)="localStreamService.stopLocalStream(stream.id)"
           >
             Stop Stream
           </button>
         </div>
       }
-      @for (stream of streamService.remoteStreamsArray(); track stream.id) {
+      @for (stream of frameStreamService.remoteStreamsArray(); track stream.id) {
         <div
           class="stream"
           [ngClass]="{ 'stream-active': stream.id === activeStreamId() }"

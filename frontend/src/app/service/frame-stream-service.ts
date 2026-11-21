@@ -3,54 +3,28 @@ import {
   ApiRemoteStream,
   ApiStreamFrameResponse,
   LocalStream,
-  LocalStreamPreview,
   RemoteStream,
   RemoteStreamPreview,
 } from '../model/streams';
 import { RoomInfoService } from './room-info-service';
 import { SocketService } from './socket-service';
+import { LocalStreamService } from './local-stream-service';
 import { timer } from 'rxjs';
 import { ApiResponse } from '../model/api';
 
 @Service()
-export class StreamService {
+export class FrameStreamService {
   private static readonly remoteStreamTimeoutMs = 10000;
   private static readonly previewScale = 0.25;
 
-  streamCaptureSupported = !!(navigator.mediaDevices && navigator.mediaDevices.getDisplayMedia);
-
   errorMessage = signal<string | null>(null);
-  localStreams = signal<{ [key: string]: LocalStream }>({});
   remoteStreams = signal<{ [key: string]: RemoteStream }>({});
-  streamIdToChannel = computed(() => {
-    const activeRoom = this.roomInfoService.activeRoom();
-    if (!activeRoom) {
-      return {};
-    }
-    const mapping: { [key: string]: string } = {};
-    for (const [channel, streamId] of Object.entries(activeRoom.stream.channels)) {
-      mapping[streamId] = channel;
-    }
-    return mapping;
-  });
-  localStreamsArray = computed<LocalStreamPreview[]>(() => {
-    const streamIdToChannel = this.streamIdToChannel();
-    return Object.values(this.localStreams())
-      .filter((stream) => stream.roomId === this.roomInfoService.activeRoomId())
-      .map((stream) => ({
-        id: stream.id,
-        label: stream.label,
-        channel: streamIdToChannel[stream.id],
-        stream: stream.stream,
-      }))
-      .sort((a, b) => a.label.localeCompare(b.label));
-  });
   remoteStreamsArray = computed<RemoteStreamPreview[]>(() => {
-    const streamIdToChannel = this.streamIdToChannel();
+    const streamIdToChannel = this.localStreamService.streamIdToChannel();
     return Object.values(this.remoteStreams())
       .filter((stream) => stream.roomId === this.roomInfoService.activeRoomId())
       .filter(
-        (stream) => stream.lastUpdateTimeMs > Date.now() - StreamService.remoteStreamTimeoutMs,
+        (stream) => stream.lastUpdateTimeMs > Date.now() - FrameStreamService.remoteStreamTimeoutMs,
       )
       .map((stream) => ({
         id: stream.id,
@@ -61,8 +35,9 @@ export class StreamService {
       .sort((a, b) => a.label.localeCompare(b.label));
   });
 
-  roomInfoService = inject(RoomInfoService);
-  socketService = inject(SocketService);
+  private roomInfoService = inject(RoomInfoService);
+  private socketService = inject(SocketService);
+  private localStreamService = inject(LocalStreamService);
 
   constructor() {
     this.socketService.socket.on('stream_preview_frame', (data: ApiRemoteStream) => {
@@ -76,11 +51,11 @@ export class StreamService {
       const framePreviewIntervalMs =
         this.roomInfoService.activeRoom()?.stream.framePreviewIntervalMs ?? 1000;
       const subscription = timer(0, framePreviewIntervalMs).subscribe(() => {
-        for (const localStream of Object.values(this.localStreams())) {
+        for (const localStream of Object.values(this.localStreamService.localStreams())) {
           const dataUrl = this.renderStreamFrameDataURL(
             localStream.videoElement,
             localStream.canvas,
-            StreamService.previewScale,
+            FrameStreamService.previewScale,
           );
           if (!dataUrl) {
             continue;
@@ -110,7 +85,7 @@ export class StreamService {
     if (!roomId) {
       return;
     }
-    if (this.localStreams().hasOwnProperty(data.id)) {
+    if (this.localStreamService.localStreams().hasOwnProperty(data.id)) {
       return;
     }
     this.remoteStreams.update((currentStreams) => {
@@ -202,64 +177,5 @@ export class StreamService {
     } catch (error) {
       this.errorMessage.set('Error uploading big stream frame: ' + (error as Error).message);
     }
-  }
-
-  async addLocalStream() {
-    if (!this.streamCaptureSupported) {
-      return;
-    }
-    const roomId = this.roomInfoService.activeRoomId();
-    if (!roomId) {
-      this.errorMessage.set('No active room to add stream to.');
-      return;
-    }
-    try {
-      const stream = await navigator.mediaDevices.getDisplayMedia({
-        video: {
-          frameRate: 30,
-        },
-        audio: false,
-      });
-      const streamId = crypto.randomUUID();
-      const [videoTrack] = stream.getVideoTracks();
-      const streamLabel = videoTrack.label || streamId;
-      const videoElement = document.createElement('video');
-      videoElement.srcObject = stream;
-      videoElement.autoplay = true;
-      videoElement.muted = true;
-      videoElement.playsInline = true;
-      this.localStreams.update((currentStreams) => ({
-        ...currentStreams,
-        [streamId]: {
-          id: streamId,
-          roomId,
-          label: streamLabel,
-          stream: stream,
-          videoElement,
-          canvas: document.createElement('canvas'),
-        },
-      }));
-      videoTrack.addEventListener('ended', () => {
-        this.stopLocalStream(streamId);
-      });
-      stream.addEventListener('inactive', () => {
-        this.stopLocalStream(streamId);
-      });
-      this.errorMessage.set(null);
-    } catch (error) {
-      this.errorMessage.set('Error capturing local stream: ' + (error as Error).message);
-    }
-  }
-
-  stopLocalStream(streamId: string) {
-    this.localStreams.update((currentStreams) => {
-      const streamToStop = currentStreams[streamId];
-      if (streamToStop) {
-        streamToStop.stream.getTracks().forEach((track) => track.stop());
-      }
-      const newStreams = { ...currentStreams };
-      delete newStreams[streamId];
-      return newStreams;
-    });
   }
 }

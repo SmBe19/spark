@@ -1,5 +1,9 @@
 <div class="stream-wrapper">
-  @if (currentStream()) {
+  @if (currentDirectStream()) {
+    <video [srcObject]="currentDirectStream()" autoplay muted playsinline></video>
+  } @else if (currentWebrtcStream()) {
+    <video [srcObject]="currentWebrtcStream()" autoplay muted playsinline></video>
+  } @else if (currentStream()) {
     <img [src]="currentStream()!.currentBigFrame" alt="Stream Frame" />
   }
 </div>

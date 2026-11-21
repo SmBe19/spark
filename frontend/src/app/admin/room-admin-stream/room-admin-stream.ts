@@ -2,7 +2,9 @@ import { Component, computed, effect, HostListener, inject, signal } from '@angu
 import { RoomService } from '../../service/room-service';
 import { form, FormField, min } from '@angular/forms/signals';
 import { FormsModule } from '@angular/forms';
-import { StreamService } from '../../service/stream-service';
+import { LocalStreamService } from '../../service/local-stream-service';
+import { FrameStreamService } from '../../service/frame-stream-service';
+import { WebrtcStreamService } from '../../service/webrtc-stream-service';
 import { NgClass } from '@angular/common';
 import { handleKeyboardEvent } from '../../util/keyboard/keyboard';
 
@@ -14,7 +16,16 @@ import { handleKeyboardEvent } from '../../util/keyboard/keyboard';
 })
 export class RoomAdminStream {
   roomService = inject(RoomService);
-  streamService = inject(StreamService);
+  localStreamService = inject(LocalStreamService);
+  frameStreamService = inject(FrameStreamService);
+  webrtcStreamService = inject(WebrtcStreamService);
+
+  errorMessage = computed(
+    () =>
+      this.localStreamService.errorMessage() ||
+      this.frameStreamService.errorMessage() ||
+      this.webrtcStreamService.errorMessage(),
+  );
 
   streamModel = signal({
     streamToClients: false,

@@ -6,7 +6,6 @@ from spark.utils import get_user_id
 
 
 def add_socket_routes(socketio):
-
     @socketio.on("add_stream_preview_frame")
     def handle_add_stream_preview_frame(data):
         db = get_mongo_database()

@@ -1,12 +1,12 @@
 import { TestBed } from '@angular/core/testing';
-import { StreamService } from './stream-service';
+import { WebrtcStreamService } from './webrtc-stream-service';
 
-describe('StreamService', () => {
-  let service: StreamService;
+describe('WebrtcStreamService', () => {
+  let service: WebrtcStreamService;
 
   beforeEach(() => {
     TestBed.configureTestingModule({});
-    service = TestBed.inject(StreamService);
+    service = TestBed.inject(WebrtcStreamService);
   });
 
   it('should be created', () => {

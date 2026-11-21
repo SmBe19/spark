@@ -9,6 +9,7 @@ from spark.db.mongo_utils import get_new_mongo_database, init_mongo_app
 from spark.decorators import public_route
 from spark.socket import rooms as socket_rooms
 from spark.socket import streams as socket_streams
+from spark.socket import streams_rtc as socket_streams_rtc
 
 app = Flask(__name__)
 app.secret_key = os.getenv("SECRET_KEY")
@@ -70,6 +71,7 @@ archive.add_routes(app)
 streams.add_routes(app)
 socket_rooms.add_socket_routes(socketio)
 socket_streams.add_socket_routes(socketio)
+socket_streams_rtc.add_socket_routes(socketio)
 
 
 def debug_server():

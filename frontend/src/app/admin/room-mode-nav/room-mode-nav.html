@@ -29,9 +29,7 @@
       }
     }
     <div class="nav-item nav-link">
-      <a [routerLink]="['/presenter', roomInfoService.activeRoom()?.slug]" target="_blank"
-        >Presenter</a
-      >
+      <a (click)="openPresenter()">Presenter</a>
     </div>
   </div>
 </nav>

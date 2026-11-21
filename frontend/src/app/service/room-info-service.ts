@@ -7,6 +7,9 @@ import { PresentationService } from './presentation-service';
 @Service()
 export class RoomInfoService {
   activeRoom = computed(() => this.roomService.activeRoom() || this.roomClientService.activeRoom());
+  isPresenter = computed(
+    () => !!this.roomService.activeRoom() && !this.roomClientService.activeRoom(),
+  );
   activeRoomMode = computed(() => this.activeRoom()?.activeMode || 'poll');
   activePreviewRoomMode = computed(() => this.roomService.activePreviewRoomMode() || 'poll');
   activeRoomId = computed(() => this.activeRoom()?.id || null);

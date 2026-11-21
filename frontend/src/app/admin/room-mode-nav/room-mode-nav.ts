@@ -1,12 +1,12 @@
 import { NgClass } from '@angular/common';
 import { Component, inject } from '@angular/core';
 import { RoomService } from '../../service/room-service';
-import { RouterLink } from '@angular/router';
 import { PreviewRoomMode, RoomMode } from '../../model/rooms';
 import { RoomInfoService } from '../../service/room-info-service';
+import { DirectStreamService } from '../../service/direct-stream-service';
 
 @Component({
-  imports: [NgClass, RouterLink],
+  imports: [NgClass],
   selector: 'app-room-mode-nav',
   styleUrl: './room-mode-nav.css',
   templateUrl: './room-mode-nav.html',
@@ -14,6 +14,7 @@ import { RoomInfoService } from '../../service/room-info-service';
 export class RoomModeNav {
   roomInfoService = inject(RoomInfoService);
   roomService = inject(RoomService);
+  directStreamService = inject(DirectStreamService);
 
   navItems: NavItem[] = [
     { label: 'Archive', previewMode: 'poll-archive' },
@@ -30,6 +31,14 @@ export class RoomModeNav {
 
   switchRoomMode(mode: RoomMode) {
     this.roomService.updateActiveRoomSettings({ active_mode: mode });
+  }
+
+  openPresenter() {
+    const activeRoom = this.roomInfoService.activeRoom();
+    if (!activeRoom) {
+      return;
+    }
+    this.directStreamService.openPresenter(activeRoom.id, activeRoom.slug);
   }
 }
 

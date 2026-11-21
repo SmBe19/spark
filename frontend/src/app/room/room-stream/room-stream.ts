@@ -1,5 +1,8 @@
 import { Component, computed, inject } from '@angular/core';
-import { StreamService } from '../../service/stream-service';
+import { RoomInfoService } from '../../service/room-info-service';
+import { FrameStreamService } from '../../service/frame-stream-service';
+import { WebrtcStreamService } from '../../service/webrtc-stream-service';
+import { DirectStreamService } from '../../service/direct-stream-service';
 
 @Component({
   imports: [],
@@ -8,10 +11,13 @@ import { StreamService } from '../../service/stream-service';
   templateUrl: './room-stream.html',
 })
 export class RoomStream {
-  streamService = inject(StreamService);
+  private roomInfoService = inject(RoomInfoService);
+  private frameStreamService = inject(FrameStreamService);
+  private webrtcStreamService = inject(WebrtcStreamService);
+  private directStreamService = inject(DirectStreamService);
 
   currentStream = computed(() => {
-    const activeRoom = this.streamService.roomInfoService.activeRoom();
+    const activeRoom = this.roomInfoService.activeRoom();
     if (!activeRoom) {
       return null;
     }
@@ -19,6 +25,9 @@ export class RoomStream {
     if (!activeStreamId) {
       return null;
     }
-    return this.streamService.remoteStreams()[activeStreamId] || null;
+    return this.frameStreamService.remoteStreams()[activeStreamId] || null;
   });
+
+  currentDirectStream = computed(() => this.directStreamService.directStream());
+  currentWebrtcStream = computed(() => this.webrtcStreamService.activeWebrtcStream());
 }

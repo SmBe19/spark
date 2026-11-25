@@ -98,9 +98,8 @@ export class WebrtcStreamService {
         return;
       }
       // A room has a single publication, so any live subscription is to it.
-      if (this.subscriberRtcPeerConnection) {
-        void this.closeSubscriber();
-      }
+      // Keep the connection; a new publisher in the same room reuses it.
+      this.handleSubscriberStreamUnavailable();
     });
 
     effect(() => {
@@ -220,6 +219,18 @@ export class WebrtcStreamService {
     this.subscriberNegotiating = false;
     this.subscriberRetryRequested = false;
     await this.releaseSubscriber();
+  }
+
+  private handleSubscriberStreamUnavailable() {
+    // The publication ended, but a new publisher in the same room can reuse
+    // this session. Keep the PeerConnection and SFU session and drop the
+    // remote media; sfu_stream_ready triggers a re-subscribe.
+    this.subscriberSubscribedStreamId = null;
+    const activeWebrtcStream = this.activeWebrtcStream();
+    if (activeWebrtcStream) {
+      activeWebrtcStream.getTracks().forEach((track) => track.stop());
+    }
+    this.activeWebrtcStream.set(null);
   }
 
   private async releaseSubscriber() {

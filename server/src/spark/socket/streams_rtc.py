@@ -89,15 +89,27 @@ def add_socket_routes(socketio):
 
     def _safe_close_tracks(session_id, mid):
         if not session_id or not mid:
-            return
+            return True
         try:
             sfu.close_tracks(session_id, [mid])
+            return True
         except sfu.SfuError as error:
             _log_sfu_error("Failed to close SFU track", error)
+            return False
 
-    def _close_room_subscriptions(room_id):
+    def _detach_room_subscriptions(room_id):
+        """Stop the ended publication but keep subscriber sessions alive.
+
+        When the publisher changes, subscribers can keep their connected
+        sessions and swap the remote track once a new publication is ready.
+        """
         for session_id in list(subscriptions_by_room.get(room_id, set())):
-            _close_session(session_id)
+            session = sfu_sessions.get(session_id)
+            if session is None:
+                continue
+            mid = session.get("mid")
+            if mid and _safe_close_tracks(session_id, mid):
+                session["mid"] = None
 
     def _close_session(session_id):
         session = sfu_sessions.pop(session_id, None)
@@ -118,7 +130,7 @@ def add_socket_routes(socketio):
             publication = publications.get(room_id)
             if publication and publication.get("session_id") == session_id:
                 publications.pop(room_id, None)
-                _close_room_subscriptions(room_id)
+                _detach_room_subscriptions(room_id)
                 emit(
                     "sfu_stream_unavailable",
                     {

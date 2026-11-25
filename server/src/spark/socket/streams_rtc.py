@@ -53,24 +53,23 @@ def add_socket_routes(socketio):
         if not isinstance(session_description, dict) or not session_description.get(
             "sdp"
         ):
-            return None
+            raise sfu.SfuError("Cloudflare SFU did not return a session description.")
         return session_description
 
     def _first_track(response):
         tracks = response.get("tracks") or []
-        if not tracks:
-            return None
-        return tracks[0]
-
-    def _check_track_error(track):
-        error = None
-        if not track:
-            error = "Cloudflare SFU did not return the requested track."
+        if not tracks or not tracks[0]:
+            raise sfu.SfuError("Cloudflare SFU did not return the requested track.")
+        track = tracks[0]
         if track.get("errorCode"):
-            error = track.get("errorDescription") or track.get("errorCode")
-        if error:
-            raise sfu.SfuError(error)
+            raise sfu.SfuError(track.get("errorDescription") or track.get("errorCode"))
         return track
+
+    def _add_track(session_id, payload):
+        response = _check_error(sfu.add_tracks(session_id, payload))
+        track = _first_track(response)
+        session_description = _session_description(response)
+        return track, session_description
 
     def _create_session():
         response = _check_error(sfu.create_session())
@@ -78,14 +77,6 @@ def add_socket_routes(socketio):
         if not session_id:
             raise sfu.SfuError("Cloudflare SFU did not return a session ID.")
         return session_id
-
-    def _add_tracks(session_id, payload):
-        response = _check_error(sfu.add_tracks(session_id, payload))
-        track = _check_track_error(_first_track(response))
-        session_description = _session_description(response)
-        if session_description is None:
-            raise sfu.SfuError("Cloudflare SFU did not return a session description.")
-        return track, session_description
 
     def _safe_close_tracks(session_id, mid):
         if not session_id or not mid:
@@ -98,11 +89,6 @@ def add_socket_routes(socketio):
             return False
 
     def _detach_room_subscriptions(room_id):
-        """Stop the ended publication but keep subscriber sessions alive.
-
-        When the publisher changes, subscribers can keep their connected
-        sessions and swap the remote track once a new publication is ready.
-        """
         for session_id in list(subscriptions_by_room.get(room_id, set())):
             session = sfu_sessions.get(session_id)
             if session is None:
@@ -149,6 +135,12 @@ def add_socket_routes(socketio):
 
         _safe_close_tracks(session_id, session.get("mid"))
 
+        if session.get("data_channel"):
+            try:
+                sfu.close_data_channel(session_id, session["data_channel"])
+            except sfu.SfuError as error:
+                _log_sfu_error("Failed to close SFU data channel", error)
+
     def _close_publication(room_id):
         publication = publications.get(room_id)
         if publication is not None:
@@ -160,18 +152,19 @@ def add_socket_routes(socketio):
             if session is not None and (role is None or session.get("role") == role):
                 _close_session(session_id)
 
-    def _register_session(session_id, sid, role, room_id, stream_id, mid):
+    def _register_sfu_session(session_id, sid, role, room_id, stream_id, mid, data_channel):
         sfu_sessions[session_id] = {
             "sid": sid,
             "role": role,
             "room_id": room_id,
             "stream_id": stream_id,
             "mid": mid,
+            "data_channel": data_channel,
         }
         sfu_sessions_by_socket.setdefault(sid, set()).add(session_id)
 
     def _is_stream_active(room, stream_id):
-        if room is None or room.get("active_mode") != "stream":
+        if not stream_id or room is None or room.get("active_mode") != "stream":
             return False
         stream_config = room.get("stream", {})
         return bool(
@@ -183,7 +176,7 @@ def add_socket_routes(socketio):
         stream_config = room.get("stream", {})
         return stream_config.get("stream_to_clients", False) or is_room_owner(room)
 
-    def _publisher_session(data):
+    def _publisher_sfu_session(data):
         session_id = data.get("session_id")
         session = sfu_sessions.get(session_id)
         if (
@@ -194,20 +187,17 @@ def add_socket_routes(socketio):
             raise _SocketError("Unknown publishing session.")
         return session, session_id
 
-    def _subscriber_session(sid, room_id):
-        """Return the socket's live subscriber session for ``room_id``, if any.
-
-        Subscriber sessions for other rooms are closed, since a socket only
-        subscribes to the room it is currently in.
-        """
+    def _subscriber_sfu_session(sid, room_id):
+        result = None, None
         for session_id in list(sfu_sessions_by_socket.get(sid, set())):
             session = sfu_sessions.get(session_id)
             if session is None or session.get("role") != "subscriber":
                 continue
             if session.get("room_id") == room_id:
-                return session_id, session
-            _close_session(session_id)
-        return None, None
+                result = session_id, session
+            else:
+                _close_session(session_id)
+        return result
 
     def _require_session_id(data):
         session_id = data.get("session_id")
@@ -251,29 +241,24 @@ def add_socket_routes(socketio):
         if error_response:
             return error_response[0]
 
-        stream_config = room.get("stream", {})
+        room_id = str(room["_id"])
+        _close_publication(room_id)
+
         stream_id = data.get("stream_id")
-        if not stream_id or stream_config.get("active_stream_id") != stream_id:
-            raise _SocketError("Only the active stream can be published.")
-        if room.get("active_mode") != "stream" or not stream_config.get(
-            "webrtc_streaming", False
-        ):
-            _close_publication(str(room["_id"]))
-            raise _SocketError("WebRTC streaming is not enabled.")
+        if not _is_stream_active(room, stream_id):
+            raise _SocketError("The stream is not active or WebRTC is not enabled.")
 
         sdp = data.get("sdp")
         mid = data.get("mid")
         if not sdp or mid is None:
             raise _SocketError("Missing WebRTC offer.")
 
-        room_id = str(room["_id"])
-        _close_publication(room_id)
         publish_attempt = object()
         publish_attempts[room_id] = publish_attempt
         session_id = None
         try:
             session_id = _create_session()
-            _, session_description = _add_tracks(
+            _, session_description = _add_track(
                 session_id,
                 {
                     "sessionDescription": {"type": "offer", "sdp": sdp},
@@ -299,13 +284,14 @@ def add_socket_routes(socketio):
             _safe_close_tracks(session_id, str(mid))
             raise _SocketError("The stream is no longer active.")
 
-        _register_session(
+        _register_sfu_session(
             session_id,
             request.sid,
             "publisher",
             room_id,
             stream_id,
             str(mid),
+            None,
         )
         publications[room_id] = {
             "session_id": session_id,
@@ -328,7 +314,7 @@ def add_socket_routes(socketio):
     @_handler("sfu_publish_ready")
     def handle_sfu_publish_ready(data):
         data = data or {}
-        session, session_id = _publisher_session(data)
+        session, session_id = _publisher_sfu_session(data)
         _require_publisher_room(session_id, session, session.get("stream_id"))
 
         publication = _require_publication(session_id, session)
@@ -341,7 +327,7 @@ def add_socket_routes(socketio):
     @_handler("sfu_switch_stream")
     def handle_sfu_switch_stream(data):
         data = data or {}
-        session, session_id = _publisher_session(data)
+        session, session_id = _publisher_sfu_session(data)
 
         stream_id = data.get("stream_id")
         _require_publisher_room(session_id, session, stream_id)
@@ -355,35 +341,19 @@ def add_socket_routes(socketio):
 
     @_handler("sfu_prepare_subscription")
     def handle_sfu_prepare_subscription(data):
-        """Create and connect a subscriber session before a track exists.
-
-        This establishes the WebRTC transport (via the reserved ``server-events``
-        DataChannel) so that adding the publication later only needs a media
-        renegotiation on the already connected session.
-        """
         data = data or {}
         room = get_room(data.get("room_id"))
         if room is None:
             raise _SocketError("Room not found.")
 
         room_id = str(room["_id"])
-        stream_config = room.get("stream", {})
+        # TODO do we need this already? We only establish the data channel here
         stream_id = data.get("stream_id")
-        if not stream_id or stream_config.get("active_stream_id") != stream_id:
+        if not _is_stream_active(room, stream_id) or not _can_subscribe(room):
             _close_socket_sessions(request.sid, role="subscriber")
-            raise _SocketError("Only the active stream can be subscribed to.")
-        if room.get("active_mode") != "stream" or not stream_config.get(
-            "webrtc_streaming", False
-        ):
-            _close_socket_sessions(request.sid, role="subscriber")
-            raise _SocketError("WebRTC streaming is not enabled.")
-        if not _can_subscribe(room):
-            _close_socket_sessions(request.sid, role="subscriber")
-            raise _SocketError("WebRTC streaming is not enabled for clients.")
+            raise _SocketError("The stream is not active or WebRTC is not enabled for clients.")
 
-        # A prepared connection belongs to a single PeerConnection, so discard
-        # any session left over from a previous connection.
-        session_id, existing_session = _subscriber_session(request.sid, room_id)
+        session_id, existing_session = _subscriber_sfu_session(request.sid, room_id)
         if existing_session is not None:
             _close_session(session_id)
 
@@ -392,21 +362,19 @@ def add_socket_routes(socketio):
             session_id = _create_session()
             response = _check_error(sfu.establish_data_channel(session_id))
             session_description = _session_description(response)
-            if session_description is None:
-                raise sfu.SfuError(
-                    "Cloudflare SFU did not return a session description."
-                )
         except sfu.SfuError as error:
             _log_sfu_error("Failed to prepare SFU subscription", error)
             raise _SocketError(str(error))
 
-        _register_session(
+        _register_sfu_session(
             session_id,
             request.sid,
             "subscriber",
             room_id,
             stream_id,
             None,
+            # TODO verify that this is the datachannel id
+            response.get("dataChannel"),
         )
         subscriptions_by_room.setdefault(room_id, set()).add(session_id)
         return {
@@ -414,6 +382,7 @@ def add_socket_routes(socketio):
             "data": {
                 "sessionId": session_id,
                 "sessionDescription": session_description,
+                # TODO why is this needed? the client already knows the stream_id it requested
                 "streamId": stream_id,
             },
         }
@@ -426,20 +395,10 @@ def add_socket_routes(socketio):
             raise _SocketError("Room not found.")
 
         room_id = str(room["_id"])
-        stream_config = room.get("stream", {})
         stream_id = data.get("stream_id")
-        if not stream_id or stream_config.get("active_stream_id") != stream_id:
+        if not _is_stream_active(room, stream_id) or not _can_subscribe(room):
             _close_socket_sessions(request.sid, role="subscriber")
-            raise _SocketError("Only the active stream can be subscribed to.")
-        if room.get("active_mode") != "stream" or not stream_config.get(
-            "webrtc_streaming", False
-        ):
-            _close_socket_sessions(request.sid, role="subscriber")
-            _close_publication(room_id)
-            raise _SocketError("WebRTC streaming is not enabled.")
-        if not _can_subscribe(room):
-            _close_socket_sessions(request.sid, role="subscriber")
-            raise _SocketError("WebRTC streaming is not enabled for clients.")
+            raise _SocketError("The stream is not active or WebRTC is not enabled for clients.")
 
         publication = publications.get(room_id)
         if (
@@ -447,18 +406,14 @@ def add_socket_routes(socketio):
             or publication.get("stream_id") != stream_id
             or not publication.get("ready")
         ):
-            # Keep any prepared subscriber session so the track can be added on
-            # the established connection once the publication is ready.
             raise _SocketError("not_ready")
 
-        # Reuse an existing subscriber session for this socket and room so the
-        # client can keep its PeerConnection and only renegotiate the media.
-        session_id, existing_session = _subscriber_session(request.sid, room_id)
-        created_session = session_id is None
+        session_id, existing_session = _subscriber_sfu_session(request.sid, room_id)
+        should_create_session = session_id is None
         try:
-            if created_session:
+            if should_create_session:
                 session_id = _create_session()
-            track, session_description = _add_tracks(
+            track, session_description = _add_track(
                 session_id,
                 {
                     "tracks": [
@@ -475,15 +430,13 @@ def add_socket_routes(socketio):
                 raise sfu.SfuError(
                     "Cloudflare SFU did not return the subscribed track mid."
                 )
-            # Subscribing to a new publication in the same room: drop the
-            # track that carried the previous publication.
             if existing_session is not None:
                 old_mid = existing_session.get("mid")
                 if old_mid and old_mid != str(mid):
                     _safe_close_tracks(session_id, old_mid)
         except sfu.SfuError as error:
             _log_sfu_error("Failed to subscribe to SFU stream", error)
-            if created_session and session_id:
+            if should_create_session and session_id:
                 _safe_close_tracks(session_id, None)
             raise _SocketError(str(error))
 
@@ -499,13 +452,14 @@ def add_socket_routes(socketio):
             _safe_close_tracks(session_id, str(mid))
             raise _SocketError("not_ready")
 
-        _register_session(
+        _register_sfu_session(
             session_id,
             request.sid,
             "subscriber",
             room_id,
             stream_id,
             str(mid),
+            None,
         )
         subscriptions_by_room.setdefault(room_id, set()).add(session_id)
         return {

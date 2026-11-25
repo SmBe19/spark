@@ -284,7 +284,6 @@ def add_socket_routes(socketio):
             room_id,
             stream_id,
             str(mid),
-            None,
         )
         publications[room_id] = {
             "session_id": session_id,

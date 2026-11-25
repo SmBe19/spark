@@ -54,6 +54,7 @@ export class WebrtcStreamService {
   private subscriberSessionId: string | null = null;
   private publisherTargetStreamId: string | null = null;
   private subscriberTargetStreamId: string | null = null;
+  private subscriberSubscribedStreamId: string | null = null;
   private publisherGeneration = 0;
   private subscriberGeneration = 0;
   private subscriberNegotiating = false;
@@ -77,13 +78,13 @@ export class WebrtcStreamService {
       if (this.localStreamService.localStreams()[data.stream_id]) {
         return;
       }
-      if (this.subscriberTargetStreamId === data.stream_id) {
+      if (this.subscriberSubscribedStreamId === data.stream_id) {
         if (this.subscriberNegotiating) {
           this.subscriberRetryRequested = true;
         }
         return;
       }
-      this.syncSubscriber();
+      this.syncSubscriber(true);
     });
     this.socketService.socket.on('sfu_stream_unavailable', (data: SfuStreamUnavailableEvent) => {
       const activeRoom = this.roomInfoService.activeRoom();
@@ -146,7 +147,7 @@ export class WebrtcStreamService {
     );
   }
 
-  private syncSubscriber() {
+  private syncSubscriber(force = false) {
     const activeRoom = this.roomInfoService.activeRoom();
     if (!activeRoom) {
       void this.closeSubscriber();
@@ -164,14 +165,21 @@ export class WebrtcStreamService {
       void this.closeSubscriber();
       return;
     }
-    // Switching streams on the same host swaps the publisher's source track,
-    // so a live subscription keeps carrying the active stream. Retarget it
-    // instead of tearing the connection down and renegotiating.
-    if (this.subscriberRtcPeerConnection) {
+    // Prefer reusing the live subscriber connection. A room update (not a
+    // publication-ready event) only retargets, so a renegotiation is not
+    // started before the publisher has announced the new stream.
+    if (!force && this.subscriberRtcPeerConnection) {
       this.subscriberTargetStreamId = activeStreamId;
       return;
     }
-    if (this.subscriberTargetStreamId === activeStreamId) {
+    if (!force && this.subscriberTargetStreamId === activeStreamId) {
+      return;
+    }
+    if (force && this.subscriberSubscribedStreamId === activeStreamId) {
+      return;
+    }
+    if (this.subscriberNegotiating) {
+      this.subscriberRetryRequested = true;
       return;
     }
     void this.subscribeToActiveStream(activeStreamId);
@@ -213,6 +221,7 @@ export class WebrtcStreamService {
     const sessionId = this.subscriberSessionId;
     this.subscriberRtcPeerConnection = null;
     this.subscriberSessionId = null;
+    this.subscriberSubscribedStreamId = null;
     if (rtcPeerConnection) {
       rtcPeerConnection.ontrack = null;
       rtcPeerConnection.onconnectionstatechange = null;
@@ -363,12 +372,18 @@ export class WebrtcStreamService {
     this.subscriberTargetStreamId = streamId;
     this.subscriberNegotiating = true;
     try {
-      await this.releaseSubscriber();
-      if (generation !== this.subscriberGeneration) {
-        return;
+      const existingPeerConnection = this.subscriberRtcPeerConnection;
+      const reusing = existingPeerConnection !== null && this.subscriberSessionId !== null;
+      if (!reusing) {
+        await this.releaseSubscriber();
+        if (generation !== this.subscriberGeneration) {
+          return;
+        }
       }
 
-      const rtcPeerConnection = new RTCPeerConnection(WebrtcStreamService.rtcConfiguration);
+      const rtcPeerConnection = reusing
+        ? existingPeerConnection
+        : new RTCPeerConnection(WebrtcStreamService.rtcConfiguration);
       this.subscriberRtcPeerConnection = rtcPeerConnection;
       rtcPeerConnection.ontrack = (event: RTCTrackEvent) => {
         if (generation !== this.subscriberGeneration) {
@@ -387,7 +402,7 @@ export class WebrtcStreamService {
         stream_id: streamId,
       });
       if (generation !== this.subscriberGeneration) {
-        if (response.success) {
+        if (response.success && !reusing) {
           await this.emitSfu('sfu_close', { session_id: response.data.sessionId });
         }
         return;
@@ -410,7 +425,9 @@ export class WebrtcStreamService {
       this.subscriberSessionId = response.data.sessionId;
       await rtcPeerConnection.setRemoteDescription(response.data.sessionDescription);
       if (generation !== this.subscriberGeneration) {
-        await this.emitSfu('sfu_close', { session_id: response.data.sessionId });
+        if (!reusing) {
+          await this.emitSfu('sfu_close', { session_id: response.data.sessionId });
+        }
         return;
       }
 
@@ -437,6 +454,7 @@ export class WebrtcStreamService {
         }
       }
       this.errorMessage.set(null);
+      this.subscriberSubscribedStreamId = streamId;
     } catch (error) {
       if (generation === this.subscriberGeneration) {
         this.errorMessage.set('Error subscribing to WebRTC stream: ' + (error as Error).message);
@@ -445,7 +463,10 @@ export class WebrtcStreamService {
     } finally {
       if (generation === this.subscriberGeneration) {
         this.subscriberNegotiating = false;
-        this.subscriberRetryRequested = false;
+        if (this.subscriberRetryRequested) {
+          this.subscriberRetryRequested = false;
+          this.syncSubscriber();
+        }
       }
     }
   }

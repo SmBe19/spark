@@ -3,8 +3,10 @@ import { RoomService } from '../../service/room-service';
 import { form, FormField, min } from '@angular/forms/signals';
 import { FormsModule } from '@angular/forms';
 import { LocalStreamService } from '../../service/local-stream-service';
-import { FrameStreamService } from '../../service/frame-stream-service';
-import { WebrtcStreamService } from '../../service/webrtc-stream-service';
+import { FrameStreamReceiverService } from '../../service/frame-stream-receiver-service';
+import { FrameStreamSenderService } from '../../service/frame-stream-sender-service';
+import { WebrtcPublisherService } from '../../service/webrtc-publisher-service';
+import { WebrtcSubscriberService } from '../../service/webrtc-subscriber-service';
 import { NgClass } from '@angular/common';
 import { handleKeyboardEvent } from '../../util/keyboard/keyboard';
 
@@ -17,14 +19,17 @@ import { handleKeyboardEvent } from '../../util/keyboard/keyboard';
 export class RoomAdminStream {
   roomService = inject(RoomService);
   localStreamService = inject(LocalStreamService);
-  frameStreamService = inject(FrameStreamService);
-  webrtcStreamService = inject(WebrtcStreamService);
+  frameStreamSenderService = inject(FrameStreamSenderService);
+  frameStreamReceiverService = inject(FrameStreamReceiverService);
+  webrtcPublisherService = inject(WebrtcPublisherService);
+  webrtcSubscriberService = inject(WebrtcSubscriberService);
 
   errorMessage = computed(
     () =>
       this.localStreamService.errorMessage() ||
-      this.frameStreamService.errorMessage() ||
-      this.webrtcStreamService.errorMessage(),
+      this.frameStreamSenderService.errorMessage() ||
+      this.webrtcPublisherService.errorMessage() ||
+      this.webrtcSubscriberService.errorMessage(),
   );
 
   streamModel = signal({

@@ -76,7 +76,7 @@
           </button>
         </div>
       }
-      @for (stream of frameStreamService.remoteStreamsArray(); track stream.id) {
+      @for (stream of frameStreamReceiverService.remoteStreamsArray(); track stream.id) {
         <div
           class="stream"
           [ngClass]="{ 'stream-active': stream.id === activeStreamId() }"

@@ -1,0 +1,39 @@
+export interface SfuSessionDescription {
+  type: RTCSdpType;
+  sdp: string;
+}
+
+export const RTC_CONFIGURATION: RTCConfiguration = {
+  iceServers: [{ urls: 'stun:stun.cloudflare.com:3478' }],
+  bundlePolicy: 'max-bundle',
+};
+
+const ICE_GATHERING_TIMEOUT_MS = 3000;
+
+export function closePeerConnection(rtcPeerConnection: RTCPeerConnection | null) {
+  if (!rtcPeerConnection) {
+    return;
+  }
+  rtcPeerConnection.ontrack = null;
+  rtcPeerConnection.close();
+}
+
+export function waitForIceGathering(rtcPeerConnection: RTCPeerConnection) {
+  if (rtcPeerConnection.iceGatheringState === 'complete') {
+    return Promise.resolve();
+  }
+  return new Promise<void>((resolve) => {
+    const finish = () => {
+      window.clearTimeout(timeout);
+      rtcPeerConnection.removeEventListener('icegatheringstatechange', onStateChange);
+      resolve();
+    };
+    const timeout = window.setTimeout(finish, ICE_GATHERING_TIMEOUT_MS);
+    const onStateChange = () => {
+      if (rtcPeerConnection.iceGatheringState === 'complete') {
+        finish();
+      }
+    };
+    rtcPeerConnection.addEventListener('icegatheringstatechange', onStateChange);
+  });
+}

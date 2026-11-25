@@ -1,34 +1,22 @@
-from bson import ObjectId
 from flask import current_app, request
 from flask_socketio import emit
 
-from spark.db.mongo_utils import get_mongo_database
+from spark import sfu
+from spark.db.rooms import get_room, is_room_owner, validate_room_access
 from spark.decorators import is_logged_in
-from spark.sfu import SfuError, add_tracks, close_tracks, create_session, renegotiate
-from spark.utils import get_user_id
 
 
 def add_socket_routes(socketio):
-    sessions = {}
-    socket_sessions = {}
+    sfu_sessions = {}
+    sfu_sessions_by_socket = {}
     publications = {}
     publish_attempts = {}
     subscriptions_by_room = {}
-
-    def _get_room(room_id):
-        if not room_id or not ObjectId.is_valid(room_id):
-            return None
-        return get_mongo_database()["rooms"].find_one({"_id": ObjectId(room_id)})
-
-    def _is_room_owner(room):
-        return bool(room) and is_logged_in() and room.get("owner_id") == get_user_id()
 
     def _log_sfu_error(message, error):
         current_app.logger.warning("%s: %s", message, error)
 
     def _response_error(response):
-        # A successful renegotiate returns HTTP 200 with an empty JSON object,
-        # so only an explicit errorCode (or a non-object payload) is a failure.
         if not isinstance(response, dict):
             return "Unexpected response from Cloudflare SFU."
         if response.get("errorCode"):
@@ -60,8 +48,8 @@ def add_socket_routes(socketio):
         if not session_id or not mid:
             return
         try:
-            close_tracks(session_id, [mid])
-        except SfuError as error:
+            sfu.close_tracks(session_id, [mid])
+        except sfu.SfuError as error:
             _log_sfu_error("Failed to close SFU track", error)
 
     def _close_room_subscriptions(room_id):
@@ -69,17 +57,17 @@ def add_socket_routes(socketio):
             _close_session(session_id)
 
     def _close_session(session_id):
-        session = sessions.pop(session_id, None)
+        session = sfu_sessions.pop(session_id, None)
         if session is None:
             return
 
         sid = session.get("sid")
         if sid:
-            sid_sessions = socket_sessions.get(sid)
+            sid_sessions = sfu_sessions_by_socket.get(sid)
             if sid_sessions is not None:
                 sid_sessions.discard(session_id)
                 if not sid_sessions:
-                    socket_sessions.pop(sid, None)
+                    sfu_sessions_by_socket.pop(sid, None)
 
         room_id = session.get("room_id")
         role = session.get("role")
@@ -95,6 +83,7 @@ def add_socket_routes(socketio):
                         "stream_id": session.get("stream_id", ""),
                     },
                     to="room:" + room_id,
+                    namespace="/",
                 )
         elif role == "subscriber":
             room_subscriptions = subscriptions_by_room.get(room_id)
@@ -111,20 +100,20 @@ def add_socket_routes(socketio):
             _close_session(publication["session_id"])
 
     def _close_socket_sessions(sid, role=None):
-        for session_id in list(socket_sessions.get(sid, set())):
-            session = sessions.get(session_id)
+        for session_id in list(sfu_sessions_by_socket.get(sid, set())):
+            session = sfu_sessions.get(session_id)
             if session is not None and (role is None or session.get("role") == role):
                 _close_session(session_id)
 
     def _register_session(session_id, sid, role, room_id, stream_id, mid):
-        sessions[session_id] = {
+        sfu_sessions[session_id] = {
             "sid": sid,
             "role": role,
             "room_id": room_id,
             "stream_id": stream_id,
             "mid": mid,
         }
-        socket_sessions.setdefault(sid, set()).add(session_id)
+        sfu_sessions_by_socket.setdefault(sid, set()).add(session_id)
 
     @socketio.on("sfu_publish")
     def handle_sfu_publish(data):
@@ -132,11 +121,9 @@ def add_socket_routes(socketio):
             return {"success": False, "error": "Unauthorized."}
 
         data = data or {}
-        room = _get_room(data.get("room_id"))
-        if room is None:
-            return {"success": False, "error": "Room not found."}
-        if room.get("owner_id") != get_user_id():
-            return {"success": False, "error": "Unauthorized access."}
+        room, error_response = validate_room_access(data.get("room_id"))
+        if error_response:
+            return error_response[0]
 
         stream_config = room.get("stream", {})
         stream_id = data.get("stream_id")
@@ -165,15 +152,15 @@ def add_socket_routes(socketio):
         publish_attempts[room_id] = publish_attempt
         session_id = None
         try:
-            session_response = create_session()
+            session_response = sfu.create_session()
             session_error = _response_error(session_response)
             if session_error:
-                raise SfuError(session_error)
+                raise sfu.SfuError(session_error)
             session_id = session_response.get("sessionId")
             if not session_id:
-                raise SfuError("Cloudflare SFU did not return a session ID.")
+                raise sfu.SfuError("Cloudflare SFU did not return a session ID.")
 
-            tracks_response = add_tracks(
+            tracks_response = sfu.add_tracks(
                 session_id,
                 {
                     "sessionDescription": {"type": "offer", "sdp": sdp},
@@ -188,21 +175,23 @@ def add_socket_routes(socketio):
             )
             tracks_error = _response_error(tracks_response)
             if tracks_error:
-                raise SfuError(tracks_error)
+                raise sfu.SfuError(tracks_error)
             track = _first_track(tracks_response)
             track_error = _track_error(track)
             if track_error:
-                raise SfuError(track_error)
+                raise sfu.SfuError(track_error)
             session_description = _session_description(tracks_response)
             if session_description is None:
-                raise SfuError("Cloudflare SFU did not return a session description.")
-        except SfuError as error:
+                raise sfu.SfuError(
+                    "Cloudflare SFU did not return a session description."
+                )
+        except sfu.SfuError as error:
             _log_sfu_error("Failed to publish SFU stream", error)
             if session_id:
                 _safe_close_tracks(session_id, str(mid))
             return {"success": False, "error": str(error)}
 
-        latest_room = _get_room(room_id)
+        latest_room = get_room(room_id)
         latest_stream = latest_room.get("stream", {}) if latest_room else {}
         if (
             publish_attempts.get(room_id) is not publish_attempt
@@ -244,7 +233,7 @@ def add_socket_routes(socketio):
     def handle_sfu_publish_ready(data):
         data = data or {}
         session_id = data.get("session_id")
-        session = sessions.get(session_id)
+        session = sfu_sessions.get(session_id)
         if (
             session is None
             or session.get("role") != "publisher"
@@ -252,7 +241,7 @@ def add_socket_routes(socketio):
         ):
             return {"success": False, "error": "Unknown publishing session."}
 
-        room = _get_room(session["room_id"])
+        room = get_room(session["room_id"])
         if room is None:
             _close_session(session_id)
             return {"success": False, "error": "Room not found."}
@@ -280,6 +269,7 @@ def add_socket_routes(socketio):
                 "label": publication.get("label", ""),
             },
             to="room:" + session["room_id"],
+            namespace="/",
         )
         return {"success": True, "data": {}}
 
@@ -287,7 +277,7 @@ def add_socket_routes(socketio):
     def handle_sfu_switch_stream(data):
         data = data or {}
         session_id = data.get("session_id")
-        session = sessions.get(session_id)
+        session = sfu_sessions.get(session_id)
         if (
             session is None
             or session.get("role") != "publisher"
@@ -296,7 +286,7 @@ def add_socket_routes(socketio):
             return {"success": False, "error": "Unknown publishing session."}
 
         stream_id = data.get("stream_id")
-        room = _get_room(session["room_id"])
+        room = get_room(session["room_id"])
         if room is None:
             _close_session(session_id)
             return {"success": False, "error": "Room not found."}
@@ -315,8 +305,6 @@ def add_socket_routes(socketio):
             _close_session(session_id)
             return {"success": False, "error": "Publication not found."}
 
-        # The SFU publication track is unchanged; only the logical stream and
-        # the source track behind it changed. Subscribers keep their session.
         publication["stream_id"] = stream_id
         publication["label"] = data.get("label", publication.get("label", ""))
         session["stream_id"] = stream_id
@@ -328,13 +316,14 @@ def add_socket_routes(socketio):
                 "label": publication.get("label", ""),
             },
             to="room:" + session["room_id"],
+            namespace="/",
         )
         return {"success": True, "data": {}}
 
     @socketio.on("sfu_subscribe")
     def handle_sfu_subscribe(data):
         data = data or {}
-        room = _get_room(data.get("room_id"))
+        room = get_room(data.get("room_id"))
         if room is None:
             return {"success": False, "error": "Room not found."}
 
@@ -356,7 +345,7 @@ def add_socket_routes(socketio):
                 "success": False,
                 "error": "WebRTC streaming is not enabled.",
             }
-        if not stream_config.get("stream_to_clients", False) and not _is_room_owner(
+        if not stream_config.get("stream_to_clients", False) and not is_room_owner(
             room
         ):
             _close_socket_sessions(request.sid, role="subscriber")
@@ -376,15 +365,15 @@ def add_socket_routes(socketio):
 
         session_id = None
         try:
-            session_response = create_session()
+            session_response = sfu.create_session()
             session_error = _response_error(session_response)
             if session_error:
-                raise SfuError(session_error)
+                raise sfu.SfuError(session_error)
             session_id = session_response.get("sessionId")
             if not session_id:
-                raise SfuError("Cloudflare SFU did not return a session ID.")
+                raise sfu.SfuError("Cloudflare SFU did not return a session ID.")
 
-            tracks_response = add_tracks(
+            tracks_response = sfu.add_tracks(
                 session_id,
                 {
                     "tracks": [
@@ -398,26 +387,28 @@ def add_socket_routes(socketio):
             )
             tracks_error = _response_error(tracks_response)
             if tracks_error:
-                raise SfuError(tracks_error)
+                raise sfu.SfuError(tracks_error)
             track = _first_track(tracks_response)
             track_error = _track_error(track)
             if track_error:
-                raise SfuError(track_error)
+                raise sfu.SfuError(track_error)
             mid = track.get("mid")
             if not mid:
-                raise SfuError(
+                raise sfu.SfuError(
                     "Cloudflare SFU did not return the subscribed track mid."
                 )
             session_description = _session_description(tracks_response)
             if session_description is None:
-                raise SfuError("Cloudflare SFU did not return a session description.")
-        except SfuError as error:
+                raise sfu.SfuError(
+                    "Cloudflare SFU did not return a session description."
+                )
+        except sfu.SfuError as error:
             _log_sfu_error("Failed to subscribe to SFU stream", error)
             if session_id:
                 _safe_close_tracks(session_id, None)
             return {"success": False, "error": str(error)}
 
-        latest_room = _get_room(room_id)
+        latest_room = get_room(room_id)
         latest_stream = latest_room.get("stream", {}) if latest_room else {}
         latest_publication = publications.get(room_id)
         if (
@@ -427,7 +418,7 @@ def add_socket_routes(socketio):
             or not latest_stream.get("webrtc_streaming", False)
             or (
                 not latest_stream.get("stream_to_clients", False)
-                and not _is_room_owner(latest_room)
+                and not is_room_owner(latest_room)
             )
             or latest_publication is None
             or latest_publication.get("session_id") != publication["session_id"]
@@ -459,7 +450,7 @@ def add_socket_routes(socketio):
     def handle_sfu_renegotiate(data):
         data = data or {}
         session_id = data.get("session_id")
-        session = sessions.get(session_id)
+        session = sfu_sessions.get(session_id)
         if session is None or session.get("sid") != request.sid:
             return {"success": False, "error": "Unknown SFU session."}
         sdp = data.get("sdp")
@@ -467,11 +458,11 @@ def add_socket_routes(socketio):
             return {"success": False, "error": "Missing WebRTC answer."}
 
         try:
-            response = renegotiate(session_id, sdp)
+            response = sfu.renegotiate(session_id, sdp)
             response_error = _response_error(response)
             if response_error:
-                raise SfuError(response_error)
-        except SfuError as error:
+                raise sfu.SfuError(response_error)
+        except sfu.SfuError as error:
             _log_sfu_error("Failed to renegotiate SFU session", error)
             return {"success": False, "error": str(error)}
         return {"success": True, "data": {}}
@@ -481,7 +472,7 @@ def add_socket_routes(socketio):
         data = data or {}
         session_id = data.get("session_id")
         if session_id:
-            session = sessions.get(session_id)
+            session = sfu_sessions.get(session_id)
             if session is None or session.get("sid") != request.sid:
                 return {"success": False, "error": "Unknown SFU session."}
             _close_session(session_id)

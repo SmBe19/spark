@@ -4,9 +4,8 @@ from bson import ObjectId
 from flask import Response, abort, request
 from flask_socketio import emit
 
-from spark.db.mongo_utils import get_mongo_database
+from spark.db.rooms import validate_room_access
 from spark.decorators import login_required
-from spark.utils import get_user_id
 
 BIG_FRAME_CACHE_TTL_S = 10 * 60
 
@@ -36,12 +35,9 @@ def add_routes(app):
         room_id = request.args.get("room_id")
         if not room_id or not ObjectId.is_valid(room_id):
             return
-        db = get_mongo_database()
-        room = db["rooms"].find_one({"_id": ObjectId(room_id)})
-        if room is None:
-            return {"success": False, "error": "Room not found."}, 404
-        if room.get("owner_id") != get_user_id():
-            return {"success": False, "error": "Unauthorized access."}, 403
+        room, error_response = validate_room_access(room_id)
+        if error_response:
+            return error_response
 
         cleanup_big_frame_cache()
 

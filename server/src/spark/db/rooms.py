@@ -4,7 +4,7 @@ from bson import ObjectId
 from flask_socketio import emit
 
 from spark.db.mongo_utils import get_mongo_database
-from spark.utils import sanitize_object
+from spark.utils import get_user_id, sanitize_object
 
 
 def db_add_reply_to_room(room_id, reply_content, question_index, user_hash):
@@ -111,14 +111,32 @@ def sanitize_reply(reply):
     return san
 
 
-def validate_room_access(room_id, user_id):
+def get_room(room_id):
+    if not room_id or not ObjectId.is_valid(room_id):
+        return None
     db = get_mongo_database()
-    room = db["rooms"].find_one({"_id": ObjectId(room_id)})
+    if isinstance(room_id, str):
+        room_id = ObjectId(room_id)
+    room = db["rooms"].find_one({"_id": room_id})
+    return room
+
+
+def validate_room_access(room_id_or_room, user_id=None):
+    if isinstance(room_id_or_room, (str, ObjectId)):
+        room = get_room(room_id_or_room)
+    else:
+        room = room_id_or_room
     if room is None:
         return None, ({"success": False, "error": "Room not found."}, 404)
-    if user_id is not None and room.get("owner_id") != user_id:
+    if not is_room_owner(room, user_id):
         return None, ({"success": False, "error": "Unauthorized access."}, 403)
     return room, None
+
+
+def is_room_owner(room, user_id=None):
+    if not user_id:
+        user_id = get_user_id()
+    return user_id is not None and bool(room) and room.get("owner_id") == user_id
 
 
 def migrate_room(room):

@@ -35,7 +35,7 @@ def add_routes(app):
     @app.route("/api/rooms/<room_id>", methods=["GET"])
     @public_route
     def get_room(room_id):
-        room, error_response = validate_room_access(room_id, None)
+        room, error_response = validate_room_access(room_id)
         if error_response:
             return error_response
         return {"success": True, "data": sanitize_room(room)}
@@ -43,7 +43,7 @@ def add_routes(app):
     @app.route("/api/rooms/<room_id>/replies", methods=["GET"])
     @login_required
     def get_replies_for_room(room_id):
-        room, error_response = validate_room_access(room_id, get_user_id())
+        room, error_response = validate_room_access(room_id)
         if error_response:
             return error_response
         return {
@@ -66,7 +66,7 @@ def add_routes(app):
         update_data = request.json
         if not validate_not_empty(update_data, ["slug", "name"]):
             return {"success": False, "error": "Room slug and name are required."}, 400
-        _, error_response = validate_room_access(room_id, get_user_id())
+        _, error_response = validate_room_access(room_id)
         if error_response:
             return error_response
         if "slug" in update_data:

@@ -2,7 +2,7 @@ from bson import ObjectId
 from flask_socketio import join_room, leave_room, rooms
 
 from spark.db.mongo_utils import get_mongo_database
-from spark.db.rooms import db_add_reply_to_room, sanitize_room
+from spark.db.rooms import db_add_reply_to_room, sanitize_room, validate_room_access
 from spark.decorators import is_logged_in
 from spark.utils import get_user_id
 
@@ -39,10 +39,9 @@ def add_socket_routes(socketio):
         elif "room_id" in data:
             room_id = data["room_id"]
             room = db["rooms"].find_one({"_id": ObjectId(room_id)})
-        if room is None:
-            return {"success": False, "error": "Room not found."}
-        if room.get("owner_id") != get_user_id():
-            return {"success": False, "error": "Unauthorized access."}
+        _, error_response = validate_room_access(room, get_user_id())
+        if error_response:
+            return error_response[0]
         for current_room in rooms():
             if current_room.startswith("room-admin:"):
                 leave_room(current_room)

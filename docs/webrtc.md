@@ -345,8 +345,6 @@ track (`sfu.close_tracks` with `force: true`).
 
 | Member                                      | Description                                                            |
 | ------------------------------------------- | ---------------------------------------------------------------------- |
-| `openRtcPeerConnection(stream)`             | Publish `stream` as the room's `active_stream_id`                       |
-| `closeRtcPeerConnection()`                  | Tear down the publisher                                                |
 | `activeWebrtcStream` (signal)               | The subscribed `MediaStream`, bound by the room view                   |
 | `errorMessage` (signal)                     | Last publisher/subscriber error, surfaced in the admin UI              |
 

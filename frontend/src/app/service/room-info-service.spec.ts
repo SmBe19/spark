@@ -21,12 +21,12 @@ describe('RoomInfoService', () => {
   });
 
   it('is only the presenter when the admin room is joined without a client room', () => {
-    expect(service.isPresenter()).toBe(false);
+    expect(service.isAdminRoom()).toBe(false);
 
     roomService.activeRoom.set({ id: 'presenter-room' } as RoomInfo);
-    expect(service.isPresenter()).toBe(true);
+    expect(service.isAdminRoom()).toBe(true);
 
     roomClientService.activeRoom.set({ id: 'client-room' } as RoomInfo);
-    expect(service.isPresenter()).toBe(false);
+    expect(service.isAdminRoom()).toBe(false);
   });
 });

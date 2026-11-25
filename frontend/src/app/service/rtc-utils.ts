@@ -9,6 +9,7 @@ export const RTC_CONFIGURATION: RTCConfiguration = {
 };
 
 const ICE_GATHERING_TIMEOUT_MS = 3000;
+const CONNECTION_TIMEOUT_MS = 5000;
 
 export function closePeerConnection(rtcPeerConnection: RTCPeerConnection | null) {
   if (!rtcPeerConnection) {
@@ -16,6 +17,27 @@ export function closePeerConnection(rtcPeerConnection: RTCPeerConnection | null)
   }
   rtcPeerConnection.ontrack = null;
   rtcPeerConnection.close();
+}
+
+export function waitForConnection(rtcPeerConnection: RTCPeerConnection) {
+  if (rtcPeerConnection.connectionState === 'connected') {
+    return Promise.resolve();
+  }
+  return new Promise<void>((resolve) => {
+    const finish = () => {
+      window.clearTimeout(timeout);
+      rtcPeerConnection.removeEventListener('connectionstatechange', onStateChange);
+      resolve();
+    };
+    const timeout = window.setTimeout(finish, CONNECTION_TIMEOUT_MS);
+    const onStateChange = () => {
+      const state = rtcPeerConnection.connectionState;
+      if (state === 'connected' || state === 'failed' || state === 'closed') {
+        finish();
+      }
+    };
+    rtcPeerConnection.addEventListener('connectionstatechange', onStateChange);
+  });
 }
 
 export function waitForIceGathering(rtcPeerConnection: RTCPeerConnection) {

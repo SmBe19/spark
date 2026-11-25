@@ -6,6 +6,7 @@ import {
   RTC_CONFIGURATION,
   SfuSessionDescription,
   closePeerConnection,
+  waitForConnection,
   waitForIceGathering,
 } from './rtc-utils';
 
@@ -152,6 +153,12 @@ export class WebrtcPublisherService {
 
     this.sessionId = response.data.sessionId;
     await rtcPeerConnection.setRemoteDescription(response.data.sessionDescription);
+    if (generation !== this.generation) {
+      await this.signalling.emit('sfu_close', { session_id: response.data.sessionId });
+      return;
+    }
+
+    await waitForConnection(rtcPeerConnection);
     if (generation !== this.generation) {
       await this.signalling.emit('sfu_close', { session_id: response.data.sessionId });
       return;

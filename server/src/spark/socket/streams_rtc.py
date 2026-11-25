@@ -78,14 +78,6 @@ def add_socket_routes(socketio):
             raise sfu.SfuError("Cloudflare SFU did not return a session ID.")
         return session_id
 
-    def _data_channel_id(response):
-        data_channel = response.get("dataChannel")
-        if not isinstance(data_channel, dict) or data_channel.get("id") is None:
-            raise sfu.SfuError(
-                "Cloudflare SFU did not return the data channel allocation."
-            )
-        return data_channel["id"]
-
     def _safe_close_tracks(session_id, mid):
         if not session_id or not mid:
             return True
@@ -94,16 +86,6 @@ def add_socket_routes(socketio):
             return True
         except sfu.SfuError as error:
             _log_sfu_error("Failed to close SFU track", error)
-            return False
-
-    def _safe_close_data_channel(session_id, data_channel_id):
-        if not session_id or data_channel_id is None:
-            return True
-        try:
-            sfu.close_data_channel(session_id, data_channel_id)
-            return True
-        except sfu.SfuError as error:
-            _log_sfu_error("Failed to close SFU data channel", error)
             return False
 
     def _detach_room_subscriptions(room_id):
@@ -152,7 +134,6 @@ def add_socket_routes(socketio):
                     subscriptions_by_room.pop(room_id, None)
 
         _safe_close_tracks(session_id, session.get("mid"))
-        _safe_close_data_channel(session_id, session.get("data_channel"))
 
     def _close_publication(room_id):
         publication = publications.get(room_id)
@@ -165,16 +146,13 @@ def add_socket_routes(socketio):
             if session is not None and (role is None or session.get("role") == role):
                 _close_session(session_id)
 
-    def _register_sfu_session(
-        session_id, sid, role, room_id, stream_id, mid, data_channel
-    ):
+    def _register_sfu_session(session_id, sid, role, room_id, stream_id, mid):
         sfu_sessions[session_id] = {
             "sid": sid,
             "role": role,
             "room_id": room_id,
             "stream_id": stream_id,
             "mid": mid,
-            "data_channel": data_channel,
         }
         sfu_sessions_by_socket.setdefault(sid, set()).add(session_id)
 
@@ -375,15 +353,11 @@ def add_socket_routes(socketio):
             _close_session(session_id)
 
         session_id = None
-        data_channel_id = None
         try:
             session_id = _create_session()
             response = _check_error(sfu.establish_data_channel(session_id))
-            data_channel_id = _data_channel_id(response)
             session_description = _session_description(response)
         except sfu.SfuError as error:
-            if session_id:
-                _safe_close_data_channel(session_id, data_channel_id)
             _log_sfu_error("Failed to prepare SFU subscription", error)
             raise _SocketError(str(error))
 
@@ -394,7 +368,6 @@ def add_socket_routes(socketio):
             room_id,
             stream_id,
             None,
-            data_channel_id,
         )
         subscriptions_by_room.setdefault(room_id, set()).add(session_id)
         return {
@@ -402,8 +375,6 @@ def add_socket_routes(socketio):
             "data": {
                 "sessionId": session_id,
                 "sessionDescription": session_description,
-                # TODO why is this needed? the client already knows the stream_id it requested
-                "streamId": stream_id,
             },
         }
 
@@ -481,7 +452,6 @@ def add_socket_routes(socketio):
             room_id,
             stream_id,
             str(mid),
-            existing_session.get("data_channel") if existing_session else None,
         )
         subscriptions_by_room.setdefault(room_id, set()).add(session_id)
         return {

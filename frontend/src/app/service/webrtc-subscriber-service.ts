@@ -14,7 +14,6 @@ import {
 interface SfuPrepareResult {
   sessionId: string;
   sessionDescription: SfuSessionDescription;
-  streamId: string;
 }
 
 interface SfuSubscribeResult {

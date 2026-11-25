@@ -72,14 +72,6 @@ def establish_data_channel(session_id, name="server-events"):
     )
 
 
-def close_data_channel(session_id, data_channel_id):
-    return _request(
-        "PUT",
-        f"/sessions/{session_id}/datachannels/close",
-        {"dataChannels": [{"id": data_channel_id}]},
-    )
-
-
 def renegotiate(session_id, sdp):
     return _request(
         "PUT",

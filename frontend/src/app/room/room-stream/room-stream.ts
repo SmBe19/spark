@@ -17,17 +17,19 @@ export class RoomStream {
   private directStreamService = inject(DirectStreamService);
 
   currentFrameStream = computed(() => {
-    const activeRoom = this.roomInfoService.activeRoom();
-    if (!activeRoom) {
-      return null;
-    }
-    const activeStreamId = activeRoom.stream.activeStreamId;
+    const activeStreamId = this.roomInfoService.activeRoom()?.stream.activeStreamId;
     if (!activeStreamId) {
       return null;
     }
     return this.frameStreamService.remoteStreams()[activeStreamId] || null;
   });
 
-  currentDirectStream = computed(() => this.directStreamService.directStream());
+  currentDirectStream = computed(() => {
+    const activeStreamId = this.roomInfoService.activeRoom()?.stream.activeStreamId;
+    if (!activeStreamId) {
+      return null;
+    }
+    return this.directStreamService.parentLocalStreams()[activeStreamId]?.stream || null;
+  });
   currentWebrtcStream = computed(() => this.webrtcStreamService.activeWebrtcStream());
 }

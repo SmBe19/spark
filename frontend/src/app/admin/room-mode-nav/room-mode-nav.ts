@@ -38,7 +38,7 @@ export class RoomModeNav {
     if (!activeRoom) {
       return;
     }
-    this.directStreamService.openPresenter(activeRoom.id, activeRoom.slug);
+    window.open(`/presenter/${activeRoom.slug}`);
   }
 }
 

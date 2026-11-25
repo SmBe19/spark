@@ -158,7 +158,7 @@ export class WebrtcStreamService {
       !!activeStreamId &&
       activeRoom.stream.webrtcStreaming &&
       (this.roomInfoService.isPresenter() || activeRoom.stream.streamToClients) &&
-      !this.directStreamService.directStream() &&
+      !this.directStreamService.parentLocalStreams()[activeStreamId] &&
       !this.localStreamService.localStreams()[activeStreamId];
     if (!shouldSubscribe) {
       void this.closeSubscriber();

@@ -23,6 +23,15 @@ body {
   --incorrect-background: #bb2222;
 }
 
+.spark-markdown a,
+.spark-markdown a:visited {
+  color: var(--primary-accent-color);
+}
+
+.spark-markdown a:hover {
+  color: var(--secondary-accent-color);
+}
+
 .single-line-markdown p {
   display: inline;
   margin: 0;

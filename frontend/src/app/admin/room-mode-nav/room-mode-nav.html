@@ -1,35 +1,41 @@
 <nav class="room-mode-nav">
-  <div class="nav-section">
-    <div class="nav-item nav-subtitle">Preview</div>
-    @for (item of navItems; track item.label) {
-      @if (item.previewMode) {
-        <div
-          class="nav-item nav-mode"
-          [ngClass]="{
-            'active-mode': roomInfoService.activePreviewRoomMode() === item.previewMode,
-          }"
-          (click)="switchPreviewRoomMode(item.previewMode!)"
-        >
-          {{ item.label }}
-        </div>
+  @if (roomInfoService.activeRoom()) {
+    <div class="nav-section">
+      <div class="nav-item nav-subtitle">Preview</div>
+      @for (item of navItems; track item.label) {
+        @if (item.previewMode) {
+          <div
+            class="nav-item nav-mode"
+            [ngClass]="{
+              'active-mode': roomInfoService.activePreviewRoomMode() === item.previewMode,
+            }"
+            (click)="switchPreviewRoomMode(item.previewMode!)"
+          >
+            {{ item.label }}
+          </div>
+        }
       }
-    }
-  </div>
-  <div class="nav-section">
-    <div class="nav-item nav-subtitle">Client</div>
-    @for (item of navItems; track item.label) {
-      @if (item.mode) {
-        <div
-          class="nav-item nav-mode"
-          [ngClass]="{ 'active-mode': roomInfoService.activeRoomMode() === item.mode }"
-          (click)="switchRoomMode(item.mode!)"
-        >
-          {{ item.label }}
-        </div>
-      }
-    }
-    <div class="nav-item nav-link">
-      <a (click)="openPresenter()">Presenter</a>
     </div>
-  </div>
+    <div class="nav-section">
+      <div class="nav-item nav-subtitle">Client</div>
+      @for (item of navItems; track item.label) {
+        @if (item.mode) {
+          <div
+            class="nav-item nav-mode"
+            [ngClass]="{ 'active-mode': roomInfoService.activeRoomMode() === item.mode }"
+            (click)="switchRoomMode(item.mode!)"
+          >
+            {{ item.label }}
+          </div>
+        }
+      }
+      <div class="nav-item nav-link">
+        <a (click)="openPresenter()">Presenter</a>
+      </div>
+    </div>
+  } @else {
+    <div class="nav-section">
+      <div class="nav-item nav-subtitle">No room selected.</div>
+    </div>
+  }
 </nav>

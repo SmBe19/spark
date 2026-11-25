@@ -341,6 +341,71 @@ def add_socket_routes(socketio):
         _emit_stream_ready(session["room_id"], stream_id, publication.get("label", ""))
         return {"success": True, "data": {}}
 
+    @_handler("sfu_prepare_subscription")
+    def handle_sfu_prepare_subscription(data):
+        """Create and connect a subscriber session before a track exists.
+
+        This establishes the WebRTC transport (via the reserved ``server-events``
+        DataChannel) so that adding the publication later only needs a media
+        renegotiation on the already connected session.
+        """
+        data = data or {}
+        room = get_room(data.get("room_id"))
+        if room is None:
+            raise _SocketError("Room not found.")
+
+        room_id = str(room["_id"])
+        stream_config = room.get("stream", {})
+        stream_id = data.get("stream_id")
+        if not stream_id or stream_config.get("active_stream_id") != stream_id:
+            _close_socket_sessions(request.sid, role="subscriber")
+            raise _SocketError("Only the active stream can be subscribed to.")
+        if room.get("active_mode") != "stream" or not stream_config.get(
+            "webrtc_streaming", False
+        ):
+            _close_socket_sessions(request.sid, role="subscriber")
+            raise _SocketError("WebRTC streaming is not enabled.")
+        if not _can_subscribe(room):
+            _close_socket_sessions(request.sid, role="subscriber")
+            raise _SocketError("WebRTC streaming is not enabled for clients.")
+
+        # A prepared connection belongs to a single PeerConnection, so discard
+        # any session left over from a previous connection.
+        session_id, existing_session = _subscriber_session(request.sid, room_id)
+        if existing_session is not None:
+            _close_session(session_id)
+
+        session_id = None
+        try:
+            session_id = _create_session()
+            response = _check_error(sfu.establish_data_channel(session_id))
+            session_description = _session_description(response)
+            if session_description is None:
+                raise sfu.SfuError(
+                    "Cloudflare SFU did not return a session description."
+                )
+        except sfu.SfuError as error:
+            _log_sfu_error("Failed to prepare SFU subscription", error)
+            raise _SocketError(str(error))
+
+        _register_session(
+            session_id,
+            request.sid,
+            "subscriber",
+            room_id,
+            stream_id,
+            None,
+        )
+        subscriptions_by_room.setdefault(room_id, set()).add(session_id)
+        return {
+            "success": True,
+            "data": {
+                "sessionId": session_id,
+                "sessionDescription": session_description,
+                "streamId": stream_id,
+            },
+        }
+
     @_handler("sfu_subscribe")
     def handle_sfu_subscribe(data):
         data = data or {}
@@ -370,7 +435,8 @@ def add_socket_routes(socketio):
             or publication.get("stream_id") != stream_id
             or not publication.get("ready")
         ):
-            _close_socket_sessions(request.sid, role="subscriber")
+            # Keep any prepared subscriber session so the track can be added on
+            # the established connection once the publication is ready.
             raise _SocketError("not_ready")
 
         # Reuse an existing subscriber session for this socket and room so the

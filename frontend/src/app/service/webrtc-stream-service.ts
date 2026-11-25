@@ -17,6 +17,12 @@ interface SfuPublishResult {
   mid: string;
 }
 
+interface SfuPrepareResult {
+  sessionId: string;
+  sessionDescription: SfuSessionDescription;
+  streamId: string;
+}
+
 interface SfuSubscribeResult {
   sessionId: string;
   sessionDescription: SfuSessionDescription;
@@ -367,91 +373,133 @@ export class WebrtcStreamService {
     }
   }
 
+  private createSubscriberTrackHandler(generation: number) {
+    return (event: RTCTrackEvent) => {
+      if (generation !== this.subscriberGeneration) {
+        event.track.stop();
+        return;
+      }
+      const previousStream = this.activeWebrtcStream();
+      if (previousStream) {
+        previousStream.getTracks().forEach((track) => track.stop());
+      }
+      this.activeWebrtcStream.set(new MediaStream([event.track]));
+    };
+  }
+
+  private async applySubscriberDescription(
+    rtcPeerConnection: RTCPeerConnection,
+    sessionId: string,
+    sessionDescription: SfuSessionDescription,
+    generation: number,
+  ): Promise<boolean> {
+    await rtcPeerConnection.setRemoteDescription(sessionDescription);
+    if (generation !== this.subscriberGeneration) {
+      return false;
+    }
+    if (sessionDescription.type !== 'offer') {
+      return true;
+    }
+    const answer = await rtcPeerConnection.createAnswer();
+    await rtcPeerConnection.setLocalDescription(answer);
+    await this.waitForIceGathering(rtcPeerConnection);
+    if (generation !== this.subscriberGeneration) {
+      return false;
+    }
+    const localDescription = rtcPeerConnection.localDescription;
+    if (!localDescription?.sdp) {
+      throw new Error('Could not prepare the WebRTC answer.');
+    }
+    const renegotiateResponse = await this.emitSfu('sfu_renegotiate', {
+      session_id: sessionId,
+      sdp: localDescription.sdp,
+    });
+    if (generation !== this.subscriberGeneration) {
+      return false;
+    }
+    if (!renegotiateResponse.success) {
+      throw new Error(renegotiateResponse.error);
+    }
+    return true;
+  }
+
+  private async prepareSubscriberConnection(generation: number): Promise<boolean> {
+    const rtcPeerConnection = new RTCPeerConnection(WebrtcStreamService.rtcConfiguration);
+    this.subscriberRtcPeerConnection = rtcPeerConnection;
+    rtcPeerConnection.ontrack = this.createSubscriberTrackHandler(generation);
+
+    const response = await this.emitSfu<SfuPrepareResult>('sfu_prepare_subscription', {
+      room_id: this.roomInfoService.activeRoomId(),
+      stream_id: this.subscriberTargetStreamId,
+    });
+    if (generation !== this.subscriberGeneration) {
+      if (response.success) {
+        await this.emitSfu('sfu_close', { session_id: response.data.sessionId });
+      }
+      return false;
+    }
+    if (!response.success) {
+      throw new Error(response.error);
+    }
+
+    this.subscriberSessionId = response.data.sessionId;
+    return this.applySubscriberDescription(
+      rtcPeerConnection,
+      response.data.sessionId,
+      response.data.sessionDescription,
+      generation,
+    );
+  }
+
   private async subscribeToActiveStream(streamId: string) {
     const generation = ++this.subscriberGeneration;
     this.subscriberTargetStreamId = streamId;
     this.subscriberNegotiating = true;
     try {
-      const existingPeerConnection = this.subscriberRtcPeerConnection;
-      const reusing = existingPeerConnection !== null && this.subscriberSessionId !== null;
-      if (!reusing) {
+      const hasConnection =
+        this.subscriberRtcPeerConnection !== null && this.subscriberSessionId !== null;
+      if (!hasConnection) {
         await this.releaseSubscriber();
         if (generation !== this.subscriberGeneration) {
           return;
         }
-      }
-
-      const rtcPeerConnection = reusing
-        ? existingPeerConnection
-        : new RTCPeerConnection(WebrtcStreamService.rtcConfiguration);
-      this.subscriberRtcPeerConnection = rtcPeerConnection;
-      rtcPeerConnection.ontrack = (event: RTCTrackEvent) => {
-        if (generation !== this.subscriberGeneration) {
-          event.track.stop();
+        const prepared = await this.prepareSubscriberConnection(generation);
+        if (!prepared || generation !== this.subscriberGeneration) {
           return;
         }
-        const previousStream = this.activeWebrtcStream();
-        if (previousStream) {
-          previousStream.getTracks().forEach((track) => track.stop());
-        }
-        this.activeWebrtcStream.set(new MediaStream([event.track]));
-      };
+      }
+
+      const rtcPeerConnection = this.subscriberRtcPeerConnection;
+      if (!rtcPeerConnection) {
+        throw new Error('Could not prepare the subscriber connection.');
+      }
 
       const response = await this.emitSfu<SfuSubscribeResult>('sfu_subscribe', {
         room_id: this.roomInfoService.activeRoomId(),
         stream_id: streamId,
       });
       if (generation !== this.subscriberGeneration) {
-        if (response.success && !reusing) {
-          await this.emitSfu('sfu_close', { session_id: response.data.sessionId });
-        }
         return;
       }
       if (!response.success) {
         if (response.error === 'not_ready') {
-          const retry = this.subscriberRetryRequested;
-          this.subscriberRetryRequested = false;
-          await this.closeSubscriber();
-          if (retry) {
-            this.syncSubscriber();
-          }
-        } else {
-          this.errorMessage.set('Error subscribing to WebRTC stream: ' + response.error);
-          await this.closeSubscriber();
+          // The prepared connection stays up; sfu_stream_ready retries.
+          return;
         }
+        this.errorMessage.set('Error subscribing to WebRTC stream: ' + response.error);
+        await this.closeSubscriber();
         return;
       }
 
       this.subscriberSessionId = response.data.sessionId;
-      await rtcPeerConnection.setRemoteDescription(response.data.sessionDescription);
-      if (generation !== this.subscriberGeneration) {
-        if (!reusing) {
-          await this.emitSfu('sfu_close', { session_id: response.data.sessionId });
-        }
+      const applied = await this.applySubscriberDescription(
+        rtcPeerConnection,
+        response.data.sessionId,
+        response.data.sessionDescription,
+        generation,
+      );
+      if (!applied || generation !== this.subscriberGeneration) {
         return;
-      }
-
-      if (response.data.sessionDescription.type === 'offer') {
-        const answer = await rtcPeerConnection.createAnswer();
-        await rtcPeerConnection.setLocalDescription(answer);
-        await this.waitForIceGathering(rtcPeerConnection);
-        if (generation !== this.subscriberGeneration) {
-          return;
-        }
-        const localDescription = rtcPeerConnection.localDescription;
-        if (!localDescription?.sdp) {
-          throw new Error('Could not prepare the WebRTC answer.');
-        }
-        const renegotiateResponse = await this.emitSfu('sfu_renegotiate', {
-          session_id: response.data.sessionId,
-          sdp: localDescription.sdp,
-        });
-        if (generation !== this.subscriberGeneration) {
-          return;
-        }
-        if (!renegotiateResponse.success) {
-          throw new Error(renegotiateResponse.error);
-        }
       }
       this.errorMessage.set(null);
       this.subscriberSubscribedStreamId = streamId;
@@ -465,7 +513,7 @@ export class WebrtcStreamService {
         this.subscriberNegotiating = false;
         if (this.subscriberRetryRequested) {
           this.subscriberRetryRequested = false;
-          this.syncSubscriber();
+          this.syncSubscriber(true);
         }
       }
     }

@@ -64,6 +64,14 @@ def add_tracks(session_id, payload):
     return _request("POST", f"/sessions/{session_id}/tracks/new", payload)
 
 
+def establish_data_channel(session_id, name="server-events"):
+    return _request(
+        "POST",
+        f"/sessions/{session_id}/datachannels/establish",
+        {"dataChannel": {"location": "remote", "dataChannelName": name}},
+    )
+
+
 def renegotiate(session_id, sdp):
     return _request(
         "PUT",

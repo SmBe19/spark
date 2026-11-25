@@ -92,6 +92,10 @@ export class RoomPresenter {
         case 'T':
           this.switchRoomMode('timer');
           break;
+        case 'f':
+        case 'F':
+          window.document.documentElement.requestFullscreen();
+          break;
         default:
           return false;
       }

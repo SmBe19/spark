@@ -7,6 +7,7 @@ import { PresentationService } from './presentation-service';
 @Service()
 export class RoomInfoService {
   activeRoom = computed(() => this.roomService.activeRoom() || this.roomClientService.activeRoom());
+  // TODO can we make this cleaner?
   isPresenter = computed(
     () => !!this.roomService.activeRoom() && !this.roomClientService.activeRoom(),
   );

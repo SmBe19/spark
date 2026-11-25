@@ -4,8 +4,6 @@ import urllib.error
 import urllib.request
 
 SFU_BASE_URL = "https://rtc.live.cloudflare.com/v1"
-# Cloudflare's Browser Integrity Check rejects the default Python urllib
-# User-Agent on rtc.live.cloudflare.com with error 1010, so identify the app.
 SFU_USER_AGENT = "spark-sfu-backend/1.0"
 
 

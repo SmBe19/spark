@@ -7,11 +7,6 @@ interface SparkDirectStreamWindow extends Window {
   __sparkGetDirectStream?: () => MediaStream | null;
 }
 
-/**
- * Shares the active local stream with a presenter window opened from the admin
- * interface on the same machine. Same-origin windows can pass the MediaStream
- * by reference, so the presenter needs neither WebRTC nor the Cloudflare SFU.
- */
 @Service()
 export class DirectStreamService {
   directStream = signal<MediaStream | null>(null);
@@ -25,18 +20,19 @@ export class DirectStreamService {
     sparkWindow.__sparkSetDirectStream = (stream) => this.setDirectStream(stream);
     sparkWindow.__sparkGetDirectStream = () => this.currentActiveStream();
 
+    // Admin side
     effect(() => {
       this.pushDirectStream(this.currentActiveStream());
     });
 
-    // Presenter side: pull whatever the opener already published.
+    // Presenter side
     try {
       const opener = window.opener as SparkDirectStreamWindow | null;
       if (opener && typeof opener.__sparkGetDirectStream === 'function') {
         this.setDirectStream(opener.__sparkGetDirectStream() ?? null);
       }
     } catch {
-      // Opener is cross-origin or inaccessible; fall back to WebRTC.
+      // Cross-origin opener; ignore.
     }
   }
 
@@ -53,8 +49,6 @@ export class DirectStreamService {
     if (!stream) {
       return;
     }
-    // The admin page stopping its capture (or unloading) ends the shared
-    // tracks; drop the direct stream so the presenter can fall back.
     for (const track of stream.getTracks()) {
       track.addEventListener('ended', () => {
         if (this.directStream() === stream) {

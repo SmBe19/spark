@@ -16,7 +16,7 @@ export class RoomStream {
   private webrtcStreamService = inject(WebrtcStreamService);
   private directStreamService = inject(DirectStreamService);
 
-  currentStream = computed(() => {
+  currentFrameStream = computed(() => {
     const activeRoom = this.roomInfoService.activeRoom();
     if (!activeRoom) {
       return null;

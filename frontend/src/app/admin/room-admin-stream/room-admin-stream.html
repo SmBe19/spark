@@ -2,7 +2,7 @@
   <div class="admin-left-column">
     <div class="admin-edit-form">
       @if (localStreamService.streamCaptureSupported) {
-        <div class="admin-edit-control-buttons">
+        <div class="admin-edit-control-buttons two-columns">
           <button
             type="button"
             [disabled]="anyDirtyValues()"
@@ -24,7 +24,7 @@
       @if (errorMessage()) {
         <p class="warning-text">{{ errorMessage() }}</p>
       }
-      <div class="admin-edit-control-buttons">
+      <div class="admin-edit-control-buttons two-columns">
         <button type="button" [disabled]="anyDirtyValues()" (click)="toggleStreamToClients()">
           @if (streamModel().streamToClients) {
             Stream to Clients: On

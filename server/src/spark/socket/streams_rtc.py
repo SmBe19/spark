@@ -4,7 +4,12 @@ from flask import current_app, request
 from flask_socketio import emit
 
 from spark import sfu
-from spark.db.rooms import get_room, is_room_owner, validate_room_access
+from spark.db.rooms import (
+    allows_client_streaming,
+    get_room,
+    is_room_owner,
+    validate_room_access,
+)
 from spark.decorators import is_logged_in
 
 
@@ -248,13 +253,15 @@ def add_socket_routes(socketio):
 
     @_handler("sfu_publish")
     def handle_sfu_publish(data):
-        if not is_logged_in():
-            raise _SocketError("Unauthorized.")
-
         data = data or {}
-        room, error_response = validate_room_access(data.get("room_id"))
+        room, error_response = validate_room_access(
+            data.get("room_id"), accept_client_streaming=True
+        )
         if error_response:
             return error_response[0]
+
+        if not is_logged_in() and not allows_client_streaming(room):
+            raise _SocketError("Unauthorized.")
 
         room_id = str(room["_id"])
         _close_publication(room_id)

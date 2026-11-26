@@ -6,7 +6,9 @@ from spark.db.rooms import validate_room_access
 def add_socket_routes(socketio):
     @socketio.on("add_stream_preview_frame")
     def handle_add_stream_preview_frame(data):
-        room, error_response = validate_room_access(data["room_id"])
+        room, error_response = validate_room_access(
+            data["room_id"], accept_client_streaming=True
+        )
         if error_response:
             return error_response[0]
         stream_config = room.get("stream", {})

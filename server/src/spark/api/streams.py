@@ -4,8 +4,8 @@ from bson import ObjectId
 from flask import Response, abort, request
 from flask_socketio import emit
 
-from spark.db.rooms import validate_room_access
-from spark.decorators import login_required
+from spark.db.rooms import allows_client_streaming, validate_room_access
+from spark.decorators import is_logged_in
 
 BIG_FRAME_CACHE_TTL_S = 10 * 60
 
@@ -30,14 +30,17 @@ def add_routes(app):
         return response
 
     @app.route("/api/streams/<stream_id>/bigframe", methods=["POST"])
-    @login_required
     def set_big_frame(stream_id):
         room_id = request.args.get("room_id")
         if not room_id or not ObjectId.is_valid(room_id):
             return
-        room, error_response = validate_room_access(room_id)
+        room, error_response = validate_room_access(
+            room_id, accept_client_streaming=True
+        )
         if error_response:
             return error_response
+        if not is_logged_in() and not allows_client_streaming(room):
+            return {"success": False, "error": "Unauthorized"}, 401
 
         cleanup_big_frame_cache()
 

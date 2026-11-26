@@ -1,0 +1,14 @@
+<div class="stream-share-wrapper" [ngClass]="{ sharing: isSharing() }">
+  @if (isSharing()) {
+    <div>Sharing {{ sharedStream()?.label }}</div>
+    <div class="stream-share-buttons">
+      <button type="button" (click)="stopSharing()">Stop Sharing</button>
+    </div>
+  } @else {
+    <div>Share</div>
+    <div class="stream-share-buttons">
+      <button type="button" (click)="localStreamService.addLocalStream(true)">Screen</button>
+      <button type="button" (click)="localStreamService.addLocalStream(false)">Camera</button>
+    </div>
+  }
+</div>

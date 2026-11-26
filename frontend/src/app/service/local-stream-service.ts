@@ -34,7 +34,7 @@ export class LocalStreamService {
 
   private roomInfoService = inject(RoomInfoService);
 
-  async addLocalStream() {
+  async addLocalStream(displayMedia: boolean = true) {
     if (!this.streamCaptureSupported) {
       return;
     }
@@ -44,12 +44,11 @@ export class LocalStreamService {
       return;
     }
     try {
-      const stream = await navigator.mediaDevices.getDisplayMedia({
-        video: {
-          frameRate: 30,
-        },
-        audio: false,
-      });
+      const stream = await this.getMediaStream(displayMedia);
+      if (!stream) {
+        this.errorMessage.set('No stream captured.');
+        return;
+      }
       const streamId = crypto.randomUUID();
       const [videoTrack] = stream.getVideoTracks();
       const streamLabel = videoTrack.label || streamId;
@@ -78,6 +77,22 @@ export class LocalStreamService {
       this.errorMessage.set(null);
     } catch (error) {
       this.errorMessage.set('Error capturing local stream: ' + (error as Error).message);
+    }
+  }
+
+  private getMediaStream(displayMedia: boolean) {
+    if (displayMedia) {
+      return navigator.mediaDevices.getDisplayMedia({
+        video: {
+          frameRate: 30,
+        },
+        audio: false,
+      });
+    } else {
+      return navigator.mediaDevices.getUserMedia({
+        video: true,
+        audio: false,
+      });
     }
   }
 

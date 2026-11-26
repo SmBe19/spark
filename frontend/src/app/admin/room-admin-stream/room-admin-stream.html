@@ -6,9 +6,16 @@
           <button
             type="button"
             [disabled]="anyDirtyValues()"
-            (click)="localStreamService.addLocalStream()"
+            (click)="localStreamService.addLocalStream(true)"
           >
-            Add Local Stream
+            Share Screen
+          </button>
+          <button
+            type="button"
+            [disabled]="anyDirtyValues()"
+            (click)="localStreamService.addLocalStream(false)"
+          >
+            Share Camera
           </button>
         </div>
       } @else {
@@ -20,17 +27,27 @@
       <div class="admin-edit-control-buttons">
         <button type="button" [disabled]="anyDirtyValues()" (click)="toggleStreamToClients()">
           @if (streamModel().streamToClients) {
-            Disable Client Stream
+            Stream to Clients: On
           } @else {
-            Enable Client Stream
+            Stream to Clients: Off
+          }
+        </button>
+        <button type="button" [disabled]="anyDirtyValues()" (click)="toggleAllowClientStreaming()">
+          @if (streamModel().allowClientStreaming) {
+            Client Streaming: On
+          } @else {
+            Client Streaming: Off
           }
         </button>
         <button type="button" [disabled]="anyDirtyValues()" (click)="toggleWebrtcStreaming()">
           @if (streamModel().webrtcStreaming) {
-            Disable WebRTC
+            WebRTC: On
           } @else {
-            Enable WebRTC
+            WebRTC: Off
           }
+        </button>
+        <button type="button" [disabled]="anyDirtyValues()" (click)="activateStream('')">
+          No Stream
         </button>
       </div>
       <form (submit)="updateStreamSettings()" class="admin-edit-content-form">

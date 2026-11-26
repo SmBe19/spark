@@ -30,6 +30,7 @@ export interface ApiStream {
   active_stream_id: string;
   channels: ApiStreamChannels;
   stream_to_clients: boolean;
+  allow_client_streaming: boolean;
   webrtc_streaming: boolean;
   webrtc_bitrate_kbps: number;
   frame_preview_interval_ms: number;
@@ -71,6 +72,7 @@ export interface Stream {
   activeStreamId: string;
   channels: StreamChannels;
   streamToClients: boolean;
+  allowClientStreaming: boolean;
   webrtcStreaming: boolean;
   webrtcBitrateKbps: number;
   framePreviewIntervalMs: number;
@@ -130,6 +132,9 @@ export function mergePartialApiRoomInfo(base: RoomInfo, update: PartialApiRoomIn
     if (update.stream.stream_to_clients !== undefined) {
       merged.stream.streamToClients = update.stream.stream_to_clients;
     }
+    if (update.stream.allow_client_streaming !== undefined) {
+      merged.stream.allowClientStreaming = update.stream.allow_client_streaming;
+    }
     if (update.stream.webrtc_streaming !== undefined) {
       merged.stream.webrtcStreaming = update.stream.webrtc_streaming;
     }
@@ -163,6 +168,7 @@ export function mapApiRoomInfoToRoomInfo(apiRoomInfo: ApiRoomInfo): RoomInfo {
       activeStreamId: apiRoomInfo.stream.active_stream_id,
       channels: apiRoomInfo.stream.channels,
       streamToClients: apiRoomInfo.stream.stream_to_clients,
+      allowClientStreaming: apiRoomInfo.stream.allow_client_streaming,
       webrtcStreaming: apiRoomInfo.stream.webrtc_streaming,
       webrtcBitrateKbps: apiRoomInfo.stream.webrtc_bitrate_kbps,
       framePreviewIntervalMs: apiRoomInfo.stream.frame_preview_interval_ms,

@@ -34,6 +34,7 @@ export class RoomAdminStream {
 
   streamModel = signal({
     streamToClients: false,
+    allowClientStreaming: false,
     webrtcStreaming: false,
     webrtcBitrateKbps: 250,
     framePreviewIntervalMs: 1000,
@@ -72,6 +73,7 @@ export class RoomAdminStream {
       }
       this.streamModel.set({
         streamToClients: activeRoom.stream.streamToClients,
+        allowClientStreaming: activeRoom.stream.allowClientStreaming,
         webrtcStreaming: activeRoom.stream.webrtcStreaming,
         webrtcBitrateKbps: activeRoom.stream.webrtcBitrateKbps,
         framePreviewIntervalMs: activeRoom.stream.framePreviewIntervalMs,
@@ -83,8 +85,6 @@ export class RoomAdminStream {
     const streamSettings = this.streamModel();
     this.roomService.updateActiveRoomSettings({
       stream: {
-        stream_to_clients: streamSettings.streamToClients,
-        webrtc_streaming: streamSettings.webrtcStreaming,
         webrtc_bitrate_kbps: streamSettings.webrtcBitrateKbps,
         frame_preview_interval_ms: streamSettings.framePreviewIntervalMs,
       },
@@ -96,6 +96,15 @@ export class RoomAdminStream {
     this.roomService.updateActiveRoomSettings({
       stream: {
         stream_to_clients: !streamSettings.streamToClients,
+      },
+    });
+  }
+
+  toggleAllowClientStreaming() {
+    const streamSettings = this.streamModel();
+    this.roomService.updateActiveRoomSettings({
+      stream: {
+        allow_client_streaming: !streamSettings.allowClientStreaming,
       },
     });
   }

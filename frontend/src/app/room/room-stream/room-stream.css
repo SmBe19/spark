@@ -9,6 +9,10 @@
   overflow: hidden;
 }
 
+.stream-wrapper.light-background {
+  background: white;
+}
+
 .stream-wrapper img,
 .stream-wrapper video {
   width: 100%;

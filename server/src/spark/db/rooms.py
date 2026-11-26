@@ -122,16 +122,22 @@ def get_room(room_id):
     return room
 
 
-def validate_room_access(room_id_or_room, user_id=None):
+def validate_room_access(room_id_or_room, user_id=None, accept_client_streaming=False):
     if isinstance(room_id_or_room, (str, ObjectId)):
         room = get_room(room_id_or_room)
     else:
         room = room_id_or_room
     if room is None:
         return None, ({"success": False, "error": "Room not found."}, 404)
-    if not is_room_owner(room, user_id):
+    if not is_room_owner(room, user_id) and not (
+        accept_client_streaming and allows_client_streaming(room)
+    ):
         return None, ({"success": False, "error": "Unauthorized access."}, 403)
     return room, None
+
+
+def allows_client_streaming(room):
+    return room.get("stream", {}).get("allow_client_streaming", False)
 
 
 def is_room_owner(room, user_id=None):
@@ -147,12 +153,11 @@ def migrate_room(room):
             "active_stream_id": "",
             "channels": {},
             "stream_to_clients": False,
+            "allow_client_streaming": False,
             "webrtc_streaming": False,
             "webrtc_bitrate_kbps": 250,
             "frame_preview_interval_ms": 10000,
         }
         db["rooms"].update_one({"_id": room["_id"]}, {"$set": {"stream": new_stream}})
         room["stream"] = new_stream
-    if "join_info_mode" not in room:
-        room["join_info_mode"] = "auto"
     return room

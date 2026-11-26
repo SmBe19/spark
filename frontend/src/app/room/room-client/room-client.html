@@ -9,11 +9,15 @@
   roomInfoService.activeRoomMode() === 'stream' &&
   roomInfoService.activeRoom()?.stream.streamToClients
 ) {
-  <app-room-stream></app-room-stream>
+  <app-room-stream lightBackground></app-room-stream>
 } @else if (roomInfoService.activeRoomMode() === 'timer') {
   <app-room-fullscreen-timer></app-room-fullscreen-timer>
 } @else {
   <div class="blank-mode">
     <div>{{ roomInfoService.activeRoom()?.name }}</div>
   </div>
+}
+
+@if (roomInfoService.activeRoom()?.stream.allowClientStreaming) {
+  <app-room-client-stream-share></app-room-client-stream-share>
 }

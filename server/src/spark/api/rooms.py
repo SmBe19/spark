@@ -92,6 +92,7 @@ def add_routes(app):
                     [
                         "active_stream_id",
                         "stream_to_clients",
+                        "allow_client_streaming",
                         "webrtc_streaming",
                         "webrtc_bitrate_kbps",
                         "frame_preview_interval_ms",
@@ -169,6 +170,7 @@ def add_routes(app):
                         "active_stream_id": "",
                         "channels": {},
                         "stream_to_clients": False,
+                        "allow_client_streaming": False,
                         "webrtc_streaming": False,
                         "webrtc_bitrate_kbps": 250,
                         "frame_preview_interval_ms": 2500,

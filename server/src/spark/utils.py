@@ -31,4 +31,4 @@ def validate_not_empty(obj, keys):
 
 
 def get_user_id():
-    return ObjectId(session["user_id"])
+    return ObjectId(session["user_id"]) if "user_id" in session else None

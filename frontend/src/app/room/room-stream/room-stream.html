@@ -1,4 +1,4 @@
-<div class="stream-wrapper">
+<div class="stream-wrapper" [ngClass]="{ 'light-background': lightBackground() !== false }">
   @if (currentDirectStream()) {
     <video [srcObject]="currentDirectStream()" autoplay muted playsinline></video>
   } @else if (currentWebrtcStream()) {

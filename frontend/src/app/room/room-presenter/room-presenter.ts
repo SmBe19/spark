@@ -94,7 +94,11 @@ export class RoomPresenter {
           break;
         case 'f':
         case 'F':
-          window.document.documentElement.requestFullscreen();
+          if (document.fullscreenElement) {
+            document.exitFullscreen();
+          } else {
+            document.documentElement.requestFullscreen();
+          }
           break;
         default:
           return false;

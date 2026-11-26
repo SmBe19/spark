@@ -6,14 +6,14 @@
           <button
             type="button"
             [disabled]="anyDirtyValues()"
-            (click)="localStreamService.addLocalStream(true)"
+            (click)="localStreamService.addLocalStream({displayMedia: true})"
           >
             Share Screen
           </button>
           <button
             type="button"
             [disabled]="anyDirtyValues()"
-            (click)="localStreamService.addLocalStream(false)"
+            (click)="localStreamService.addLocalStream({displayMedia: false})"
           >
             Share Camera
           </button>

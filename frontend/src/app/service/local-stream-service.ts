@@ -1,4 +1,4 @@
-import { computed, inject, Service, signal } from '@angular/core';
+import { computed, effect, inject, Service, signal } from '@angular/core';
 import { LocalStream, LocalStreamPreview } from '../model/streams';
 import { RoomInfoService } from './room-info-service';
 
@@ -34,7 +34,22 @@ export class LocalStreamService {
 
   private roomInfoService = inject(RoomInfoService);
 
-  async addLocalStream(displayMedia: boolean = true) {
+  constructor() {
+    effect(() => {
+      if (this.roomInfoService.activeRoom()?.stream.allowClientStreaming !== true) {
+        for (const stream of Object.values(this.localStreams())) {
+          if (stream.clientStreaming) {
+            this.stopLocalStream(stream.id);
+          }
+        }
+      }
+    });
+  }
+
+  async addLocalStream(settings: {
+    displayMedia?: boolean,
+    clientStreaming?: boolean,
+  }) {
     if (!this.streamCaptureSupported) {
       return;
     }
@@ -44,7 +59,7 @@ export class LocalStreamService {
       return;
     }
     try {
-      const stream = await this.getMediaStream(displayMedia);
+      const stream = await this.getMediaStream(settings.displayMedia || true);
       if (!stream) {
         this.errorMessage.set('No stream captured.');
         return;
@@ -63,6 +78,7 @@ export class LocalStreamService {
           id: streamId,
           roomId,
           label: streamLabel,
+          clientStreaming: settings.clientStreaming || false,
           stream: stream,
           videoElement,
           canvas: document.createElement('canvas'),

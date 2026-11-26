@@ -91,7 +91,7 @@ export interface StreamChannels {
 }
 
 export function mergePartialApiRoomInfo(base: RoomInfo, update: PartialApiRoomInfo): RoomInfo {
-  const merged: RoomInfo = { ...base };
+  const merged: RoomInfo = { ...base, stream: { ...base.stream } };
   if (update.id !== undefined) {
     merged.id = update.id;
   }

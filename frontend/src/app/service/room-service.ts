@@ -11,7 +11,6 @@ import {
   PreviewRoomMode,
   RoomInfo,
   RoomInfoShort,
-  RoomMode,
 } from '../model/rooms';
 import { ApiResponse } from '../model/api';
 import {

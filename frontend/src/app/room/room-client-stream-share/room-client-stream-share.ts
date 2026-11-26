@@ -1,4 +1,4 @@
-import { Component, computed, effect, inject, signal } from '@angular/core';
+import { Component, computed, inject, signal } from '@angular/core';
 import { LocalStreamService } from '../../service/local-stream-service';
 import { FrameStreamSenderService } from '../../service/frame-stream-sender-service';
 import { WebrtcPublisherService } from '../../service/webrtc-publisher-service';
@@ -30,20 +30,12 @@ export class RoomClientStreamShare {
       this.webrtcPublisherService.errorMessage(),
   );
 
-  constructor() {
-    effect(() => {
-      if (this.roomInfoService.activeRoom()?.stream.allowClientStreaming !== true) {
-        this.stopSharing();
-      }
-    });
-  }
-
   startSharing(displayMedia: boolean) {
     if (this.isSharing() || this.sharingStarting()) {
       return;
     }
     this.sharingStarting.set(true);
-    this.localStreamService.addLocalStream(displayMedia).finally(() => {
+    this.localStreamService.addLocalStream({displayMedia, clientStreaming: true}).finally(() => {
       this.sharingStarting.set(false);
     });
   }

@@ -2,6 +2,7 @@ export interface LocalStream {
   id: string;
   roomId: string;
   label: string;
+  clientStreaming: boolean;
   stream: MediaStream;
   videoElement: HTMLVideoElement;
   canvas: HTMLCanvasElement;

@@ -170,7 +170,6 @@ export class WebrtcSubscriberService {
   private async prepareConnection(generation: number): Promise<boolean> {
     const rtcPeerConnection = new RTCPeerConnection(RTC_CONFIGURATION);
     this.rtcPeerConnection = rtcPeerConnection;
-    rtcPeerConnection.ontrack = this.createTrackHandler(generation);
 
     const response = await this.signalling.emit<SfuPrepareResult>('sfu_prepare_subscription', {
       room_id: this.roomInfoService.activeRoomId(),
@@ -201,6 +200,11 @@ export class WebrtcSubscriberService {
     sessionDescription: SfuSessionDescription,
     generation: number,
   ): Promise<boolean> {
+    // A prepared connection is reused across subscriptions, so the track
+    // handler must be refreshed for the current generation. Otherwise the
+    // handler installed during the prepare phase treats the new track as stale
+    // and stops it before it can be shown.
+    rtcPeerConnection.ontrack = this.createTrackHandler(generation);
     await rtcPeerConnection.setRemoteDescription(sessionDescription);
     if (generation !== this.generation) {
       return false;

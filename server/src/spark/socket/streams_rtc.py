@@ -36,7 +36,7 @@ def add_socket_routes(socketio):
         return decorator
 
     def _log_sfu_error(message, error):
-        current_app.logger.warning("%s: %s", message, error)
+        current_app.logger.warning("%s: %s.", message, error)
 
     def _check_error(response):
         error = None
@@ -66,6 +66,7 @@ def add_socket_routes(socketio):
         return track
 
     def _add_track(session_id, payload):
+        current_app.logger.info("Adding SFU track for session %s.", session_id)
         response = _check_error(sfu.add_tracks(session_id, payload))
         track = _first_track(response)
         session_description = _session_description(response)
@@ -74,6 +75,7 @@ def add_socket_routes(socketio):
     def _create_session():
         response = _check_error(sfu.create_session())
         session_id = response.get("sessionId")
+        current_app.logger.info("Created new SFU session: %s.", session_id)
         if not session_id:
             raise sfu.SfuError("Cloudflare SFU did not return a session ID.")
         return session_id
@@ -82,6 +84,9 @@ def add_socket_routes(socketio):
         if not session_id or not mid:
             return True
         try:
+            current_app.logger.info(
+                "Closing SFU track %s for session %s.", mid, session_id
+            )
             sfu.close_tracks(session_id, [mid])
             return True
         except sfu.SfuError as error:
@@ -98,6 +103,7 @@ def add_socket_routes(socketio):
                 session["mid"] = None
 
     def _close_session(session_id):
+        current_app.logger.info("Closing SFU session %s.", session_id)
         session = sfu_sessions.pop(session_id, None)
         if session is None:
             return
@@ -136,6 +142,7 @@ def add_socket_routes(socketio):
         _safe_close_tracks(session_id, session.get("mid"))
 
     def _close_publication(room_id):
+        current_app.logger.info("Closing SFU publication for room %s.", room_id)
         publication = publications.get(room_id)
         if publication is not None:
             _close_session(publication["session_id"])
@@ -147,6 +154,12 @@ def add_socket_routes(socketio):
                 _close_session(session_id)
 
     def _register_sfu_session(session_id, sid, role, room_id, stream_id, mid):
+        current_app.logger.info(
+            "Registering SFU session %s with role %s for room %s.",
+            session_id,
+            role,
+            room_id,
+        )
         sfu_sessions[session_id] = {
             "sid": sid,
             "role": role,
@@ -311,6 +324,11 @@ def add_socket_routes(socketio):
 
         publication = _require_publication(session_id, session)
         publication["ready"] = True
+        current_app.logger.info(
+            "SFU stream ready for room %s, stream %s.",
+            session["room_id"],
+            session["stream_id"],
+        )
         _emit_stream_ready(
             session["room_id"], session["stream_id"], publication.get("label", "")
         )
@@ -328,6 +346,9 @@ def add_socket_routes(socketio):
         publication["stream_id"] = stream_id
         publication["label"] = data.get("label", publication.get("label", ""))
         session["stream_id"] = stream_id
+        current_app.logger.info(
+            "SFU stream switched for room %s, stream %s.", session["room_id"], stream_id
+        )
         _emit_stream_ready(session["room_id"], stream_id, publication.get("label", ""))
         return {"success": True, "data": {}}
 
@@ -346,6 +367,10 @@ def add_socket_routes(socketio):
             raise _SocketError(
                 "The stream is not active or WebRTC is not enabled for clients."
             )
+
+        current_app.logger.info(
+            "Preparing SFU subscription for room %s, stream %s.", room_id, stream_id
+        )
 
         session_id, existing_session = _subscriber_sfu_session(request.sid, room_id)
         if existing_session is not None:
@@ -391,6 +416,10 @@ def add_socket_routes(socketio):
             raise _SocketError(
                 "The stream is not active or WebRTC is not enabled for clients."
             )
+
+        current_app.logger.info(
+            "Subscribing to SFU stream for room %s, stream %s.", room_id, stream_id
+        )
 
         publication = publications.get(room_id)
         if (
@@ -471,6 +500,8 @@ def add_socket_routes(socketio):
         if not sdp:
             raise _SocketError("Missing WebRTC answer.")
 
+        current_app.logger.info("Renegotiating SFU session %s.", session_id)
+
         try:
             _check_error(sfu.renegotiate(session_id, sdp))
         except sfu.SfuError as error:
@@ -482,6 +513,7 @@ def add_socket_routes(socketio):
     def handle_sfu_close(data):
         data = data or {}
         session_id = data.get("session_id")
+        current_app.logger.info("Closing SFU session %s.", session_id)
         if session_id:
             _require_session_id(data)
             _close_session(session_id)
@@ -491,4 +523,5 @@ def add_socket_routes(socketio):
 
     @_handler("disconnect")
     def handle_disconnect():
+        current_app.logger.info("Socket disconnected: %s.", request.sid)
         _close_socket_sessions(request.sid)

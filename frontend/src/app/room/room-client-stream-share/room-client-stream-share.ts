@@ -35,7 +35,7 @@ export class RoomClientStreamShare {
       return;
     }
     this.sharingStarting.set(true);
-    this.localStreamService.addLocalStream({displayMedia, clientStreaming: true}).finally(() => {
+    this.localStreamService.addLocalStream({ displayMedia, clientStreaming: true }).finally(() => {
       this.sharingStarting.set(false);
     });
   }

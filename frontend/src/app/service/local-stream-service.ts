@@ -4,7 +4,14 @@ import { RoomInfoService } from './room-info-service';
 
 @Service()
 export class LocalStreamService {
-  streamCaptureSupported = !!(navigator.mediaDevices && navigator.mediaDevices.getDisplayMedia);
+  streamCaptureSupportedDisplayMedia = !!(
+    navigator.mediaDevices && navigator.mediaDevices.getDisplayMedia
+  );
+  streamCaptureSupportedUserMedia = !!(
+    navigator.mediaDevices && navigator.mediaDevices.getUserMedia
+  );
+  streamCaptureSupported =
+    this.streamCaptureSupportedDisplayMedia || this.streamCaptureSupportedUserMedia;
 
   errorMessage = signal<string | null>(null);
   localStreams = signal<{ [key: string]: LocalStream }>({});
@@ -46,11 +53,9 @@ export class LocalStreamService {
     });
   }
 
-  async addLocalStream(settings: {
-    displayMedia?: boolean,
-    clientStreaming?: boolean,
-  }) {
+  async addLocalStream(settings: { displayMedia: boolean; clientStreaming?: boolean }) {
     if (!this.streamCaptureSupported) {
+      this.errorMessage.set('Stream capture is not supported in this browser.');
       return;
     }
     const roomId = this.roomInfoService.activeRoomId();
@@ -59,7 +64,7 @@ export class LocalStreamService {
       return;
     }
     try {
-      const stream = await this.getMediaStream(settings.displayMedia || true);
+      const stream = await this.getMediaStream(settings.displayMedia);
       if (!stream) {
         this.errorMessage.set('No stream captured.');
         return;
@@ -72,13 +77,14 @@ export class LocalStreamService {
       videoElement.autoplay = true;
       videoElement.muted = true;
       videoElement.playsInline = true;
+      await videoElement.play();
       this.localStreams.update((currentStreams) => ({
         ...currentStreams,
         [streamId]: {
           id: streamId,
           roomId,
           label: streamLabel,
-          clientStreaming: settings.clientStreaming || false,
+          clientStreaming: settings.clientStreaming ?? false,
           stream: stream,
           videoElement,
           canvas: document.createElement('canvas'),
@@ -106,7 +112,11 @@ export class LocalStreamService {
       });
     } else {
       return navigator.mediaDevices.getUserMedia({
-        video: true,
+        video: {
+          frameRate: { ideal: 30, max: 30 },
+          width: { ideal: 1280, max: 1920 },
+          height: { ideal: 720, max: 1080 },
+        },
         audio: false,
       });
     }

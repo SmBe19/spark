@@ -3,20 +3,24 @@
     <div class="admin-edit-form">
       @if (localStreamService.streamCaptureSupported) {
         <div class="admin-edit-control-buttons two-columns">
-          <button
-            type="button"
-            [disabled]="anyDirtyValues()"
-            (click)="localStreamService.addLocalStream({displayMedia: true})"
-          >
-            Share Screen
-          </button>
-          <button
-            type="button"
-            [disabled]="anyDirtyValues()"
-            (click)="localStreamService.addLocalStream({displayMedia: false})"
-          >
-            Share Camera
-          </button>
+          @if (localStreamService.streamCaptureSupportedDisplayMedia) {
+            <button
+              type="button"
+              [disabled]="anyDirtyValues()"
+              (click)="localStreamService.addLocalStream({ displayMedia: true })"
+            >
+              Share Screen
+            </button>
+          }
+          @if (localStreamService.streamCaptureSupportedUserMedia) {
+            <button
+              type="button"
+              [disabled]="anyDirtyValues()"
+              (click)="localStreamService.addLocalStream({ displayMedia: false })"
+            >
+              Share Camera
+            </button>
+          }
         </div>
       } @else {
         <p class="warning-text">Your browser does not support screen capture.</p>

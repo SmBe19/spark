@@ -25,28 +25,28 @@
         <p class="warning-text">{{ errorMessage() }}</p>
       }
       <div class="admin-edit-control-buttons two-columns">
-        <button type="button" [disabled]="anyDirtyValues()" (click)="toggleStreamToClients()">
+        <button type="button" [disabled]="anyDirtyValues()" [ngClass]="{ 'setting-off': !streamModel().streamToClients }" (click)="toggleStreamToClients()">
           @if (streamModel().streamToClients) {
             Stream to Clients: On
           } @else {
             Stream to Clients: Off
           }
         </button>
-        <button type="button" [disabled]="anyDirtyValues()" (click)="toggleAllowClientStreaming()">
+        <button type="button" [disabled]="anyDirtyValues()" [ngClass]="{ 'setting-off': !streamModel().allowClientStreaming }" (click)="toggleAllowClientStreaming()">
           @if (streamModel().allowClientStreaming) {
             Client Streaming: On
           } @else {
             Client Streaming: Off
           }
         </button>
-        <button type="button" [disabled]="anyDirtyValues()" (click)="toggleWebrtcStreaming()">
+        <button type="button" [disabled]="anyDirtyValues()" [ngClass]="{ 'setting-off': !streamModel().webrtcStreaming }" (click)="toggleWebrtcStreaming()">
           @if (streamModel().webrtcStreaming) {
             WebRTC: On
           } @else {
             WebRTC: Off
           }
         </button>
-        <button type="button" [disabled]="anyDirtyValues()" (click)="activateStream('')">
+        <button type="button" [disabled]="anyDirtyValues() || activeStreamId() === ''" (click)="activateStream('')">
           No Stream
         </button>
       </div>
@@ -87,7 +87,7 @@
           <button
             type="button"
             class="local-stream-stop-button"
-            (click)="localStreamService.stopLocalStream(stream.id)"
+            (click)="$event.stopPropagation(); localStreamService.stopLocalStream(stream.id)"
           >
             Stop Stream
           </button>

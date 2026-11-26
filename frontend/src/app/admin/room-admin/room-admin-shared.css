@@ -69,6 +69,10 @@
   flex: 1 1 calc(50% - 0.5rem);
 }
 
+.admin-edit-control-buttons button.setting-off {
+  background: var(--muted-color-medium);
+}
+
 .admin-edit-input {
   display: flex;
   flex-flow: column;

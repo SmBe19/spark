@@ -25,6 +25,7 @@ export class WebrtcPublisherService {
   private sender: RTCRtpSender | null = null;
   private sessionId: string | null = null;
   private targetStreamId: string | null = null;
+  private targetTrack: MediaStreamTrack | null = null;
   private appliedBitrateKbps: number | null = null;
   private generation = 0;
 
@@ -40,16 +41,17 @@ export class WebrtcPublisherService {
     const activeRoom = this.roomInfoService.activeRoom();
     const streamId = activeRoom?.stream.activeStreamId ?? '';
     const localStream = this.localStreamService.localStreams()[streamId];
-    const shouldPublish =
-      !!activeRoom &&
-      activeRoom.activeMode === 'stream' &&
-      !!localStream &&
-      activeRoom.stream.webrtcStreaming;
-    if (!shouldPublish) {
+    if (
+      !activeRoom ||
+      !localStream ||
+      activeRoom.activeMode !== 'stream' ||
+      !activeRoom.stream.webrtcStreaming
+    ) {
       void this.close();
       return;
     }
-    if (this.targetStreamId === streamId) {
+    const track = localStream.stream.getVideoTracks()[0] ?? null;
+    if (this.targetStreamId === streamId && this.targetTrack === track) {
       void this.applyBitrate(activeRoom.stream.webrtcBitrateKbps);
       return;
     }
@@ -89,6 +91,7 @@ export class WebrtcPublisherService {
     if (generation !== this.generation) {
       return;
     }
+    this.targetTrack = track;
     const label = this.localStreamService.localStreams()[streamId]?.label ?? '';
     const response = await this.signalling.emit('sfu_switch_stream', {
       session_id: this.sessionId,
@@ -115,6 +118,7 @@ export class WebrtcPublisherService {
     if (generation !== this.generation) {
       return;
     }
+    this.targetTrack = track;
 
     const rtcPeerConnection = new RTCPeerConnection(RTC_CONFIGURATION);
     this.rtcPeerConnection = rtcPeerConnection;
@@ -190,6 +194,7 @@ export class WebrtcPublisherService {
     this.sender = null;
     this.appliedBitrateKbps = null;
     this.sessionId = null;
+    this.targetTrack = null;
     closePeerConnection(rtcPeerConnection);
     if (sessionId) {
       await this.signalling.emit('sfu_close', { session_id: sessionId });

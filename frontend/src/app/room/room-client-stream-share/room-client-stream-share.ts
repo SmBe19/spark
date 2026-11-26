@@ -4,6 +4,7 @@ import { FrameStreamSenderService } from '../../service/frame-stream-sender-serv
 import { WebrtcPublisherService } from '../../service/webrtc-publisher-service';
 import { NgClass } from '@angular/common';
 import { RoomInfoService } from '../../service/room-info-service';
+import { CameraFacingMode } from '../../model/streams';
 
 @Component({
   imports: [NgClass],
@@ -23,6 +24,8 @@ export class RoomClientStreamShare {
   isStreamLive = computed(
     () => this.sharedStream()?.id === this.roomInfoService.activeRoom()?.stream.activeStreamId,
   );
+  isCameraStream = computed(() => this.sharedStream()?.isDisplayMedia === false);
+  cameraFacing = computed<CameraFacingMode>(() => this.sharedStream()?.facingMode ?? 'user');
   errorMessage = computed(
     () =>
       this.localStreamService.errorMessage() ||
@@ -30,14 +33,24 @@ export class RoomClientStreamShare {
       this.webrtcPublisherService.errorMessage(),
   );
 
-  startSharing(displayMedia: boolean) {
+  startSharing(displayMedia: boolean, facingMode?: CameraFacingMode) {
     if (this.isSharing() || this.sharingStarting()) {
       return;
     }
     this.sharingStarting.set(true);
-    this.localStreamService.addLocalStream({ displayMedia, clientStreaming: true }).finally(() => {
-      this.sharingStarting.set(false);
-    });
+    this.localStreamService
+      .addLocalStream({ displayMedia, clientStreaming: true, facingMode })
+      .finally(() => {
+        this.sharingStarting.set(false);
+      });
+  }
+
+  switchCamera(facingMode: CameraFacingMode) {
+    const streamId = this.sharedStream()?.id;
+    if (!streamId || this.cameraFacing() === facingMode) {
+      return;
+    }
+    this.localStreamService.switchCamera(streamId, facingMode);
   }
 
   stopSharing() {

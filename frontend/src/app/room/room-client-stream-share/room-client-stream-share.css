@@ -44,6 +44,12 @@
   cursor: pointer;
 }
 
+.stream-share-buttons button:disabled,
+.sharing .stream-share-buttons button:disabled {
+  background-color: var(--muted-color-light);
+  color: var(--muted-color-medium);
+}
+
 .sharing .stream-share-buttons button {
   background-color: var(--primary-accent-color);
   color: white;
@@ -64,4 +70,5 @@
 
 .stream-preview {
   max-width: 100%;
+  max-height: 25rem;
 }

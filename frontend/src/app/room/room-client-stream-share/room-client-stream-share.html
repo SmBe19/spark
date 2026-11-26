@@ -18,6 +18,24 @@
           class="stream-preview"
         ></video>
       </div>
+      @if (isCameraStream()) {
+        <div class="stream-share-buttons">
+          <button
+            [disabled]="cameraFacing() === 'user'"
+            type="button"
+            (click)="switchCamera('user')"
+          >
+            Front camera
+          </button>
+          <button
+            [disabled]="cameraFacing() === 'environment'"
+            type="button"
+            (click)="switchCamera('environment')"
+          >
+            Back camera
+          </button>
+        </div>
+      }
       <div class="stream-share-buttons">
         <button type="button" (click)="stopSharing()">Stop Sharing</button>
       </div>
@@ -33,9 +51,26 @@
           </button>
         }
         @if (localStreamService.streamCaptureSupportedUserMedia) {
-          <button [disabled]="sharingStarting()" type="button" (click)="startSharing(false)">
-            Camera
-          </button>
+          @if (localStreamService.streamCaptureSupportedDisplayMedia) {
+            <button [disabled]="sharingStarting()" type="button" (click)="startSharing(false)">
+              Camera
+            </button>
+          } @else {
+            <button
+              [disabled]="sharingStarting()"
+              type="button"
+              (click)="startSharing(false, 'user')"
+            >
+              Front camera
+            </button>
+            <button
+              [disabled]="sharingStarting()"
+              type="button"
+              (click)="startSharing(false, 'environment')"
+            >
+              Back camera
+            </button>
+          }
         }
       </div>
     }

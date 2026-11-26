@@ -1,8 +1,12 @@
+export type CameraFacingMode = 'user' | 'environment';
+
 export interface LocalStream {
   id: string;
   roomId: string;
   label: string;
   clientStreaming: boolean;
+  isDisplayMedia: boolean;
+  facingMode?: CameraFacingMode;
   stream: MediaStream;
   videoElement: HTMLVideoElement;
   canvas: HTMLCanvasElement;
@@ -12,6 +16,8 @@ export interface LocalStreamPreview {
   id: string;
   label: string;
   channel?: string;
+  isDisplayMedia: boolean;
+  facingMode?: CameraFacingMode;
   stream: MediaStream;
 }
 

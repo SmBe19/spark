@@ -1,3 +1,5 @@
+import { provideHttpClient } from '@angular/common/http';
+import { provideHttpClientTesting } from '@angular/common/http/testing';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { AdminRoomNav } from './admin-room-nav';
 
@@ -8,6 +10,7 @@ describe('AdminRoomNav', () => {
   beforeEach(async () => {
     await TestBed.configureTestingModule({
       imports: [AdminRoomNav],
+      providers: [provideHttpClient(), provideHttpClientTesting()],
     }).compileComponents();
 
     fixture = TestBed.createComponent(AdminRoomNav);

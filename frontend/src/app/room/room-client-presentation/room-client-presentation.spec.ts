@@ -11,6 +11,8 @@ describe('RoomClientPresentation', () => {
     }).compileComponents();
 
     fixture = TestBed.createComponent(RoomClientPresentation);
+    fixture.componentRef.setInput('roomName', '');
+    fixture.componentRef.setInput('activeSlide', undefined);
     component = fixture.componentInstance;
     await fixture.whenStable();
   });

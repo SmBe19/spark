@@ -11,6 +11,7 @@ describe('PresentationPreview', () => {
     }).compileComponents();
 
     fixture = TestBed.createComponent(PresentationPreview);
+    fixture.componentRef.setInput('presentation', []);
     component = fixture.componentInstance;
     await fixture.whenStable();
   });

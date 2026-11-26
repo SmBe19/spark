@@ -66,7 +66,8 @@ describe('SparkMarkdown', () => {
     fixture.componentRef.setInput('data', diagram);
     fixture.detectChanges();
     expect(loadMermaid).toHaveBeenCalledTimes(1);
-    expect(fixture.nativeElement.querySelector('markdown')).toBeNull();
+    // Markdown stays visible while the optional diagram library is still loading.
+    expect(fixture.nativeElement.querySelector('markdown')).not.toBeNull();
 
     const view = fixture.nativeElement as HTMLElement;
     fixture.componentRef.setInput('data', 'Next slide');

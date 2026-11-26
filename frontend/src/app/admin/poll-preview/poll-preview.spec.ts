@@ -11,6 +11,12 @@ describe('PollPreview', () => {
     }).compileComponents();
 
     fixture = TestBed.createComponent(PollPreview);
+    fixture.componentRef.setInput('parsedPoll', {
+      questions: [],
+      presentationPages: [],
+      clientPages: [],
+    });
+    fixture.componentRef.setInput('activeQuestionIndex', 0);
     component = fixture.componentInstance;
     await fixture.whenStable();
   });

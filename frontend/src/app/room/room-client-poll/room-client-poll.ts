@@ -97,7 +97,9 @@ export class RoomClientPoll {
   }
 
   questionHasCorrection(questionIndex: number): boolean {
-    const question = this.roomInfoService.activeClientQuestions().find((q) => q.index === questionIndex);
+    const question = this.roomInfoService
+      .activeClientQuestions()
+      .find((q) => q.index === questionIndex);
     if (!question || question.pollType !== 'options') {
       return false;
     }

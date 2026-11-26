@@ -27,7 +27,9 @@ export class RoomInfoService {
     }
     return this.activePresentationSlides()[index];
   });
-  activePresentationQuestions = computed(() => this.getActiveQuestions((poll) => poll.presentationPages));
+  activePresentationQuestions = computed(() =>
+    this.getActiveQuestions((poll) => poll.presentationPages),
+  );
   activeClientQuestions = computed(() => this.getActiveQuestions((poll) => poll.clientPages));
   activeReplies = computed(() => this.roomService.activeReplies.value() || []);
 

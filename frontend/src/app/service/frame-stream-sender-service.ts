@@ -9,7 +9,8 @@ import { LocalStreamService } from './local-stream-service';
 @Service()
 export class FrameStreamSenderService {
   private static readonly previewScale = 0.25;
-  private static readonly previewMaxSize = 640;
+  private static readonly previewMaxSize = 500;
+  private static readonly bigFrameMaxSize = 1920;
 
   errorMessage = signal<string | null>(null);
 
@@ -93,7 +94,12 @@ export class FrameStreamSenderService {
   }
 
   private async uploadBigFrame(localStream: LocalStream) {
-    const blob = await this.renderFrameBlob(localStream.videoElement, localStream.canvas, 1);
+    const scale = Math.min(
+      1,
+      FrameStreamSenderService.bigFrameMaxSize / localStream.videoElement.videoWidth,
+      FrameStreamSenderService.bigFrameMaxSize / localStream.videoElement.videoHeight,
+    );
+    const blob = await this.renderFrameBlob(localStream.videoElement, localStream.canvas, scale);
     if (!blob) {
       return;
     }

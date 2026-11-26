@@ -9,6 +9,7 @@ import { LocalStreamService } from './local-stream-service';
 @Service()
 export class FrameStreamSenderService {
   private static readonly previewScale = 0.25;
+  private static readonly previewMaxSize = 640;
 
   errorMessage = signal<string | null>(null);
 
@@ -29,11 +30,12 @@ export class FrameStreamSenderService {
 
   private sendPreviewFrames() {
     for (const localStream of Object.values(this.localStreamService.localStreams())) {
-      const dataUrl = this.renderFrameDataURL(
-        localStream.videoElement,
-        localStream.canvas,
+      const scale = Math.min(
         FrameStreamSenderService.previewScale,
+        FrameStreamSenderService.previewMaxSize / localStream.videoElement.videoWidth,
+        FrameStreamSenderService.previewMaxSize / localStream.videoElement.videoHeight,
       );
+      const dataUrl = this.renderFrameDataURL(localStream.videoElement, localStream.canvas, scale);
       if (!dataUrl) {
         continue;
       }

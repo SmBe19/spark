@@ -109,6 +109,8 @@ export class LocalStreamService {
       return;
     }
     try {
+      currentStream.stream.getTracks().forEach((track) => track.stop());
+      currentStream.videoElement.remove();
       const stream = await this.getMediaStream(false, facingMode);
       if (!stream) {
         this.errorMessage.set('No stream captured.');
@@ -116,8 +118,6 @@ export class LocalStreamService {
       }
       const [videoTrack] = stream.getVideoTracks();
       const videoElement = await this.createVideoElement(stream);
-      currentStream.stream.getTracks().forEach((track) => track.stop());
-      currentStream.videoElement.remove();
       this.registerStreamEndListeners(streamId, stream, videoTrack);
       this.localStreams.update((currentStreams) => {
         if (!currentStreams[streamId]) {

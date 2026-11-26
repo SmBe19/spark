@@ -18,15 +18,24 @@ class FakeMediaStream {
 
 describe('WebrtcSubscriberService', () => {
   let service: WebrtcSubscriberService;
+  let socketOn: ReturnType<typeof vi.fn>;
+  let activeRoom: ReturnType<typeof signal<any>>;
+
+  const streamReadyHandler = () =>
+    socketOn.mock.calls.find(([event]) => event === 'sfu_stream_ready')?.[1] as (
+      data: Record<string, unknown>,
+    ) => void;
 
   beforeEach(() => {
+    socketOn = vi.fn();
+    activeRoom = signal(null);
     TestBed.configureTestingModule({
       providers: [
-        { provide: SocketService, useValue: { socket: { on: vi.fn(), emit: vi.fn() } } },
+        { provide: SocketService, useValue: { socket: { on: socketOn, emit: vi.fn() } } },
         {
           provide: RoomInfoService,
           useValue: {
-            activeRoom: signal(null),
+            activeRoom,
             activeRoomId: signal(null),
             isAdminRoom: () => false,
           },
@@ -69,5 +78,45 @@ describe('WebrtcSubscriberService', () => {
     } finally {
       vi.unstubAllGlobals();
     }
+  });
+
+  it('keeps the existing track when the publisher swaps the source on the same publication', () => {
+    activeRoom.set({
+      id: 'room-1',
+      activeMode: 'stream',
+      stream: { activeStreamId: 'stream-b', webrtcStreaming: true, streamToClients: true },
+    });
+    (service as any).rtcPeerConnection = {};
+    (service as any).subscribedPublicationSessionId = 'publication-1';
+    const syncSpy = vi.spyOn(service as any, 'sync');
+
+    streamReadyHandler()({
+      room_id: 'room-1',
+      stream_id: 'stream-b',
+      publication_session_id: 'publication-1',
+      source_swapped: true,
+    });
+
+    expect(syncSpy).not.toHaveBeenCalled();
+  });
+
+  it('re-subscribes when the publication changes', () => {
+    activeRoom.set({
+      id: 'room-1',
+      activeMode: 'stream',
+      stream: { activeStreamId: 'stream-b', webrtcStreaming: true, streamToClients: true },
+    });
+    (service as any).rtcPeerConnection = {};
+    (service as any).subscribedPublicationSessionId = 'publication-1';
+    const syncSpy = vi.spyOn(service as any, 'sync');
+
+    streamReadyHandler()({
+      room_id: 'room-1',
+      stream_id: 'stream-b',
+      publication_session_id: 'publication-2',
+      source_swapped: false,
+    });
+
+    expect(syncSpy).toHaveBeenCalledWith(true);
   });
 });

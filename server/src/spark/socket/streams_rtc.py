@@ -229,10 +229,19 @@ def add_socket_routes(socketio):
             raise _SocketError("The stream is no longer active.")
         return room
 
-    def _emit_stream_ready(room_id, stream_id, label):
+    def _emit_stream_ready(room_id, stream_id, label, publication=None, swapped=False):
+        payload = {
+            "room_id": room_id,
+            "stream_id": stream_id,
+            "label": label,
+            "source_swapped": swapped,
+        }
+        if publication is not None:
+            payload["publication_session_id"] = publication.get("session_id", "")
+            payload["track_name"] = publication.get("track_name", "")
         emit(
             "sfu_stream_ready",
-            {"room_id": room_id, "stream_id": stream_id, "label": label},
+            payload,
             to="room:" + room_id,
             namespace="/",
         )
@@ -330,7 +339,10 @@ def add_socket_routes(socketio):
             session["stream_id"],
         )
         _emit_stream_ready(
-            session["room_id"], session["stream_id"], publication.get("label", "")
+            session["room_id"],
+            session["stream_id"],
+            publication.get("label", ""),
+            publication,
         )
         return {"success": True, "data": {}}
 
@@ -349,7 +361,13 @@ def add_socket_routes(socketio):
         current_app.logger.info(
             "SFU stream switched for room %s, stream %s.", session["room_id"], stream_id
         )
-        _emit_stream_ready(session["room_id"], stream_id, publication.get("label", ""))
+        _emit_stream_ready(
+            session["room_id"],
+            stream_id,
+            publication.get("label", ""),
+            publication,
+            swapped=True,
+        )
         return {"success": True, "data": {}}
 
     @_handler("sfu_prepare_subscription")
@@ -451,10 +469,15 @@ def add_socket_routes(socketio):
                 raise sfu.SfuError(
                     "Cloudflare SFU did not return the subscribed track mid."
                 )
+            # The previous track must not be closed until the new track's
+            # offer/answer exchange has completed. Cloudflare requires
+            # serializing mutations per session, and closing in the middle of
+            # the negotiation delays or rejects the new subscription.
+            pending_close_mid = None
             if existing_session is not None:
                 old_mid = existing_session.get("mid")
                 if old_mid and old_mid != str(mid):
-                    _safe_close_tracks(session_id, old_mid)
+                    pending_close_mid = old_mid
         except sfu.SfuError as error:
             _log_sfu_error("Failed to subscribe to SFU stream", error)
             if should_create_session and session_id:
@@ -481,6 +504,8 @@ def add_socket_routes(socketio):
             stream_id,
             str(mid),
         )
+        if pending_close_mid:
+            sfu_sessions[session_id]["pending_close_mid"] = pending_close_mid
         subscriptions_by_room.setdefault(room_id, set()).add(session_id)
         return {
             "success": True,
@@ -489,6 +514,7 @@ def add_socket_routes(socketio):
                 "sessionDescription": session_description,
                 "streamId": stream_id,
                 "mid": str(mid),
+                "publicationSessionId": publication["session_id"],
             },
         }
 
@@ -507,6 +533,14 @@ def add_socket_routes(socketio):
         except sfu.SfuError as error:
             _log_sfu_error("Failed to renegotiate SFU session", error)
             raise _SocketError(str(error))
+        finally:
+            # Now that the renegotiation completed, the superseded track can be
+            # released without interrupting the newly added one.
+            session = sfu_sessions.get(session_id)
+            if session is not None:
+                pending_close_mid = session.pop("pending_close_mid", None)
+                if pending_close_mid:
+                    _safe_close_tracks(session_id, pending_close_mid)
         return {"success": True, "data": {}}
 
     @_handler("sfu_close")

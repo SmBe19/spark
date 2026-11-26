@@ -77,7 +77,7 @@ publisher session but multiple subscriber sessions (one per room).
 | `sfu_subscribe`            | client → server  | Add the remote publication track to the subscriber session  |
 | `sfu_renegotiate`          | client → server  | Send the subscriber answer SDP                              |
 | `sfu_close`                | client → server  | Close one session, or all sessions of the socket            |
-| `sfu_stream_ready`         | server → room    | A publication is ready; subscribers should subscribe        |
+| `sfu_stream_ready`         | server → room    | A publication is ready or its source track changed          |
 | `sfu_stream_unavailable`   | server → room    | A publication ended; subscribers should drop remote media   |
 | `disconnect`               | Socket.IO system | Close all sessions owned by the disconnecting socket        |
 
@@ -182,8 +182,17 @@ sequenceDiagram
   C->>C: applyBitrate(bitrateKbps)
 ```
 
-The SFU session and all subscriber connections stay up; subscribers receive a
-new `sfu_stream_ready` and re-subscribe on their existing sessions.
+The SFU session and all subscriber connections stay up. Because
+`replaceTrack()` reuses the same transceiver, the Cloudflare publication
+(`sessionId` + `trackName`) is unchanged: subscribers keep receiving on their
+existing remote track without any renegotiation. The server emits
+`sfu_stream_ready` with `source_swapped: true` and the publication identity so
+clients can tell this apart from a fresh publication; subscribers that already
+hold a track for that publication ignore it. A subscriber that was still
+subscribing when the swap happened (`not_ready`) retries against the new
+`stream_id`. A full republish (new `sfu_publish_ready`) emits
+`source_swapped: false` and makes subscribers re-subscribe to the new
+publication.
 
 A generation counter (`generation`) guards every `await`. If state
 changes mid-flight (e.g. the user disables WebRTC), the pending result is
@@ -288,10 +297,13 @@ stopped immediately.
 ### Stream ready / unavailable events
 
 - **`sfu_stream_ready`** is emitted by the server to `room:{room_id}` after
-  `sfu_publish_ready` or `sfu_switch_stream`. The client ignores it unless the
-  room and `active_stream_id` match; otherwise it calls `sync(true)` to force
-  (re)subscription. `sync(true)` itself ignores streams that are local or
-  already subscribed.
+  `sfu_publish_ready` or `sfu_switch_stream`. It carries
+  `publication_session_id`, `track_name`, and `source_swapped`. The client
+  ignores it unless the room and `active_stream_id` match. When
+  `source_swapped` is set and the subscriber already has a live track for the
+  same `publication_session_id`, it keeps that track and returns without
+  renegotiating; otherwise it calls `sync(true)` to force (re)subscription.
+  `sync(true)` itself ignores streams that are local or already subscribed.
 - **`sfu_stream_unavailable`** is emitted when the current publication ends.
   `dropActiveStream()` clears `subscribedStreamId`, stops and clears
   `activeWebrtcStream`, **but keeps the subscriber PeerConnection and SFU
@@ -303,7 +315,9 @@ stopped immediately.
 `sync()` is also called on every room update. When a live subscriber
 PeerConnection already exists, Spark only updates `targetStreamId` and returns;
 it does not start a renegotiation before the publisher has announced the new
-stream. The actual re-subscribe is deferred to the `sfu_stream_ready` event.
+stream. The actual re-subscribe is deferred to the `sfu_stream_ready` event,
+and is skipped entirely when the publisher only swapped the source track on the
+same publication (`source_swapped`).
 
 If a sync arrives while a subscription is in flight (`negotiating`), the request
 is coalesced by setting `retryRequested`. When the in-flight operation finishes,

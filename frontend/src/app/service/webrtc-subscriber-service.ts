@@ -21,12 +21,16 @@ interface SfuSubscribeResult {
   sessionDescription: SfuSessionDescription;
   streamId: string;
   mid: string;
+  publicationSessionId?: string;
 }
 
 interface SfuStreamReadyEvent {
   room_id: string;
   stream_id: string;
   label?: string;
+  publication_session_id?: string;
+  track_name?: string;
+  source_swapped?: boolean;
 }
 
 interface SfuStreamUnavailableEvent {
@@ -43,6 +47,7 @@ export class WebrtcSubscriberService {
   private sessionId: string | null = null;
   private targetStreamId: string | null = null;
   private subscribedStreamId: string | null = null;
+  private subscribedPublicationSessionId: string | null = null;
   private generation = 0;
   private negotiating = false;
   private retryRequested = false;
@@ -56,9 +61,18 @@ export class WebrtcSubscriberService {
   constructor() {
     this.socketService.socket.on('sfu_stream_ready', (data: SfuStreamReadyEvent) => {
       const activeRoom = this.roomInfoService.activeRoom();
-      if (activeRoom?.id === data.room_id && activeRoom.stream.activeStreamId === data.stream_id) {
-        this.sync(true);
+      if (activeRoom?.id !== data.room_id || activeRoom.stream.activeStreamId !== data.stream_id) {
+        return;
       }
+      if (
+        data.source_swapped &&
+        !!data.publication_session_id &&
+        data.publication_session_id === this.subscribedPublicationSessionId &&
+        !!this.rtcPeerConnection
+      ) {
+        return;
+      }
+      this.sync(true);
     });
 
     this.socketService.socket.on('sfu_stream_unavailable', (data: SfuStreamUnavailableEvent) => {
@@ -151,6 +165,7 @@ export class WebrtcSubscriberService {
       }
       this.errorMessage.set(null);
       this.subscribedStreamId = streamId;
+      this.subscribedPublicationSessionId = response.data.publicationSessionId ?? null;
     } catch (error) {
       if (generation === this.generation) {
         this.errorMessage.set('Error subscribing to WebRTC stream: ' + (error as Error).message);
@@ -200,10 +215,6 @@ export class WebrtcSubscriberService {
     sessionDescription: SfuSessionDescription,
     generation: number,
   ): Promise<boolean> {
-    // A prepared connection is reused across subscriptions, so the track
-    // handler must be refreshed for the current generation. Otherwise the
-    // handler installed during the prepare phase treats the new track as stale
-    // and stops it before it can be shown.
     rtcPeerConnection.ontrack = this.createTrackHandler(generation);
     await rtcPeerConnection.setRemoteDescription(sessionDescription);
     if (generation !== this.generation) {
@@ -259,6 +270,7 @@ export class WebrtcSubscriberService {
 
   private dropActiveStream() {
     this.subscribedStreamId = null;
+    this.subscribedPublicationSessionId = null;
     this.stopActiveStream();
   }
 
@@ -276,6 +288,7 @@ export class WebrtcSubscriberService {
     this.rtcPeerConnection = null;
     this.sessionId = null;
     this.subscribedStreamId = null;
+    this.subscribedPublicationSessionId = null;
     closePeerConnection(rtcPeerConnection);
     this.stopActiveStream();
     if (sessionId) {

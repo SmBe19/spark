@@ -1,14 +1,37 @@
 <div class="stream-share-wrapper" [ngClass]="{ sharing: isSharing() }">
   @if (isSharing()) {
-    <div>Sharing {{ sharedStream()?.label }}</div>
+    <div class="stream-status">
+      @if (isStreamLive()) {
+        Presenting (you are live)
+      } @else {
+        Sharing (not yet live)
+      }
+    </div>
+    <div class="stream-label">{{ sharedStream()?.label }}</div>
+    <div>
+      <video
+        [srcObject]="sharedStream()?.stream"
+        autoplay
+        muted
+        playsinline
+        class="stream-preview"
+      ></video>
+    </div>
     <div class="stream-share-buttons">
       <button type="button" (click)="stopSharing()">Stop Sharing</button>
     </div>
   } @else {
-    <div>Share</div>
+    <div>Share with presenter:</div>
+    @if (errorMessage()) {
+      <div class="warning-text">{{ errorMessage() }}</div>
+    }
     <div class="stream-share-buttons">
-      <button type="button" (click)="localStreamService.addLocalStream(true)">Screen</button>
-      <button type="button" (click)="localStreamService.addLocalStream(false)">Camera</button>
+      <button [disabled]="sharingStarting()" type="button" (click)="startSharing(true)">
+        Screen
+      </button>
+      <button [disabled]="sharingStarting()" type="button" (click)="startSharing(false)">
+        Camera
+      </button>
     </div>
   }
 </div>

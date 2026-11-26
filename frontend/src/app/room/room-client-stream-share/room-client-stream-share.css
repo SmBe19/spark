@@ -2,6 +2,7 @@
   position: absolute;
   bottom: 0;
   right: 0;
+  max-width: 25rem;
   background-color: var(--muted-color-very-light);
   color: var(--muted-color-medium);
   border-top-left-radius: 0.5rem;
@@ -46,4 +47,21 @@
 .sharing .stream-share-buttons button {
   background-color: var(--primary-accent-color);
   color: white;
+}
+
+.stream-status {
+  font-weight: 700;
+  font-size: 1.2rem;
+}
+
+.stream-label {
+  font-size: 0.8rem;
+}
+
+.warning-text {
+  color: orangered;
+}
+
+.stream-preview {
+  max-width: 100%;
 }

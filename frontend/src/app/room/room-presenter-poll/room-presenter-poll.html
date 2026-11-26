@@ -1,5 +1,5 @@
 <div class="poll-wrapper">
-  @for (question of roomInfoService.activeQuestions(); track question.index) {
+  @for (question of roomInfoService.activePresentationQuestions(); track question.index) {
     <div class="poll-question">
       <div class="poll-question-text">
         <app-spark-markdown [data]="question.question"></app-spark-markdown>

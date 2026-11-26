@@ -3,6 +3,7 @@ import { RoomClientService } from './room-client-service';
 import { RoomService } from './room-service';
 import { PollService } from './poll-service';
 import { PresentationService } from './presentation-service';
+import { Poll } from '../model/poll';
 
 @Service()
 export class RoomInfoService {
@@ -26,22 +27,25 @@ export class RoomInfoService {
     }
     return this.activePresentationSlides()[index];
   });
-  activeQuestions = computed(() => {
-    const activeRoom = this.activeRoom();
-    const activePoll = this.activePollParsed();
-    if (!activeRoom || !activePoll) {
-      return [];
-    }
-    const activePage = this.pollService.getActivePage(
-      activePoll.presentationPages,
-      activeRoom.activeQuestionIndex,
-    );
-    return activePage.map((index) => activePoll.questions[index]);
-  });
+  activePresentationQuestions = computed(() => this.getActiveQuestions((poll) => poll.presentationPages));
+  activeClientQuestions = computed(() => this.getActiveQuestions((poll) => poll.clientPages));
   activeReplies = computed(() => this.roomService.activeReplies.value() || []);
 
   private roomService = inject(RoomService);
   private roomClientService = inject(RoomClientService);
   private pollService = inject(PollService);
   private presentationService = inject(PresentationService);
+
+  private getActiveQuestions(pages: (poll: Poll) => number[][]) {
+    const activeRoom = this.activeRoom();
+    const activePoll = this.activePollParsed();
+    if (!activeRoom || !activePoll) {
+      return [];
+    }
+    const activePage = this.pollService.getActivePage(
+      pages(activePoll),
+      activeRoom.activeQuestionIndex,
+    );
+    return activePage.map((index) => activePoll.questions[index]);
+  }
 }

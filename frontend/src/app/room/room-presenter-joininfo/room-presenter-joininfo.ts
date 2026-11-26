@@ -24,7 +24,7 @@ export class RoomPresenterJoininfo {
     }
     const roomMode = this.roomInfoService.activeRoomMode();
     if (roomMode === 'poll') {
-      return this.roomInfoService.activeQuestions().length === 0 ? 'big' : 'small';
+      return this.roomInfoService.activePresentationQuestions().length === 0 ? 'big' : 'small';
     } else if (roomMode === 'presentation') {
       return this.roomInfoService.activePresentationSlides().length === 0 ? 'big' : 'small';
     } else if (roomMode === 'blank') {

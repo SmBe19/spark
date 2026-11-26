@@ -1,5 +1,6 @@
 import { Component, computed, effect, input, signal } from '@angular/core';
-import { BaseChartDirective } from 'ng2-charts';
+import { BarController, BarElement, CategoryScale, Legend, LinearScale, Tooltip } from 'chart.js';
+import { BaseChartDirective, provideCharts } from 'ng2-charts';
 import { PollQuestion } from '../../model/poll';
 
 @Component({
@@ -7,6 +8,11 @@ import { PollQuestion } from '../../model/poll';
   selector: 'app-spark-chart',
   styleUrl: './spark-chart.css',
   templateUrl: './spark-chart.html',
+  providers: [
+    provideCharts({
+      registerables: [BarController, BarElement, CategoryScale, LinearScale, Tooltip, Legend],
+    }),
+  ],
 })
 export class SparkChart {
   question = input.required<PollQuestion>();

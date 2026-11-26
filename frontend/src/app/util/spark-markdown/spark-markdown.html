@@ -1,10 +1,12 @@
-<markdown
-  class="spark-markdown"
-  katex
-  emoji
-  mermaid
-  lineNumbers
-  [clipboard]="clipboard()"
-  [disableSanitizer]="true"
-  [data]="data()"
-></markdown>
+@if (!mermaid.isLoading() && !emoji.isLoading()) {
+  <markdown
+    class="spark-markdown"
+    katex
+    lineNumbers
+    [emoji]="emoji.value() ?? false"
+    [mermaid]="mermaid.value() ?? false"
+    [clipboard]="clipboard()"
+    [disableSanitizer]="true"
+    [data]="data()"
+  ></markdown>
+}

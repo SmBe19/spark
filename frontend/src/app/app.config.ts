@@ -1,33 +1,20 @@
-import { ApplicationConfig, provideBrowserGlobalErrorListeners } from '@angular/core';
-import { provideRouter } from '@angular/router';
-import { routes } from './app.routes';
 import { provideHttpClient } from '@angular/common/http';
-import { MARKED_OPTIONS, MarkedOptions, MarkedRenderer, provideMarkdown } from 'ngx-markdown';
-import { provideCharts, withDefaultRegisterables } from 'ng2-charts';
+import { ApplicationConfig, Injectable, provideBrowserGlobalErrorListeners } from '@angular/core';
+import { PreloadingStrategy, Route, provideRouter, withPreloading } from '@angular/router';
+import { Observable, catchError, of } from 'rxjs';
+import { routes } from './app.routes';
 
-const markedOptionsFactory = (): MarkedOptions => {
-  const renderer = new MarkedRenderer();
-  renderer.link = (link): string =>
-    `<a href="${link.href}" target="_blank" rel="noopener noreferrer" ${link.title ? `title="${link.title}"` : ''}>${link.text}</a>`;
-  return {
-    renderer: renderer,
-    gfm: true,
-    breaks: true,
-    pedantic: false,
-  };
-};
+@Injectable({ providedIn: 'root' })
+class RoomPreloadStrategy implements PreloadingStrategy {
+  preload(route: Route, load: () => Observable<unknown>): Observable<unknown> {
+    return route.data?.['preload'] ? load().pipe(catchError(() => of(null))) : of(null);
+  }
+}
 
 export const appConfig: ApplicationConfig = {
   providers: [
     provideBrowserGlobalErrorListeners(),
-    provideRouter(routes),
+    provideRouter(routes, withPreloading(RoomPreloadStrategy)),
     provideHttpClient(),
-    provideMarkdown({
-      markedOptions: {
-        provide: MARKED_OPTIONS,
-        useFactory: markedOptionsFactory,
-      },
-    }),
-    provideCharts(withDefaultRegisterables()),
   ],
 };

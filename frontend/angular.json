@@ -25,15 +25,8 @@
                 "input": "public"
               }
             ],
-            "styles": [
-              "src/styles.css",
-              "node_modules/katex/dist/katex.min.css",
-              "node_modules/prismjs/themes/prism-coy.min.css",
-              "node_modules/prismjs/plugins/line-numbers/prism-line-numbers.css"
-            ],
+            "styles": ["src/styles.css"],
             "scripts": [
-              "node_modules/emoji-toolkit/lib/js/joypixels.min.js",
-              "node_modules/mermaid/dist/mermaid.min.js",
               "node_modules/clipboard/dist/clipboard.min.js",
               "node_modules/prismjs/prism.js",
               "node_modules/prismjs/components/prism-bash.min.js",
@@ -64,13 +57,13 @@
               "budgets": [
                 {
                   "type": "initial",
-                  "maximumWarning": "500kB",
-                  "maximumError": "10MB"
+                  "maximumWarning": "512kB",
+                  "maximumError": "1024kB"
                 },
                 {
                   "type": "anyComponentStyle",
-                  "maximumWarning": "4kB",
-                  "maximumError": "8kB"
+                  "maximumWarning": "32kB",
+                  "maximumError": "64kB"
                 }
               ],
               "outputHashing": "all"

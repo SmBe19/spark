@@ -1,7 +1,10 @@
 import os
+import re
 
 from flask import Flask, request, send_from_directory, session
+from flask_compress import Compress
 from flask_socketio import SocketIO
+from werkzeug.security import safe_join
 
 from spark.api import archive, rooms, streams
 from spark.auth import login_user
@@ -20,6 +23,32 @@ socketio = SocketIO(app)
 init_mongo_app(app)
 
 STATIC_PATH = os.path.abspath(os.getenv("SPARK_STATIC_PATH"))
+HASHED_ASSET = re.compile(
+    r"(?:[\w.-]+-[A-Za-z0-9_-]{8}\.(?:js|css)|"
+    r"media/[\w.-]+-[A-Za-z0-9_-]{8}\.(?:woff2?|ttf))"
+)
+IMMUTABLE_MAX_AGE = 365 * 24 * 60 * 60
+
+app.config.update(
+    COMPRESS_REGISTER=False,
+    COMPRESS_ALGORITHM_STREAMING=["br", "gzip"],
+    COMPRESS_STREAMING_ENDPOINT_CONDITIONAL=["index", "static_files"],
+)
+compress = Compress(app)
+
+
+@app.after_request
+def compress_frontend(response):
+    if request.endpoint not in {"index", "static_files"}:
+        return response
+    if response.status_code == 206:
+        response.vary.add("Accept-Encoding")
+        return response
+    body = response.response
+    compressed = compress.after_request(response)
+    if compressed.response is not body and hasattr(body, "close"):
+        compressed.call_on_close(body.close)
+    return compressed
 
 
 @app.route("/")
@@ -31,8 +60,13 @@ def index():
 @app.route("/<path:path>")
 @public_route
 def static_files(path):
-    if not os.path.exists(os.path.join(STATIC_PATH, path)):
-        return send_from_directory(STATIC_PATH, "index.html")
+    file_path = safe_join(STATIC_PATH, path)
+    if file_path is None or not os.path.isfile(file_path):
+        return index()
+    if HASHED_ASSET.fullmatch(path):
+        response = send_from_directory(STATIC_PATH, path, max_age=IMMUTABLE_MAX_AGE)
+        response.cache_control.immutable = True
+        return response
     return send_from_directory(STATIC_PATH, path)
 
 

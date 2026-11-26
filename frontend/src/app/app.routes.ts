@@ -1,6 +1,5 @@
 import { Routes } from '@angular/router';
 import { JoinRoom } from './room/join-room/join-room';
-import { RoomClient } from './room/room-client/room-client';
 
 export const routes: Routes = [
   {
@@ -10,7 +9,8 @@ export const routes: Routes = [
   },
   {
     path: 'room/:roomSlug',
-    component: RoomClient,
+    loadComponent: () => import('./room/room-client/room-client').then((m) => m.RoomClient),
+    data: { preload: true },
     title: 'Spark',
   },
   {

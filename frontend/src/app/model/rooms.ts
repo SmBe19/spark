@@ -2,6 +2,8 @@ export type RoomMode = 'poll' | 'presentation' | 'stream' | 'timer' | 'blank';
 
 export type PreviewRoomMode = 'poll' | 'presentation' | 'stream' | 'timer' | 'poll-archive';
 
+export type JoinInfoMode = 'auto' | 'none' | 'small' | 'big';
+
 export interface ApiRoomInfoShort {
   id: string;
   slug: string;
@@ -16,6 +18,7 @@ export interface ApiRoomInfo extends RoomInfoShort {
   active_mode: RoomMode;
   active_question_index: number;
   active_slide_index: number;
+  join_info_mode: JoinInfoMode;
   stream: ApiStream;
 }
 
@@ -60,6 +63,7 @@ export interface RoomInfo extends RoomInfoShort {
   activeMode: RoomMode;
   activeQuestionIndex: number;
   activeSlideIndex: number;
+  joinInfoMode: JoinInfoMode;
   stream: Stream;
 }
 
@@ -116,6 +120,9 @@ export function mergePartialApiRoomInfo(base: RoomInfo, update: PartialApiRoomIn
   if (update.active_slide_index !== undefined) {
     merged.activeSlideIndex = update.active_slide_index;
   }
+  if (update.join_info_mode !== undefined) {
+    merged.joinInfoMode = update.join_info_mode;
+  }
   if (update.stream !== undefined) {
     if (update.stream.active_stream_id !== undefined) {
       merged.stream.activeStreamId = update.stream.active_stream_id;
@@ -144,6 +151,7 @@ export function mapApiRoomInfoToRoomInfo(apiRoomInfo: ApiRoomInfo): RoomInfo {
     id: apiRoomInfo.id,
     slug: apiRoomInfo.slug,
     name: apiRoomInfo.name,
+    joinInfoMode: apiRoomInfo.join_info_mode,
     activePollId: apiRoomInfo.active_poll_id,
     activePoll: apiRoomInfo.active_poll,
     activePresentation: apiRoomInfo.active_presentation,

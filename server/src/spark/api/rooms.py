@@ -82,6 +82,7 @@ def add_routes(app):
                 "active_mode",
                 "active_question_index",
                 "active_slide_index",
+                "join_info_mode",
             ],
         )
         if "stream" in update_data:
@@ -163,6 +164,7 @@ def add_routes(app):
                     "active_replies": [],
                     "active_question_index": 0,
                     "active_slide_index": 0,
+                    "join_info_mode": "auto",
                     "stream": {
                         "active_stream_id": "",
                         "channels": {},

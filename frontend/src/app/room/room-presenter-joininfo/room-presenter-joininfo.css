@@ -13,6 +13,10 @@
   justify-content: center;
 }
 
+.join-information-none {
+  display: none;
+}
+
 .join-information-big {
   left: 0;
   bottom: 0;

@@ -33,6 +33,18 @@
         <a (click)="openPresenter()">Presenter</a>
       </div>
     </div>
+    <div class="nav-section">
+      <div class="nav-item nav-subtitle">Join Info</div>
+      @for (item of joinInfoNavItems; track item.label) {
+        <div
+          class="nav-item nav-mode"
+          [ngClass]="{ 'active-mode': roomInfoService.activeRoom()?.joinInfoMode === item.mode }"
+          (click)="switchJoinInfoMode(item.mode)"
+        >
+          {{ item.label }}
+        </div>
+      }
+    </div>
   } @else {
     <div class="nav-section">
       <div class="nav-item nav-subtitle">No room selected.</div>

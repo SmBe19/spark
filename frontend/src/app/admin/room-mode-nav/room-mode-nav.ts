@@ -1,7 +1,7 @@
 import { NgClass } from '@angular/common';
 import { Component, inject } from '@angular/core';
 import { RoomService } from '../../service/room-service';
-import { PreviewRoomMode, RoomMode } from '../../model/rooms';
+import { JoinInfoMode, PreviewRoomMode, RoomMode } from '../../model/rooms';
 import { RoomInfoService } from '../../service/room-info-service';
 import { DirectStreamService } from '../../service/direct-stream-service';
 
@@ -25,12 +25,23 @@ export class RoomModeNav {
     { label: 'Blank', mode: 'blank' },
   ];
 
+  joinInfoNavItems: JoinInfoNavItem[] = [
+    { label: 'Auto', mode: 'auto' },
+    { label: 'Small', mode: 'small' },
+    { label: 'Big', mode: 'big' },
+    { label: 'None', mode: 'none' },
+  ];
+
   switchPreviewRoomMode(previewMode: PreviewRoomMode) {
     this.roomService.activePreviewRoomMode.set(previewMode);
   }
 
   switchRoomMode(mode: RoomMode) {
     this.roomService.updateActiveRoomSettings({ active_mode: mode });
+  }
+
+  switchJoinInfoMode(mode: JoinInfoMode) {
+    this.roomService.updateActiveRoomSettings({ join_info_mode: mode });
   }
 
   openPresenter() {
@@ -46,4 +57,9 @@ interface NavItem {
   label: string;
   mode?: RoomMode;
   previewMode?: PreviewRoomMode;
+}
+
+interface JoinInfoNavItem {
+  label: string;
+  mode: JoinInfoMode;
 }

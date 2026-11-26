@@ -1,5 +1,12 @@
-<div class="join-information" [ngClass]="{ 'join-information-big': joinInformationBig() }">
-  @if (joinInformationBig()) {
+<div
+  class="join-information"
+  [ngClass]="{
+    'join-information-big': joinInformationMode() === 'big',
+    'join-information-none': joinInformationMode() === 'none',
+    'join-information-small': joinInformationMode() === 'small',
+  }"
+>
+  @if (joinInformationMode() === 'big') {
     <div class="join-qr">
       <qrcode
         [qrdata]="'https://' + joinLink()"

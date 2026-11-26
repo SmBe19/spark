@@ -96,6 +96,7 @@ def sanitize_room(room):
             "active_mode",
             "active_question_index",
             "active_slide_index",
+            "join_info_mode",
             "stream",
         ],
     )
@@ -148,8 +149,10 @@ def migrate_room(room):
             "stream_to_clients": False,
             "webrtc_streaming": False,
             "webrtc_bitrate_kbps": 250,
-            "frame_preview_interval_ms": 2500,
+            "frame_preview_interval_ms": 10000,
         }
         db["rooms"].update_one({"_id": room["_id"]}, {"$set": {"stream": new_stream}})
         room["stream"] = new_stream
+    if "join_info_mode" not in room:
+        room["join_info_mode"] = "auto"
     return room

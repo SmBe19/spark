@@ -6,17 +6,12 @@ import { LocalStreamService } from './local-stream-service';
 
 @Service()
 export class FrameStreamReceiverService {
-  private static readonly remoteStreamTimeoutMs = 10000;
-
   remoteStreams = signal<{ [key: string]: RemoteStream }>({});
   remoteStreamsArray = computed<RemoteStreamPreview[]>(() => {
     const streamIdToChannel = this.localStreamService.streamIdToChannel();
     return Object.values(this.remoteStreams())
       .filter((stream) => stream.roomId === this.roomInfoService.activeRoomId())
-      .filter(
-        (stream) =>
-          stream.lastUpdateTimeMs > Date.now() - FrameStreamReceiverService.remoteStreamTimeoutMs,
-      )
+      .filter((stream) => stream.lastUpdateTimeMs > Date.now() - this.remoteStreamTimeoutMs())
       .map((stream) => ({
         id: stream.id,
         label: stream.label,
@@ -25,6 +20,9 @@ export class FrameStreamReceiverService {
       }))
       .sort((a, b) => a.label.localeCompare(b.label));
   });
+  remoteStreamTimeoutMs = computed(
+    () => (this.roomInfoService.activeRoom()?.stream.framePreviewIntervalMs || 5000) * 2,
+  );
 
   private roomInfoService = inject(RoomInfoService);
   private socketService = inject(SocketService);
@@ -44,12 +42,11 @@ export class FrameStreamReceiverService {
     if (!roomId) {
       return;
     }
-    if (this.localStreamService.localStreams().hasOwnProperty(data.id)) {
+    if (!!this.localStreamService.localStreams()[data.id]) {
       return;
     }
     this.remoteStreams.update((currentStreams) => {
       const currentStream = currentStreams[data.id] || {};
-      const newPreviewFrame = currentStream?.currentPreviewFrame || data.current_frame;
       const frameUpdate: Partial<RemoteStream> = {};
       if (bigFrame) {
         frameUpdate.currentBigFrame = data.current_frame;
@@ -62,7 +59,7 @@ export class FrameStreamReceiverService {
           roomId,
           label: data.label,
           lastUpdateTimeMs: Date.now(),
-          currentPreviewFrame: newPreviewFrame,
+          currentPreviewFrame: data.current_frame,
           ...frameUpdate,
         },
       };

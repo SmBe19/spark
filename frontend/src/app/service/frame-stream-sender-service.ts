@@ -8,9 +8,18 @@ import { LocalStreamService } from './local-stream-service';
 
 @Service()
 export class FrameStreamSenderService {
-  private static readonly previewScale = 0.25;
-  private static readonly previewMaxSize = 500;
-  private static readonly bigFrameMaxSize = 1920;
+  private static readonly previewScaling: ScaleConfig = {
+    defaultScale: 0.25,
+    maxDimension: 500,
+    maxFileSizeBytes: 512 * 1024, // 512 KB
+    postScaling: 1,
+  };
+  private static readonly bigFrameScaling: ScaleConfig = {
+    defaultScale: 1,
+    maxDimension: 1920,
+    maxFileSizeBytes: 2 * 1024 * 1024, // 2 MB
+    postScaling: 1,
+  };
 
   errorMessage = signal<string | null>(null);
 
@@ -31,12 +40,7 @@ export class FrameStreamSenderService {
 
   private sendPreviewFrames() {
     for (const localStream of Object.values(this.localStreamService.localStreams())) {
-      const scale = Math.min(
-        FrameStreamSenderService.previewScale,
-        FrameStreamSenderService.previewMaxSize / localStream.videoElement.videoWidth,
-        FrameStreamSenderService.previewMaxSize / localStream.videoElement.videoHeight,
-      );
-      const dataUrl = this.renderFrameDataURL(localStream.videoElement, localStream.canvas, scale);
+      const dataUrl = this.renderFrameDataURL(localStream, FrameStreamSenderService.previewScaling);
       if (!dataUrl) {
         continue;
       }
@@ -57,32 +61,53 @@ export class FrameStreamSenderService {
     }
   }
 
-  private renderFrameDataURL(
-    videoElement: HTMLVideoElement,
-    canvas: HTMLCanvasElement,
-    scale: number,
-  ) {
-    if (!this.drawFrame(videoElement, canvas, scale)) {
-      return null;
+  private renderFrameDataURL(localStream: LocalStream, scaleConfig: ScaleConfig) {
+    let currentPostScaling = scaleConfig.postScaling;
+    while (true) {
+      if (!this.drawFrame(localStream, { ...scaleConfig, postScaling: currentPostScaling })) {
+        return null;
+      }
+      const dataUrl = localStream.canvas.toDataURL(this.streamImageFormat(localStream), 0.8);
+      if (dataUrl.length <= scaleConfig.maxFileSizeBytes) {
+        return dataUrl;
+      }
+      currentPostScaling *= 0.8;
     }
-    return canvas.toDataURL('image/png');
   }
 
-  private renderFrameBlob(
-    videoElement: HTMLVideoElement,
-    canvas: HTMLCanvasElement,
-    scale: number,
+  private async renderFrameBlob(
+    localStream: LocalStream,
+    scaleConfig: ScaleConfig,
   ): Promise<Blob | null> {
-    if (!this.drawFrame(videoElement, canvas, scale)) {
-      return Promise.resolve(null);
+    let currentPostScaling = scaleConfig.postScaling;
+    while (true) {
+      if (!this.drawFrame(localStream, { ...scaleConfig, postScaling: currentPostScaling })) {
+        return Promise.resolve(null);
+      }
+      const blob: Blob | null = await new Promise((resolve) =>
+        localStream.canvas.toBlob(resolve, this.streamImageFormat(localStream), 0.8),
+      );
+      if (!blob) {
+        return null;
+      }
+      if (blob.size <= scaleConfig.maxFileSizeBytes) {
+        return blob;
+      }
+      currentPostScaling *= 0.8;
     }
-    return new Promise((resolve) => canvas.toBlob(resolve, 'image/png'));
   }
 
-  private drawFrame(videoElement: HTMLVideoElement, canvas: HTMLCanvasElement, scale: number) {
+  private drawFrame(localStream: LocalStream, scaleConfig: ScaleConfig) {
+    const videoElement = localStream.videoElement;
+    const canvas = localStream.canvas;
     if (videoElement.readyState < HTMLMediaElement.HAVE_CURRENT_DATA) {
       return false;
     }
+    const scale =
+      Math.min(
+        scaleConfig.defaultScale,
+        scaleConfig.maxDimension / Math.max(videoElement.videoWidth, videoElement.videoHeight),
+      ) * scaleConfig.postScaling;
     canvas.width = videoElement.videoWidth * scale;
     canvas.height = videoElement.videoHeight * scale;
     const ctx = canvas.getContext('2d');
@@ -94,12 +119,7 @@ export class FrameStreamSenderService {
   }
 
   private async uploadBigFrame(localStream: LocalStream) {
-    const scale = Math.min(
-      1,
-      FrameStreamSenderService.bigFrameMaxSize / localStream.videoElement.videoWidth,
-      FrameStreamSenderService.bigFrameMaxSize / localStream.videoElement.videoHeight,
-    );
-    const blob = await this.renderFrameBlob(localStream.videoElement, localStream.canvas, scale);
+    const blob = await this.renderFrameBlob(localStream, FrameStreamSenderService.bigFrameScaling);
     if (!blob) {
       return;
     }
@@ -126,4 +146,18 @@ export class FrameStreamSenderService {
       this.errorMessage.set('Error uploading big stream frame: ' + (error as Error).message);
     }
   }
+
+  private streamImageFormat(localStream: LocalStream) {
+    if (localStream.isDisplayMedia) {
+      return 'image/png';
+    }
+    return 'image/jpeg';
+  }
+}
+
+interface ScaleConfig {
+  defaultScale: number;
+  maxDimension: number;
+  maxFileSizeBytes: number;
+  postScaling: number;
 }

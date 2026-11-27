@@ -13,13 +13,37 @@
             </button>
           }
           @if (localStreamService.streamCaptureSupportedUserMedia) {
-            <button
-              type="button"
-              [disabled]="anyDirtyValues()"
-              (click)="localStreamService.addLocalStream({ displayMedia: false })"
-            >
-              Share Camera
-            </button>
+            @if (localStreamService.streamCaptureSupportedDisplayMedia) {
+              <button
+                type="button"
+                [disabled]="anyDirtyValues()"
+                (click)="localStreamService.addLocalStream({ displayMedia: false })"
+              >
+                Share Camera
+              </button>
+            } @else {
+              <button
+                type="button"
+                [disabled]="anyDirtyValues()"
+                (click)="
+                  localStreamService.addLocalStream({ displayMedia: false, facingMode: 'user' })
+                "
+              >
+                Share Front Camera
+              </button>
+              <button
+                type="button"
+                [disabled]="anyDirtyValues()"
+                (click)="
+                  localStreamService.addLocalStream({
+                    displayMedia: false,
+                    facingMode: 'environment',
+                  })
+                "
+              >
+                Share Back Camera
+              </button>
+            }
           }
         </div>
       } @else {

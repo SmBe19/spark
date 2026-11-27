@@ -3,6 +3,7 @@
   bottom: 0;
   right: 0;
   max-width: 25rem;
+  max-height: 100vh;
   background-color: var(--muted-color-very-light);
   color: var(--muted-color-medium);
   border-top-left-radius: 0.5rem;
